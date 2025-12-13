@@ -1,0 +1,79 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}View Document{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">View Document</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:document_list' %}">Documents</a></li>
+                        <li class="breadcrumb-item active">View</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ object.title }}</h5>
+                    <div>
+                        <a href="{{ object.file.url }}" class="btn btn-primary btn-sm" download>
+                            <i class="bx bx-download me-1"></i> Download
+                        </a>
+                        {% if perms.hr.delete_staffdocument %}
+                        <a href="{% url 'hr:document_delete' object.pk %}" class="btn btn-danger btn-sm ms-2">
+                            <i class="bx bx-trash me-1"></i> Delete
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1">Staff</p>
+                            <h6 class="fw-semibold">{{ object.staff.full_name }}</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1">Document Type</p>
+                            <h6 class="fw-semibold">{{ object.get_document_type_display }}</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1">Uploaded On</p>
+                            <h6 class="fw-semibold">{{ object.uploaded_at|date:"M d, Y" }}</h6>
+                        </div>
+                    </div>
+                    
+                    {% if object.expiry_date %}
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bx bx-time-five me-2"></i> Expires on: <strong>{{ object.expiry_date }}</strong>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4 text-center bg-light p-4 rounded">
+                        {% if object.file.url|lower|slice:"-4:" == ".pdf" %}
+                            <iframe src="{{ object.file.url }}" width="100%" height="600px" style="border: none;"></iframe>
+                        {% elif object.file.url|lower|slice:"-4:" == ".jpg" or object.file.url|lower|slice:"-5:" == ".jpeg" or object.file.url|lower|slice:"-4:" == ".png" %}
+                            <img src="{{ object.file.url }}" alt="{{ object.title }}" class="img-fluid" style="max-height: 600px;">
+                        {% else %}
+                            <div class="py-5">
+                                <i class="bx bx-file display-1 text-muted"></i>
+                                <p class="mt-3 text-muted">Preview not available for this file type.</p>
+                                <a href="{{ object.file.url }}" class="btn btn-primary mt-2">Download to View</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

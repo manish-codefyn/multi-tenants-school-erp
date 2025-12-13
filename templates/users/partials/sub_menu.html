@@ -1,0 +1,12 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-user"></i></div>
+        <div class="menu-title">User Management</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'users:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'users:user_list' %}"><i class="bx bx-radio-circle"></i>All Users</a></li>
+        <li><a href="{% url 'users:profile' %}"><i class="bx bx-radio-circle"></i>My Profile</a></li>
+        <li><a href="{% url 'users:change_password' %}"><i class="bx bx-radio-circle"></i>Change Password</a></li>
+    </ul>
+</li>

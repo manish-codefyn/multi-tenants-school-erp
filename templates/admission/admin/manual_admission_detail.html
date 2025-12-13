@@ -1,0 +1,472 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Manual Admission Details - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.detail-section h5 {
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+.detail-row {
+    margin-bottom: 10px;
+}
+.detail-label {
+    font-weight: 600;
+    color: #6c757d;
+}
+.detail-value {
+    color: #212529;
+}
+.status-badge-large {
+    font-size: 1rem;
+    padding: 8px 16px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+        <div class="breadcrumb-title pe-3">Admission</div>
+        <div class="ps-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 p-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admission:dashboard' %}">Admission</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admission:manual_admission_list' %}">Manual Admissions</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ application.application_number }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="ms-auto">
+            <div class="btn-group" role="group">
+                <a href="{% url 'admission:manual_admission_edit' application.pk %}" class="btn btn-primary">
+                    <i class="bx bx-edit"></i> Edit
+                </a>
+                <button type="button" class="btn btn-success" onclick="window.print()">
+                    <i class="bx bx-printer"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Header -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="mb-2">{{ application.first_name }} {{ application.middle_name }} {{ application.last_name }}</h3>
+                    <p class="mb-1"><strong>Application Number:</strong> <span class="badge bg-secondary">{{ application.application_number }}</span></p>
+                    <p class="mb-0"><strong>Admission Type:</strong> <span class="badge bg-info">{{ application.get_admission_type_display }}</span></p>
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if application.status == 'approved' %}
+                        <span class="badge bg-success status-badge-large">Approved</span>
+                    {% elif application.status == 'rejected' %}
+                        <span class="badge bg-danger status-badge-large">Rejected</span>
+                    {% elif application.status == 'admitted' %}
+                        <span class="badge bg-info status-badge-large">Admitted</span>
+                    {% elif application.status == 'submitted' %}
+                        <span class="badge bg-primary status-badge-large">Submitted</span>
+                    {% else %}
+                        <span class="badge bg-secondary status-badge-large">{{ application.status|title }}</span>
+                    {% endif %}
+                    <div class="mt-2 text-muted small">
+                        Applied on: {{ application.created_at|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Personal Information -->
+            <div class="detail-section">
+                <h5><i class="bx bx-user"></i> Personal Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Full Name</div>
+                            <div class="detail-value">{{ application.first_name }} {{ application.middle_name }} {{ application.last_name }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Date of Birth</div>
+                            <div class="detail-value">{{ application.date_of_birth|date:"M d, Y" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Gender</div>
+                            <div class="detail-value">{{ application.get_gender_display }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Category</div>
+                            <div class="detail-value">{{ application.category|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Religion</div>
+                            <div class="detail-value">{{ application.religion|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Blood Group</div>
+                            <div class="detail-value">{{ application.get_blood_group_display|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Nationality</div>
+                            <div class="detail-value">{{ application.nationality|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="detail-section">
+                <h5><i class="bx bx-phone"></i> Contact Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">{{ application.email }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Mobile</div>
+                            <div class="detail-value">{{ application.mobile }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Alternate Mobile</div>
+                            <div class="detail-value">{{ application.alternate_mobile|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="detail-section">
+                <h5><i class="bx bx-map"></i> Address Information</h5>
+                <h6 class="text-muted">Permanent Address</h6>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="detail-row">
+                            <div class="detail-label">Address</div>
+                            <div class="detail-value">{{ application.permanent_address|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">City</div>
+                            <div class="detail-value">{{ application.permanent_city|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">State</div>
+                            <div class="detail-value">{{ application.permanent_state|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Pincode</div>
+                            <div class="detail-value">{{ application.permanent_pincode|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Country</div>
+                            <div class="detail-value">{{ application.permanent_country|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if not application.correspondence_same_as_permanent %}
+                <h6 class="text-muted">Correspondence Address</h6>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="detail-row">
+                            <div class="detail-label">Address</div>
+                            <div class="detail-value">{{ application.correspondence_address|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">City</div>
+                            <div class="detail-value">{{ application.correspondence_city|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">State</div>
+                            <div class="detail-value">{{ application.correspondence_state|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Pincode</div>
+                            <div class="detail-value">{{ application.correspondence_pincode|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Country</div>
+                            <div class="detail-value">{{ application.correspondence_country|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted"><em>Same as permanent address</em></p>
+                {% endif %}
+            </div>
+
+            <!-- Academic Information -->
+            <div class="detail-section">
+                <h5><i class="bx bx-book"></i> Academic Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Academic Year</div>
+                            <div class="detail-value">{{ application.academic_year.name|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Applying for Class</div>
+                            <div class="detail-value">{{ application.applying_for_class|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Applying for Course</div>
+                            <div class="detail-value">{{ application.applying_for_course.name|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Previous School</div>
+                            <div class="detail-value">{{ application.previous_school|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Previous Class</div>
+                            <div class="detail-value">{{ application.previous_class|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Previous Marks</div>
+                            <div class="detail-value">{{ application.previous_marks|default:"-" }}%</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Previous Board</div>
+                            <div class="detail-value">{{ application.previous_board|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent Information -->
+            <div class="detail-section">
+                <h5><i class="bx bx-group"></i> Parent/Guardian Information</h5>
+                
+                <h6 class="text-muted">Father's Details</h6>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Name</div>
+                            <div class="detail-value">{{ application.father_name|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Occupation</div>
+                            <div class="detail-value">{{ application.father_occupation|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Qualification</div>
+                            <div class="detail-value">{{ application.father_qualification|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Mobile</div>
+                            <div class="detail-value">{{ application.father_mobile|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">{{ application.father_email|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h6 class="text-muted">Mother's Details</h6>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Name</div>
+                            <div class="detail-value">{{ application.mother_name|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Occupation</div>
+                            <div class="detail-value">{{ application.mother_occupation|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Qualification</div>
+                            <div class="detail-value">{{ application.mother_qualification|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Mobile</div>
+                            <div class="detail-value">{{ application.mother_mobile|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">{{ application.mother_email|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if application.guardian_name %}
+                <h6 class="text-muted">Guardian's Details</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Name</div>
+                            <div class="detail-value">{{ application.guardian_name }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Relation</div>
+                            <div class="detail-value">{{ application.guardian_relation|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Occupation</div>
+                            <div class="detail-value">{{ application.guardian_occupation|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Mobile</div>
+                            <div class="detail-value">{{ application.guardian_mobile|default:"-" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-row">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">{{ application.guardian_email|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Application Details -->
+            <div class="detail-section">
+                <h5><i class="bx bx-file"></i> Application Details</h5>
+                <div class="detail-row">
+                    <div class="detail-label">Application Fee Paid</div>
+                    <div class="detail-value">
+                        {% if application.application_fee_paid %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-danger">No</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Fee Amount</div>
+                    <div class="detail-value">₹{{ application.application_fee_amount|default:"0" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Payment Reference</div>
+                    <div class="detail-value">{{ application.payment_reference|default:"-" }}</div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="detail-section">
+                <h5><i class="bx bx-time"></i> Timeline</h5>
+                <div class="detail-row">
+                    <div class="detail-label">Created At</div>
+                    <div class="detail-value">{{ application.created_at|date:"M d, Y h:i A" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Created By</div>
+                    <div class="detail-value">{{ application.created_by.get_full_name|default:"-" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Last Updated</div>
+                    <div class="detail-value">{{ application.updated_at|date:"M d, Y h:i A" }}</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="detail-section">
+                <h5><i class="bx bx-cog"></i> Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'admission:manual_admission_edit' application.pk %}" class="btn btn-primary">
+                        <i class="bx bx-edit"></i> Edit Application
+                    </a>
+                    {% if application.status == 'approved' %}
+                    <form method="post" action="{% url 'admission:bulk_admit' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="application_ids" value="{{ application.pk }}">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bx bx-check-double"></i> Admit Student
+                        </button>
+                    </form>
+                    {% endif %}
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="bx bx-printer"></i> Print Details
+                    </button>
+                    <a href="{% url 'admission:manual_admission_list' %}" class="btn btn-outline-primary">
+                        <i class="bx bx-arrow-back"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

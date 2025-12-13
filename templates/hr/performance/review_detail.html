@@ -1,0 +1,119 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Review - {{ object.staff.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Performance Review</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:performancereview_list' %}">Performance</a></li>
+                        <li class="breadcrumb-item active">Detail</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Review Content</h5>
+                    <span class="badge {% if object.rating >= 4 %}bg-success{% elif object.rating >= 3 %}bg-info{% elif object.rating >= 2 %}bg-warning{% else %}bg-danger{% endif %} fs-12">
+                        Rating: {{ object.rating }}/5
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-uppercase">Goals & Objectives</h6>
+                        <p class="text-muted">{{ object.goals|linebreaks|default:"No goals specified." }}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-uppercase">Achievements</h6>
+                        <p class="text-muted">{{ object.achievements|linebreaks|default:"No achievements recorded." }}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-uppercase">Areas for Improvement</h6>
+                        <p class="text-muted">{{ object.areas_for_improvement|linebreaks|default:"None specified." }}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-uppercase">Reviewer Comments</h6>
+                        <p class="text-muted">{{ object.comments|linebreaks|default:"No comments." }}</p>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-end gap-2">
+                    <a href="{% url 'hr:performancereview_list' %}" class="btn btn-light">Back to List</a>
+                    
+                    {% if perms.hr.change_performancereview %}
+                    <a href="{% url 'hr:performancereview_update' object.pk %}" class="btn btn-primary">Edit</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Review Info</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <th class="ps-0" scope="row">Staff :</th>
+                                    <td class="text-muted">{{ object.staff.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Reviewer :</th>
+                                    <td class="text-muted">{{ object.reviewer.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Period :</th>
+                                    <td class="text-muted">
+                                        {{ object.review_period_start }} to {{ object.review_period_end }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Date :</th>
+                                    <td class="text-muted">{{ object.review_date }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Status :</th>
+                                    <td>
+                                        {% if object.status == 'DRAFT' %}
+                                            <span class="badge bg-secondary">Draft</span>
+                                        {% elif object.status == 'SUBMITTED' %}
+                                            <span class="badge bg-info">Submitted</span>
+                                        {% elif object.status == 'ACKNOWLEDGED' %}
+                                            <span class="badge bg-success">Acknowledged</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if object.status == 'SUBMITTED' and user == object.staff.user %}
+                    <div class="mt-4">
+                        <form method="post" action="{% url 'hr:performancereview_acknowledge' object.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100">Acknowledge Review</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

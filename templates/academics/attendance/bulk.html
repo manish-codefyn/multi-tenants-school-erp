@@ -1,0 +1,263 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Bulk Attendance - Academics{% endblock %}
+
+{% block page_title %}Bulk Attendance{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'academics:dashboard' %}">Academics</a></li>
+<li class="breadcrumb-item"><a href="{% url 'academics:attendance_list' %}">Attendance</a></li>
+<li class="breadcrumb-item active" aria-current="page">Bulk Attendance</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Filter Card -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bx bx-filter"></i>
+                    Select Class and Date
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="get" id="filterForm">
+                    <div class="row">
+                        <!-- Date -->
+                        <div class="col-md-3 mb-3">
+                            <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="date" 
+                                   name="date" 
+                                   value="{{ date|date:'Y-m-d' }}"
+                                   required>
+                        </div>
+
+                        <!-- Session -->
+                        <div class="col-md-3 mb-3">
+                            <label for="session" class="form-label">Session <span class="text-danger">*</span></label>
+                            <select class="form-select" id="session" name="session" required>
+                                <option value="MORNING" {% if session == 'MORNING' %}selected{% endif %}>Morning</option>
+                                <option value="AFTERNOON" {% if session == 'AFTERNOON' %}selected{% endif %}>Afternoon</option>
+                                <option value="FULL_DAY" {% if session == 'FULL_DAY' %}selected{% endif %}>Full Day</option>
+                            </select>
+                        </div>
+
+                        <!-- Class -->
+                        <div class="col-md-3 mb-3">
+                            <label for="class_id" class="form-label">Class <span class="text-danger">*</span></label>
+                            <select class="form-select" id="class_id" name="class_id" required>
+                                <option value="">Select Class</option>
+                                {% for class in classes %}
+                                <option value="{{ class.id }}" {% if filters.class_id|stringformat:"s" == class.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ class.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Section -->
+                        <div class="col-md-3 mb-3">
+                            <label for="section_id" class="form-label">Section <span class="text-danger">*</span></label>
+                            <select class="form-select" id="section_id" name="section_id" required>
+                                <option value="">Select Section</option>
+                                {% for section in sections %}
+                                <option value="{{ section.id }}" {% if filters.section_id|stringformat:"s" == section.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ section.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-search"></i> Load Students
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if student_data %}
+        <!-- Attendance Form Card -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bx bx-check-square"></i>
+                    Mark Attendance - {{ class_obj.name }} {{ section.name }} ({{ date|date:'F d, Y' }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="bulkAttendanceForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+                    <input type="hidden" name="session" value="{{ session }}">
+                    <input type="hidden" name="class_id" value="{{ class_obj.id }}">
+                    <input type="hidden" name="section_id" value="{{ section.id }}">
+
+                    <!-- Quick Actions -->
+                    <div class="alert alert-info d-flex justify-content-between align-items-center">
+                        <span><i class="bx bx-info-circle"></i> Quick Mark All:</span>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-success" onclick="markAll('PRESENT')">
+                                <i class="bx bx-check"></i> All Present
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="markAll('ABSENT')">
+                                <i class="bx bx-x"></i> All Absent
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Students Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 15%;">Roll No</th>
+                                    <th style="width: 30%;">Student Name</th>
+                                    <th style="width: 25%;">Status</th>
+                                    <th style="width: 25%;">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in student_data %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ data.student.admission_number|default:"-" }}</td>
+                                    <td>
+                                        {{ data.student.first_name }} {{ data.student.last_name }}
+                                        {% if data.has_record %}
+                                        <span class="badge bg-info">Already Marked</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm attendance-status" 
+                                                name="status_{{ data.student.id }}" 
+                                                required>
+                                            <option value="">Choose...</option>
+                                            {% for code, label in status_choices %}
+                                            <option value="{{ code }}" 
+                                                    {% if data.attendance and data.attendance.status == code %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" 
+                                               class="form-control form-control-sm" 
+                                               name="remarks_{{ data.student.id }}" 
+                                               placeholder="Optional remarks"
+                                               value="{% if data.attendance %}{{ data.attendance.remarks }}{% endif %}">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'academics:attendance_list' %}" class="btn btn-secondary">
+                            <i class="bx bx-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save"></i> Save Attendance
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% elif filters.class_id and filters.section_id %}
+        <div class="alert alert-warning">
+            <i class="bx bx-info-circle"></i> No students found for the selected class and section.
+        </div>
+        {% endif %}
+
+        <!-- Help Card -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6><i class="bx bx-info-circle"></i> Instructions</h6>
+                <ul class="mb-0">
+                    <li>Select the date, session, class, and section from the filters above</li>
+                    <li>Click "Load Students" to view all students in the selected class/section</li>
+                    <li>Use quick buttons to mark all students as Present or Absent at once</li>
+                    <li>Review and adjust individual student attendance as needed</li>
+                    <li>Add remarks for students with special attendance status (Late, Leave, etc.)</li>
+                    <li>Click "Save Attendance" to submit the attendance records</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load sections when class changes
+document.getElementById('class_id').addEventListener('change', function() {
+    const sectionSelect = document.getElementById('section_id');
+    sectionSelect.innerHTML = '<option value="">Select Section</option>';
+    
+    // In a real implementation, you would fetch sections via AJAX
+    // For now, submit the form to reload with new class
+});
+
+// Mark all students with a specific status
+function markAll(status) {
+    const statusSelects = document.querySelectorAll('.attendance-status');
+    statusSelects.forEach(select => {
+        select.value = status;
+    });
+}
+
+// Form submission
+document.getElementById('bulkAttendanceForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch(window.location.pathname + window.location.search, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // Optionally redirect to attendance list
+            window.location.href = "{% url 'academics:attendance_list' %}";
+        } else {
+            alert('Error: ' + (data.error || 'Unknown error occurred'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while saving attendance');
+    });
+});
+</script>
+
+<style>
+.table-responsive {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.attendance-status:invalid {
+    border-color: #dc3545;
+}
+</style>
+{% endblock %}

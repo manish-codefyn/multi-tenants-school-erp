@@ -1,0 +1,126 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Vehicles - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Vehicles</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'transport:dashboard' %}">Transport</a></li>
+                    <li class="breadcrumb-item active">Vehicles</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'transport:vehicle_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Vehicle
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="maintenance" {% if request.GET.status == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vehicles Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="vehiclesTable" class="table table-hover" data-datatable data-title="Report - {{ request.tenant.name }}">
+                    <thead>
+                        <tr>
+                            <th>Vehicle Number</th>
+                            <th>Type</th>
+                            <th>Make/Model</th>
+                            <th>Capacity</th>
+                            <th>Route</th>
+                            <th>Insurance Expiry</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vehicle in vehicles %}
+                        <tr>
+                            <td><strong>{{ vehicle.vehicle_number }}</strong></td>
+                            <td>{{ vehicle.get_vehicle_type_display }}</td>
+                            <td>{{ vehicle.make }} {{ vehicle.model }}</td>
+                            <td>{{ vehicle.capacity }}</td>
+                            <td>
+                                {% if vehicle.route %}
+                                    <a href="{% url 'transport:route_detail' vehicle.route.pk %}">{{ vehicle.route.code }}</a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ vehicle.insurance_expiry|date:"M d, Y"|default:"-" }}
+                                {% if vehicle.is_insurance_expiring_soon %}
+                                    <i class="bi bi-exclamation-triangle text-warning" title="Expiring soon"></i>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if vehicle.status == 'active' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% elif vehicle.status == 'maintenance' %}
+                                    <span class="badge bg-warning">Maintenance</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'transport:vehicle_detail' vehicle.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'transport:vehicle_update' vehicle.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+<script src="{% static 'assets/plugins/datatable/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/dataTables.bootstrap5.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#vehiclesTable').DataTable({
+        order: [[0, 'asc']],
+        pageLength: 25
+    });
+});
+</script>
+{% endblock %}

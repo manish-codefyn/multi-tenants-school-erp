@@ -1,0 +1,64 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ message.subject }} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="email-wrapper">
+                    <div class="email-sidebar">
+                        <div class="email-sidebar-content">
+                            <div class="email-navigation">
+                                <div class="list-group list-group-flush">
+                                    <a href="{% url 'communications:messages' %}?folder=inbox" class="list-group-item d-flex align-items-center">
+                                        <i class='bx bx-inbox me-3 font-20'></i><span>Inbox</span>
+                                    </a>
+                                    <a href="{% url 'communications:messages' %}?folder=sent" class="list-group-item d-flex align-items-center">
+                                        <i class='bx bx-send me-3 font-20'></i><span>Sent</span>
+                                    </a>
+                                    <a href="{% url 'communications:messages' %}?folder=drafts" class="list-group-item d-flex align-items-center">
+                                        <i class='bx bx-file me-3 font-20'></i><span>Drafts</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="email-header d-flex align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="email-toggle-btn"><i class='bx bx-menu'></i></div>
+                            <h4 class="email-header-title mb-0">Message Detail</h4>
+                        </div>
+                        <div class="ms-auto">
+                            <a href="{% url 'communications:messages' %}" class="btn btn-sm btn-outline-secondary"><i class='bx bx-arrow-back'></i> Back</a>
+                        </div>
+                    </div>
+                    
+                    <div class="email-content">
+                        <div class="email-read-box p-3">
+                            <h4>{{ message.subject }}</h4>
+                            <hr>
+                            <div class="d-flex align-items-center">
+                                <img src="{% static 'images/avatars/avatar-1.png' %}" width="42" height="42" class="rounded-circle" alt="" />
+                                <div class="flex-grow-1 ms-2">
+                                    <p class="mb-0 font-weight-bold">From: {{ message.sender.get_full_name|default:message.sender.email }}</p>
+                                    <p class="mb-0 text-secondary">To: {{ message.recipient_name }}</p>
+                                </div>
+                                <div class="ms-auto">
+                                    <p class="mb-0 text-secondary">{{ message.created_at|date:"M d, Y h:i A" }}</p>
+                                </div>
+                            </div>
+                            <div class="email-read-content px-md-5 py-5">
+                                {{ message.content|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

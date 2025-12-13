@@ -1,0 +1,141 @@
+
+
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-user-check"></i></div>
+        <div class="menu-title">Admission</div>
+    </a>
+    <ul>
+        <!-- Public Section - Available to all -->
+        <li> 
+            <a href="{% url 'admission:landing' %}">
+                <div class="parent-icon"><i class="bx bx-home-alt"></i></div>
+                <div class="menu-title">Admission Portal</div>
+            </a>
+        </li>
+        
+        <!-- Applicant Section -->
+        {% if user.is_authenticated and user.role in 'student,parent,guardian'|make_list or not user.is_authenticated %}
+        <li class="menu-label">For Applicants</li>
+        <li> 
+            <a href="{% url 'admission:apply' %}">
+                <div class="parent-icon"><i class="bx bx-edit"></i></div>
+                <div class="menu-title">Apply Online</div>
+            </a>
+        </li>
+        <li> 
+            <a href="{% url 'admission:status' %}">
+                <div class="parent-icon"><i class="bx bx-search-alt"></i></div>
+                <div class="menu-title">Check Status</div>
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Staff Management Section -->
+        {% if user.is_authenticated and user.role in 'principal,headmaster,teacher,accountant'|make_list or user.is_staff %}
+        <li class="menu-label">Staff Management</li>
+        <li> 
+            <a href="{% url 'admission:staff_list' %}">
+                <div class="parent-icon"><i class="bx bx-list-ul"></i></div>
+                <div class="menu-title">All Applications</div>
+            </a>
+        </li>
+        
+        <!-- For users with update permissions -->
+        {% if perms.admission.change_admission or user.is_staff %}
+        <li> 
+            <a href="{% url 'admission:staff_list' %}?action=review">
+                <div class="parent-icon"><i class="bx bx-clipboard"></i></div>
+                <div class="menu-title">Review Applications</div>
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- For users with delete permissions -->
+        {% if perms.admission.delete_admission or user.is_staff %}
+        <li> 
+            <a href="{% url 'admission:staff_list' %}?status=archived">
+                <div class="parent-icon"><i class="bx bx-archive"></i></div>
+                <div class="menu-title">Archived Applications</div>
+            </a>
+        </li>
+        {% endif %}
+        {% endif %}
+        
+        <!-- Admin Section -->
+        {% if user.is_authenticated and user.role in 'principal,headmaster,system_admin'|make_list or user.is_superuser %}
+        <li class="menu-label">Administration</li>
+        <li> 
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class="bx bx-cog"></i></div>
+                <div class="menu-title">Settings</div>
+            </a>
+            <ul>
+                <li> 
+                    <a href="#">
+                        <div class="parent-icon"><i class="bx bx-slider-alt"></i></div>
+                        <div class="menu-title">Configure Admission</div>
+                    </a>
+                </li>
+                <li> 
+                    <a href="#">
+                        <div class="parent-icon"><i class="bx bx-calendar"></i></div>
+                        <div class="menu-title">Set Deadlines</div>
+                    </a>
+                </li>
+                <li> 
+                    <a href="#">
+                        <div class="parent-icon"><i class="bx bx-dollar-circle"></i></div>
+                        <div class="menu-title">Fee Structure</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        
+        <li> 
+            <a href="javascript:;" class="has-arrow">
+                <div class="parent-icon"><i class="bx bx-stats"></i></div>
+                <div class="menu-title">Analytics</div>
+            </a>
+            <ul>
+                <li> 
+                    <a href="#">
+                        <div class="parent-icon"><i class="bx bx-trending-up"></i></div>
+                        <div class="menu-title">Admission Trends</div>
+                    </a>
+                </li>
+                <li> 
+                    <a href="#">
+                        <div class="parent-icon"><i class="bx bx-pie-chart-alt"></i></div>
+                        <div class="menu-title">Demographics</div>
+                    </a>
+                </li>
+                <li> 
+                    <a href="#">
+                        <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
+                        <div class="menu-title">Performance</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        {% endif %}
+        
+        <!-- System Superuser Section -->
+        {% if user.is_superuser or user.role == 'system_superuser' %}
+        <li class="menu-label">System Admin</li>
+        <li> 
+            <a href="#">
+                <div class="parent-icon"><i class="bx bx-data"></i></div>
+                <div class="menu-title">Database Backup</div>
+            </a>
+        </li>
+        <li> 
+            <a href="#">
+                <div class="parent-icon"><i class="bx bx-key"></i></div>
+                <div class="menu-title">Permission Management</div>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</li>

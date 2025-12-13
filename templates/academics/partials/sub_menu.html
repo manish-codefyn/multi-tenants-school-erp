@@ -1,0 +1,187 @@
+{% with current=request.resolver_match.url_name %}
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-book"></i></div>
+        <div class="menu-title">Academics</div>
+    </a>
+
+    <ul>
+
+        <!-- Dashboard -->
+        <li class="{% if current == 'dashboard' %}mm-active{% endif %}">
+            <a href="{% url 'academics:dashboard' %}">
+                <i class='bx bx-radio-circle'></i>Dashboard
+            </a>
+        </li>
+
+        <!-- ===================== TEACHER PANEL ===================== -->
+        {% if user.role == 'TEACHER' or user.is_staff %}
+
+        {% with teacher_urls="attendance_create attendance_list attendance_report timetable_list timetable_weekly studymaterial_create studymaterial_list class_list classteacher_list" %}
+        <li class="{% if current in teacher_urls %}mm-active{% endif %}">
+            <a href="javascript:;" class="has-arrow">
+                <i class='bx bx-radio-circle'></i>Teacher Panel
+            </a>
+
+            <ul class="{% if current in teacher_urls %}mm-collapse mm-show{% endif %}">
+
+                <!-- Attendance -->
+                {% with attendance_urls="attendance_create attendance_list attendance_report" %}
+                <li class="{% if current in attendance_urls %}mm-active{% endif %}">
+                    <a href="javascript:;" class="has-arrow">Attendance</a>
+
+                    <ul class="{% if current in attendance_urls %}mm-collapse mm-show{% endif %}">
+                        <li><a href="{% url 'academics:attendance_create' %}">Mark Attendance</a></li>
+                        <li><a href="{% url 'academics:attendance_list' %}">View Attendance</a></li>
+                        <li><a href="{% url 'academics:attendance_report' %}">Generate Reports</a></li>
+                    </ul>
+                </li>
+                {% endwith %}
+
+                <!-- Timetable -->
+                {% with timetable_urls="timetable_list timetable_weekly" %}
+                <li class="{% if current in timetable_urls %}mm-active{% endif %}">
+                    <a href="javascript:;" class="has-arrow">Timetable</a>
+
+                    <ul class="{% if current in timetable_urls %}mm-collapse mm-show{% endif %}">
+                        <li><a href="{% url 'academics:timetable_list' %}">My Schedule</a></li>
+                        <li><a href="{% url 'academics:timetable_weekly' %}">Weekly View</a></li>
+                    </ul>
+                </li>
+                {% endwith %}
+
+                <!-- Materials -->
+                {% with material_urls="studymaterial_create studymaterial_list" %}
+                <li class="{% if current in material_urls %}mm-active{% endif %}">
+                    <a href="javascript:;" class="has-arrow">Materials</a>
+                    <ul class="{% if current in material_urls %}mm-collapse mm-show{% endif %}">
+                        <li><a href="{% url 'academics:studymaterial_create' %}">Upload Material</a></li>
+                        <li><a href="{% url 'academics:studymaterial_list' %}">My Materials</a></li>
+                    </ul>
+                </li>
+                {% endwith %}
+
+                <!-- Classes -->
+                {% with class_urls="class_list classteacher_list" %}
+                <li class="{% if current in class_urls %}mm-active{% endif %}">
+                    <a href="javascript:;" class="has-arrow">Classes</a>
+                    <ul class="{% if current in class_urls %}mm-collapse mm-show{% endif %}">
+                        <li><a href="{% url 'academics:class_list' %}">My Classes</a></li>
+                        <li><a href="{% url 'academics:classteacher_list' %}">Class Teacher</a></li>
+                    </ul>
+                </li>
+                {% endwith %}
+
+            </ul>
+        </li>
+        {% endwith %}
+        {% endif %}
+
+        <!-- ===================== STUDENT PANEL ===================== -->
+        {% if user.role == 'STUDENT' %}
+        {% with student_urls="classsubject_list timetable_weekly attendance_list attendance_stats studymaterial_list academic_calendar holiday_calendar" %}
+        <li class="{% if current in student_urls %}mm-active{% endif %}">
+            <a href="javascript:;" class="has-arrow">
+                <i class='bx bx-radio-circle'></i>Student Panel
+            </a>
+
+            <ul class="{% if current in student_urls %}mm-collapse mm-show{% endif %}">
+
+                <li><a href="{% url 'academics:classsubject_list' %}">My Courses</a></li>
+                <li><a href="{% url 'academics:timetable_weekly' %}">My Timetable</a></li>
+
+                <!-- My Attendance -->
+                {% with st_att_urls="attendance_list attendance_stats" %}
+                <li class="{% if current in st_att_urls %}mm-active{% endif %}">
+                    <a href="javascript:;" class="has-arrow">My Attendance</a>
+
+                    <ul class="{% if current in st_att_urls %}mm-collapse mm-show{% endif %}">
+                        <li><a href="{% url 'academics:attendance_list' %}">View Attendance</a></li>
+                        <li><a href="{% url 'academics:attendance_stats' %}">Statistics</a></li>
+                    </ul>
+                </li>
+                {% endwith %}
+
+                <li><a href="{% url 'academics:studymaterial_list' %}">Study Materials</a></li>
+                <li><a href="{% url 'academics:academic_calendar' %}">Academic Calendar</a></li>
+                <li><a href="{% url 'academics:holiday_calendar' %}">Holidays</a></li>
+
+            </ul>
+        </li>
+        {% endwith %}
+        {% endif %}
+
+        <!-- ===================== ADMIN PANEL ===================== -->
+        {% if user.is_superuser or user.role == 'ADMIN' %}
+        {% with admin_urls="year_list term_list class_list section_list subject_list stream_list timetable_list attendance_bulk house_list housepoints_create classteacher_list holiday_list attendance_report attendance_export_csv" %}
+        <li class="{% if current in admin_urls %}mm-active{% endif %}">
+            <a href="javascript:;" class="has-arrow">
+                <i class='bx bx-radio-circle'></i>Admin Panel
+            </a>
+
+            <ul class="{% if current in admin_urls %}mm-collapse mm-show{% endif %}">
+
+                <!-- Academic Setup -->
+                {% with setup_urls="year_list term_list class_list section_list subject_list stream_list" %}
+                <li class="{% if current in setup_urls %}mm-active{% endif %}">
+                    <a href="javascript:;" class="has-arrow">Academic Setup</a>
+                    <ul class="{% if current in setup_urls %}mm-collapse mm-show{% endif %}">
+                        <li><a href="{% url 'academics:year_list' %}">Academic Years</a></li>
+                        <li><a href="{% url 'academics:term_list' %}">Terms</a></li>
+                        <li><a href="{% url 'academics:class_list' %}">Classes</a></li>
+                        <li><a href="{% url 'academics:section_list' %}">Sections</a></li>
+                        <li><a href="{% url 'academics:subject_list' %}">Subjects</a></li>
+                        <li><a href="{% url 'academics:stream_list' %}">Streams</a></li>
+                    </ul>
+                </li>
+                {% endwith %}
+
+                <li><a href="{% url 'academics:timetable_list' %}">Manage Timetable</a></li>
+                <li><a href="{% url 'academics:attendance_bulk' %}">Bulk Attendance</a></li>
+
+                <!-- House System -->
+                {% with house_urls="house_list housepoints_create" %}
+                <li class="{% if current in house_urls %}mm-active{% endif %}">
+                    <a href="javascript:;" class="has-arrow">House System</a>
+                    <ul class="{% if current in house_urls %}mm-collapse mm-show{% endif %}">
+                        <li><a href="{% url 'academics:house_list' %}">Manage Houses</a></li>
+                        <li><a href="{% url 'academics:housepoints_create' %}">Award Points</a></li>
+                    </ul>
+                </li>
+                {% endwith %}
+
+                <li><a href="{% url 'academics:classteacher_list' %}">Assign Class Teachers</a></li>
+                <li><a href="{% url 'academics:holiday_list' %}">Manage Holidays</a></li>
+
+                <!-- Reports -->
+                {% with report_urls="attendance_report attendance_export_csv" %}
+                <li class="{% if current in report_urls %}mm-active{% endif %}">
+                    <a href="javascript:;" class="has-arrow">Reports</a>
+                    <ul class="{% if current in report_urls %}mm-collapse mm-show{% endif %}">
+                        <li><a href="{% url 'academics:attendance_report' %}">Attendance Reports</a></li>
+                        <li><a href="{% url 'academics:attendance_export_csv' %}">Export Data</a></li>
+                    </ul>
+                </li>
+                {% endwith %}
+
+            </ul>
+        </li>
+        {% endwith %}
+        {% endif %}
+
+        <!-- Shared Resources -->
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <i class='bx bx-radio-circle'></i>Shared Resources
+            </a>
+            <ul>
+                <li><a href="{% url 'academics:timetable_weekly' %}">Weekly Timetable</a></li>
+                <li><a href="{% url 'academics:academic_calendar' %}">Academic Calendar</a></li>
+                <li><a href="{% url 'academics:holiday_calendar' %}">Holiday Calendar</a></li>
+                <li><a href="{% url 'academics:studymaterial_list' %}">Study Materials</a></li>
+            </ul>
+        </li>
+
+    </ul>
+</li>
+{% endwith %}

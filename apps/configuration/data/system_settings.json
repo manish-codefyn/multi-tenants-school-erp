@@ -1,0 +1,128 @@
+[
+    {
+        "key": "site.title",
+        "name": "Site Title",
+        "description": "The title of the website displayed in browser tabs",
+        "category": "GENERAL",
+        "group": "Site Information",
+        "setting_type": "STRING",
+        "value": "My School Management System",
+        "is_public": true,
+        "is_required": true,
+        "order": 1,
+        "validation_regex": "^[A-Za-z0-9\\s\\-\\.]{3,100}$"
+    },
+    {
+        "key": "site.description",
+        "name": "Site Description",
+        "description": "Meta description for SEO",
+        "category": "GENERAL",
+        "group": "Site Information",
+        "setting_type": "TEXT",
+        "value": "Comprehensive school management system for educational institutions",
+        "is_public": true,
+        "order": 2
+    },
+    {
+        "key": "site.timezone",
+        "name": "Timezone",
+        "description": "Default timezone for the system",
+        "category": "GENERAL",
+        "group": "Localization",
+        "setting_type": "CHOICE",
+        "value": "Asia/Kolkata",
+        "is_required": true,
+        "order": 3,
+        "choices": [
+            "UTC",
+            "America/New_York",
+            "Europe/London",
+            "Asia/Kolkata",
+            "Asia/Singapore"
+        ]
+    },
+    {
+        "key": "academic.year.current",
+        "name": "Current Academic Year",
+        "description": "Currently active academic year",
+        "category": "ACADEMIC",
+        "group": "Academic Year",
+        "setting_type": "STRING",
+        "value": "2024-2025",
+        "is_required": true,
+        "order": 10
+    },
+    {
+        "key": "email.notifications.enabled",
+        "name": "Email Notifications",
+        "description": "Enable or disable all email notifications",
+        "category": "NOTIFICATION",
+        "group": "Email",
+        "setting_type": "BOOLEAN",
+        "value": true,
+        "is_public": false,
+        "order": 20
+    },
+    {
+        "key": "security.password.min_length",
+        "name": "Minimum Password Length",
+        "description": "Minimum number of characters required in passwords",
+        "category": "SECURITY",
+        "group": "Password Policy",
+        "setting_type": "INTEGER",
+        "value": 8,
+        "is_required": true,
+        "min_value": 6,
+        "max_value": 32,
+        "order": 30
+    },
+    {
+        "key": "finance.currency.base",
+        "name": "Base Currency",
+        "description": "Default currency for financial transactions",
+        "category": "FINANCE",
+        "group": "Currency",
+        "setting_type": "STRING",
+        "value": "INR",
+        "is_required": true,
+        "order": 40
+    },
+    {
+        "key": "finance.currency.symbol",
+        "name": "Currency Symbol",
+        "description": "Symbol to display with currency amounts",
+        "category": "FINANCE",
+        "group": "Currency",
+        "setting_type": "STRING",
+        "value": "₹",
+        "depends_on": "finance.currency.base",
+        "order": 41
+    },
+    {
+        "key": "appearance.theme.mode",
+        "name": "Theme Mode",
+        "description": "Default theme mode for the interface",
+        "category": "APPEARANCE",
+        "group": "Theme",
+        "setting_type": "CHOICE",
+        "value": "LIGHT",
+        "choices": [
+            "LIGHT",
+            "DARK",
+            "AUTO"
+        ],
+        "is_public": true,
+        "order": 50
+    },
+    {
+        "key": "system.maintenance.mode",
+        "name": "Maintenance Mode",
+        "description": "Enable maintenance mode to restrict access",
+        "category": "SYSTEM",
+        "group": "Maintenance",
+        "setting_type": "BOOLEAN",
+        "value": false,
+        "is_encrypted": false,
+        "order": 100
+    }
+]

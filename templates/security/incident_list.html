@@ -1,0 +1,65 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Security Incidents{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Security Incidents</h5>
+            <a href="{% url 'security:incident_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Report Incident</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="incidentTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Incident ID</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Detected At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for incident in incidents %}
+                    <tr>
+                        <td><code>{{ incident.incident_id }}</code></td>
+                        <td>{{ incident.title|truncatewords:5 }}</td>
+                        <td>{{ incident.get_incident_type_display }}</td>
+                        <td>
+                            {% if incident.priority == 'CRITICAL' %}<span class="badge bg-danger">{{ incident.get_priority_display }}</span>
+                            {% elif incident.priority == 'HIGH' %}<span class="badge bg-warning">{{ incident.get_priority_display }}</span>
+                            {% else %}<span class="badge bg-info">{{ incident.get_priority_display }}</span>{% endif %}
+                        </td>
+                        <td><span class="badge bg-secondary">{{ incident.get_status_display }}</span></td>
+                        <td>{{ incident.detected_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'security:incident_detail' incident.pk %}" class="ms-3" title="View"><i class="bx bxs-show"></i></a>
+                                <a href="{% url 'security:incident_update' incident.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#incidentTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#incidentTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

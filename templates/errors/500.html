@@ -1,0 +1,19 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}500 - Internal Server Error{% endblock %}
+
+{% block content %}
+<div class="error-card">
+    <div class="error-title text-danger">500</div>
+    <h2 class="error-subtitle">Internal Server Error</h2>
+    <p class="error-message">Something went wrong on our end. We are working to fix this. Please try again later.</p>
+    <div class="mt-4">
+        <a href="/" class="btn btn-primary btn-home">
+            <i class="bx bx-home-alt me-2"></i>Go to Homepage
+        </a>
+        <button type="button" onclick="location.reload()" class="btn btn-outline-secondary btn-home ms-2">
+            <i class="bx bx-refresh me-2"></i>Reload Page
+        </button>
+    </div>
+</div>
+{% endblock %}

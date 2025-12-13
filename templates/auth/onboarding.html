@@ -1,0 +1,134 @@
+{% extends 'layouts/auth.html' %}
+{% load static %}
+
+{% block title %} Get Started | School Management System {% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="section-authentication-cover">
+        <div class="row g-0">
+
+            <!-- LEFT ILLUSTRATION -->
+            <div class="col-12 col-xl-7 col-xxl-8 d-none d-xl-flex align-items-center justify-content-center auth-cover-left">
+                <div class="card shadow-none bg-transparent">
+                    <div class="card-body text-center">
+                        <img src="{% static 'assets/images/login-images/get-started.svg' %}" class="img-fluid" width="550" alt="Get Started">
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT CONTENT -->
+            <div class="col-12 col-xl-5 col-xxl-4 d-flex align-items-center justify-content-center auth-cover-right">
+                <div class="card rounded-0 m-3 shadow-none bg-transparent w-100">
+                    <div class="card-body p-sm-5">
+
+                        <!-- TENANT LOGO -->
+                        <div class="text-center mb-4">
+                            {% if tenant_logo %}
+                                <img src="{{ tenant_logo.url }}" width="65" class="mb-3" alt="Logo">
+                            {% else %}
+                                <img src="{% static 'assets/images/logo-icon.png' %}" width="65" class="mb-3" alt="Logo">
+                            {% endif %}
+                            <h4 class="fw-bold">
+                                {% if tenant_name %}
+                                    {{ tenant_name }}
+                                {% else %}
+                                    Welcome to Our Platform!
+                                {% endif %}
+                            </h4>
+                            <p class="text-muted">Let’s finish setting things up</p>
+                        </div>
+
+                        <!-- STEPS UI -->
+                        <div class="timeline">
+
+                            <!-- Step 1 -->
+                            <div class="timeline-item completed">
+                                <div class="timeline-icon"><i class="bx bx-check"></i></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1 fw-semibold">Account Created</h6>
+                                    <p class="text-muted small">Your account has been successfully created.</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="timeline-item active">
+                                <div class="timeline-icon"><i class="bx bx-building-house"></i></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1 fw-semibold">Institute Setup</h6>
+                                    <p class="text-muted small">Join an existing institute or create a new one.</p>
+
+                                    <div class="d-grid gap-2 mt-3">
+                                        <a href="" class="btn btn-outline-primary">Join Existing Institute</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="timeline-item">
+                                <div class="timeline-icon"><i class="bx bx-user"></i></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1 fw-semibold">Complete Profile</h6>
+                                    <p class="text-muted small">Finish your personal profile details.</p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- SUPPORT -->
+                        <div class="text-center mt-4">
+                            <p class="text-muted small">Need help?
+                                <a href="#" class="text-primary fw-semibold">Contact Support</a>
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- row end -->
+    </div>
+</div>
+
+<style>
+/* Timeline Styling using Rocker style */
+.timeline { position: relative; }
+.timeline::before {
+    content: "";
+    position: absolute;
+    left: 24px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: #e6e6e6;
+}
+
+.timeline-item { display: flex; position: relative; margin-bottom: 2rem; }
+.timeline-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #dddddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    color: #6c757d;
+    z-index: 2;
+}
+
+.timeline-item .timeline-content { margin-left: 15px; }
+
+.timeline-item.completed .timeline-icon {
+    background: #28a745;
+    color: #fff;
+    box-shadow: 0 0 6px rgba(40,167,69,.5);
+}
+
+.timeline-item.active .timeline-icon {
+    background: #0d6efd;
+    color: white;
+    box-shadow: 0 0 6px rgba(13,110,253,.55);
+}
+</style>
+{% endblock %}

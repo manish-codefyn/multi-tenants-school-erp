@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Users</title>
+</head>
+<body>
+    <h1>Debug Information</h1>
+    
+    <h2>Current Context</h2>
+    <p><strong>Tenant:</strong> {{ current_tenant.name }} ({{ current_tenant.schema_name }})</p>
+    <p><strong>Authenticated:</strong> {{ authenticated }}</p>
+    <p><strong>Current User:</strong> {{ current_user }}</p>
+    
+    <h2>Users in Current Schema</h2>
+    <ul>
+        {% for user in all_users %}
+            <li>{{ user.email }} - {{ user.first_name }} {{ user.last_name }} (Active: {{ user.is_active }})</li>
+        {% empty %}
+            <li>No users found</li>
+        {% endfor %}
+    </ul>
+    
+    {% if tenant_users %}
+    <h2>Tenant Users (in tenant context)</h2>
+    <ul>
+        {% for user in tenant_users %}
+            <li>{{ user.email }} - {{ user.first_name }} {{ user.last_name }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+    <a href="{% url 'login' %}">Go to Login</a>
+</body>
+</html>

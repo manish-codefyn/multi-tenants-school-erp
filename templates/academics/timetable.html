@@ -1,0 +1,25 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Class Timetable | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <h4 class="mb-0">Class Timetable</h4>
+                    <div class="ms-auto">
+                        <button class="btn btn-primary radius-30"><i class="bx bx-printer"></i> Print</button>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    Timetable view is currently under development.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

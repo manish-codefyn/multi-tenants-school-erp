@@ -1,0 +1,138 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Master Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3">System Master Dashboard</h1>
+            <p class="text-muted">Global system monitoring and statistics</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Tenants</h5>
+                    <p class="card-text display-4">{{ total_tenants }}</p>
+                    <small>{{ active_tenants }} Active</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <p class="card-text display-4">{{ total_users }}</p>
+                    <small>{{ staff_users }} Staff</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Security Alerts (24h)</h5>
+                    <p class="card-text display-4">{{ recent_failures|length }}</p>
+                    <small>Failed Login Attempts</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">System Health</h5>
+                    <p class="card-text display-4">OK</p>
+                    <small><a href="{% url 'health_check' %}" class="text-white">View Details</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Charts -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    Tenant Growth
+                </div>
+                <div class="card-body">
+                    <canvas id="tenantGrowthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Log -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    Recent Security Events
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for attempt in recent_failures %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ attempt.username }}</strong>
+                            <br>
+                            <small class="text-muted">{{ attempt.ip_address }}</small>
+                        </div>
+                        <span class="badge bg-secondary">{{ attempt.attempt_time|timesince }} ago</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted">No recent security events</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Deployment Check -->
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    Deployment Security Check
+                </div>
+                <div class="card-body">
+                    <pre class="small" style="max-height: 200px; overflow-y: auto;">{{ deployment_report }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('tenantGrowthChart').getContext('2d');
+        const data = {{ chart_data|safe }};
+        
+        const labels = data.map(item => `Month ${item.month}`);
+        const counts = data.map(item => item.count);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'New Tenants',
+                    data: counts,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

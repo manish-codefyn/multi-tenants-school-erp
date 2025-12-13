@@ -1,0 +1,119 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ report.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0">{{ report.title }}</h5>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'analytics:report_export' report.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bx bx-download"></i> Export CSV
+                        </a>
+                        <button class="btn btn-primary btn-sm" onclick="window.print()">
+                            <i class="bx bx-printer"></i> Print
+                        </button>
+                    </div>
+                </div>
+                <p class="text-muted">{{ report.description }}</p>
+                
+                <hr/>
+                
+                <!-- Report Configuration/Parameters Display -->
+                <div class="mb-4">
+                    <h6>Configuration</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-muted">Type</label>
+                            <p class="fw-bold">{{ report.get_report_type_display }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted">Schedule</label>
+                            <p class="fw-bold">
+                                {% if report.is_scheduled %}
+                                {{ report.get_schedule_frequency_display }} at {{ report.schedule_time }}
+                                {% else %}
+                                Not Scheduled
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted">Last Generated</label>
+                            <p class="fw-bold">{{ report.last_generated|date:"Y-m-d H:i"|default:"Never" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Placeholder for Visualization/Data -->
+                <div class="alert alert-info border-0 bg-info alert-dismissible fade show py-2">
+                    <div class="d-flex align-items-center">
+                        <div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-white">Report Preview</h6>
+                            <div class="text-white">This is a placeholder for the actual report data visualization or table.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Example Table if Tabular -->
+                {% if report.report_type == 'TABULAR' or report.report_type == 'DETAILED' %}
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Sample Column 1</th>
+                                <th>Sample Column 2</th>
+                                <th>Sample Column 3</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Data A1</td>
+                                <td>Data A2</td>
+                                <td>Data A3</td>
+                            </tr>
+                            <tr>
+                                <td>Data B1</td>
+                                <td>Data B2</td>
+                                <td>Data B3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="mb-3">Execution History</h6>
+                <div class="list-group list-group-flush">
+                    {% for execution in executions %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge rounded-pill {% if execution.status == 'COMPLETED' %}bg-success{% elif execution.status == 'FAILED' %}bg-danger{% else %}bg-warning{% endif %} p-1">
+                                    <i class="bx {% if execution.status == 'COMPLETED' %}bx-check{% elif execution.status == 'FAILED' %}bx-x{% else %}bx-loader{% endif %} align-middle"></i>
+                                </span>
+                                <span class="fw-bold">{{ execution.started_at|date:"M d, H:i" }}</span>
+                            </div>
+                            <small class="text-muted ms-4">by {{ execution.executed_by.get_full_name|default:execution.executed_by.username }}</small>
+                        </div>
+                        <span class="text-muted font-13">{{ execution.execution_duration|default:"-" }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-3">No history available</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

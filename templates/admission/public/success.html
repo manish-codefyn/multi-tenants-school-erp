@@ -1,0 +1,44 @@
+{% extends "layouts/admission.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4 text-success">
+                        <i class="fas fa-check-circle fa-5x"></i>
+                    </div>
+                    
+                    <h2 class="mb-3">{% trans "Application Submitted Successfully!" %}</h2>
+                    <p class="lead text-muted mb-4">
+                        {% trans "Thank you for applying. Your application has been received." %}
+                    </p>
+                    
+                    <div class="alert alert-light border d-inline-block px-5 py-3 mb-4">
+                        <small class="text-muted d-block mb-1">{% trans "Your Application Number" %}</small>
+                        <h3 class="mb-0 text-primary">{{ application.application_number }}</h3>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-muted">
+                            {% trans "Please save this application number for future reference." %}<br>
+                            {% trans "You can use this number to check your admission status." %}
+                        </p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'admission:status' %}" class="btn btn-outline-primary">
+                            {% trans "Check Status" %}
+                        </a>
+                        <a href="{% url 'admission:landing' %}" class="btn btn-primary">
+                            {% trans "Back to Home" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

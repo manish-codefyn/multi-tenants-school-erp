@@ -1,0 +1,70 @@
+{% extends 'public/base.html' %}
+
+{% block title %}All Institutions - EduERP{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold display-5">Our Institutions</h1>
+        <p class="lead text-muted">Explore the educational institutions powered by our platform</p>
+    </div>
+
+    <div class="row">
+        {% for tenant in tenants %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card tenant-card card-stylish h-100">
+                {% if tenant.logo %}
+                <img src="{{ tenant.logo.url }}" class="card-img-top tenant-logo" alt="{{ tenant.name }}">
+                {% else %}
+                <div class="card-img-top tenant-logo-placeholder">
+                    <i class="bi bi-building"></i>
+                </div>
+                {% endif %}
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">{{ tenant.name }}</h5>
+                    <p class="card-text text-muted">
+                        <i class="bi bi-globe me-1"></i>{{ tenant.domains.first.domain|default:"No Domain" }}
+                    </p>
+                    <p class="card-text small">
+                        <span class="badge {% if tenant.plan == 'enterprise' %}bg-warning{% elif tenant.plan == 'professional' %}bg-dark{% else %}bg-info{% endif %}">
+                            {{ tenant.get_plan_display }}
+                        </span>
+                    </p>
+                    <a href="{% url 'tenant_detail' tenant.schema_name %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-eye me-1"></i>View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <div class="alert alert-info">
+                No institutions found.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

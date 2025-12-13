@@ -1,0 +1,74 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% trans "Academic History" %} - {{ student.full_name }} | {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'students:dashboard' %}">{% trans "Dashboard" %}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'students:student_list' %}">{% trans "Students" %}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'students:student_detail' student.id %}">{{ student.full_name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{% trans "Academic History" %}</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0 text-gray-800">{% trans "Academic History" %}</h1>
+            <p class="text-muted">{{ student.admission_number }} - {{ student.full_name }}</p>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Exam Results" %}</h6>
+        </div>
+        <div class="card-body">
+            {% if exam_results %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Exam" %}</th>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "Result" %}</th>
+                                <th>{% trans "Percentage" %}</th>
+                                <th>{% trans "Grade" %}</th>
+                                <th>{% trans "Action" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in exam_results %}
+                            <tr>
+                                <td>{{ result.exam.name }}</td>
+                                <td>{{ result.exam.start_date }}</td>
+                                <td>
+                                    <span class="badge badge-{% if result.is_pass %}success{% else %}danger{% endif %}">
+                                        {{ result.get_result_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ result.percentage_display }}</td>
+                                <td>{{ result.overall_grade|default:"-" }}</td>
+                                <td>
+                                    {% if result.mark_sheet %}
+                                    <a href="#" class="btn btn-sm btn-info">{% trans "View Marksheet" %}</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <p class="text-gray-500 mb-0">{% trans "No academic records found for this student." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

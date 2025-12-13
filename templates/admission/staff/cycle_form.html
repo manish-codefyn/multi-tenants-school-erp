@@ -1,0 +1,28 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static crispy_forms_tags %}
+
+{% block title %}{{ view.action }} Admission Cycle{% endblock %}
+
+{% block content %}
+{% include "partials/breadcrumb.html" with page_title="Admission Cycle" parent_text="Admission" parent_url="#" current_text=view.action|add:" Cycle" %}
+<div class="row">
+    <div class="col-xl-9 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="mb-4">Admission Cycle Details</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 text-secondary">
+                            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                            <a href="{% url 'admission:cycle_list' %}" class="btn btn-light px-4">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

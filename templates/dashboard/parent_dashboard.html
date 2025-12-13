@@ -1,0 +1,172 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Parent Dashboard - EduERP{% endblock %}
+
+{% block content %}
+
+        <!-- Welcome Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-primary border-0 bg-gradient-cosmic">
+                    <div class="d-flex align-items-center">
+                        <div class="text-white">
+                            <i class="bx bxs-user-circle fs-1"></i>
+                        </div>
+                        <div class="ms-3 text-white">
+                            <h5 class="mb-0 text-white">Welcome, {{ user.get_full_name }}!</h5>
+                            <p class="mb-0">Parent Dashboard - Monitor your children's progress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Children Cards -->
+        <div class="row">
+            {% for student in linked_students %}
+            <div class="col-12 col-md-6">
+                <div class="card radius-10">
+                    <div class="card-header bg-gradient-cosmic text-white">
+                        <div class="d-flex align-items-center">
+                            <div class="me-auto">
+                                <h6 class="mb-0 text-white">{{ student.name }}</h6>
+                                <small class="text-white-50">{{ student.grade }} | Roll: {{ student.roll_number }}</small>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-light">
+                                <i class="bx bx-show"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row row-cols-3 g-3">
+                            <div class="col">
+                                <div class="text-center">
+                                    <h4 class="mb-0 text-success">{{ children_progress|get_item:student.id|get_item:'attendance'|get_item:'percentage' }}%</h4>
+                                    <small class="text-muted">Attendance</small>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="text-center">
+                                    <h4 class="mb-0 text-primary">{{ children_progress|get_item:student.id|get_item:'grades'|get_item:'current_gpa' }}</h4>
+                                    <small class="text-muted">GPA</small>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="text-center">
+                                    <h4 class="mb-0 text-warning">₹{{ fee_status|get_item:student.id|get_item:'due_amount' }}</h4>
+                                    <small class="text-muted">Fee Due</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bx bx-info-circle"></i> No children linked to your account.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Fee Status & Announcements -->
+        <div class="row mt-3">
+            <!-- Fee Status -->
+            <div class="col-12 col-lg-6">
+                <div class="card radius-10">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0">Fee Status</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Total</th>
+                                        <th>Paid</th>
+                                        <th>Due</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in linked_students %}
+                                    <tr>
+                                        <td>{{ student.name }}</td>
+                                        <td>₹{{ fee_status|get_item:student.id|get_item:'total_due' }}</td>
+                                        <td class="text-success">₹{{ fee_status|get_item:student.id|get_item:'paid_amount' }}</td>
+                                        <td class="text-warning">₹{{ fee_status|get_item:student.id|get_item:'due_amount' }}</td>
+                                        <td>
+                                            <span class="badge bg-warning">{{ fee_status|get_item:student.id|get_item:'status'|title }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- School Announcements -->
+            <div class="col-12 col-lg-6">
+                <div class="card radius-10">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0">School Announcements</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if school_announcements %}
+                        <div class="list-group list-group-flush">
+                            {% for announcement in school_announcements %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ announcement.title }}</h6>
+                                    <small class="text-muted">{{ announcement.date|date:"M d" }}</small>
+                                </div>
+                                <p class="mb-0 small text-muted">{{ announcement.description }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="bx bx-info-circle"></i> No new announcements.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card radius-10">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0">Upcoming Events</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if upcoming_events %}
+                        <div class="row row-cols-1 row-cols-md-3 g-3">
+                            {% for event in upcoming_events %}
+                            <div class="col">
+                                <div class="p-3 border rounded">
+                                    <h6>{{ event.title }}</h6>
+                                    <p class="mb-1 small text-muted">{{ event.description }}</p>
+                                    <small class="text-primary"><i class="bx bx-calendar"></i> {{ event.date|date:"M d, Y" }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="bx bx-info-circle"></i> No upcoming events.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

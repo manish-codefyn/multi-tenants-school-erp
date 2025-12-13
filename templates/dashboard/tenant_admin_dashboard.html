@@ -1,0 +1,166 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard - {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="welcome-text">
+            <h1>Welcome back, {{ user.get_full_name }}! 👋</h1>
+            <p>Here's what's happening at {{ tenant.name }} today.</p>
+        </div>
+        <div class="welcome-actions">
+            <div class="date-display">
+                <i class="fas fa-calendar"></i>
+                {{ current_date }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.total_students }}</h3>
+                <p>Total Students</p>
+            </div>
+            <div class="stat-trend up">
+                <i class="fas fa-arrow-up"></i>
+                12%
+            </div>
+        </div>
+
+        <div class="stat-card success">
+            <div class="stat-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.total_teachers }}</h3>
+                <p>Teaching Staff</p>
+            </div>
+            <div class="stat-trend up">
+                <i class="fas fa-arrow-up"></i>
+                5%
+            </div>
+        </div>
+
+        <div class="stat-card info">
+            <div class="stat-icon">
+                <i class="fas fa-door-open"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.total_classes }}</h3>
+                <p>Active Classes</p>
+            </div>
+            <div class="stat-trend up">
+                <i class="fas fa-arrow-up"></i>
+                8%
+            </div>
+        </div>
+
+        <div class="stat-card warning">
+            <div class="stat-icon">
+                <i class="fas fa-user-friends"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ stats.total_staff }}</h3>
+                <p>Support Staff</p>
+            </div>
+            <div class="stat-trend down">
+                <i class="fas fa-arrow-down"></i>
+                2%
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section">
+        <div class="section-header">
+            <h2>Quick Actions</h2>
+        </div>
+        <div class="quick-actions-grid">
+            {% for action in quick_actions %}
+            <div class="quick-action-card {{ action.color }}">
+                <div class="action-icon">
+                    <i class="{{ action.icon }}"></i>
+                </div>
+                <div class="action-text">
+                    <h4>{{ action.name }}</h4>
+                    <p>Click to proceed</p>
+                </div>
+                <div class="action-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Activities & Charts -->
+    <div class="grid-2col">
+        <!-- Recent Activities -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Recent Activities</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="activities-list">
+                {% for activity in recent_activities %}
+                <div class="activity-item">
+                    <div class="activity-icon {{ activity.type }}">
+                        <i class="fas fa-{% if activity.type == 'user' %}user-plus{% elif activity.type == 'academic' %}chalkboard{% else %}cog{% endif %}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-message">{{ activity.message }}</p>
+                        <span class="activity-time">{{ activity.time }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Attendance Chart -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Attendance Overview</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Attendance Chart
+const ctx = document.getElementById('attendanceChart').getContext('2d');
+const attendanceChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Present', 'Absent', 'Late'],
+        datasets: [{
+            data: [85, 10, 5],
+            backgroundColor: ['#4e73df', '#e74a3b', '#f6c23e'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

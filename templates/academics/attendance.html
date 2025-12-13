@@ -1,0 +1,59 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Attendance Management | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <h4 class="mb-0">Attendance Management</h4>
+                </div>
+
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3">
+                    {% for class in classes %}
+                    <div class="col">
+                        <div class="card radius-10 border-start border-0 border-3 border-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <h5 class="mb-0">{{ class.name }}</h5>
+                                        <p class="mb-0 text-secondary">Class Teacher</p>
+                                    </div>
+                                    <div class="dropdown ms-auto">
+                                        <a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class='bx bx-dots-horizontal-rounded font-22 text-option'></i>
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="javascript:;">Take Attendance</a></li>
+                                            <li><a class="dropdown-item" href="javascript:;">View Report</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mt-3">
+                                    <div class="flex-grow-1">
+                                        <p class="mb-0">Total Students</p>
+                                        <h4 class="mb-0">{{ class.current_strength }}</h4>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-0">Present Today</p>
+                                        <h4 class="mb-0">-</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            You are not assigned as a class teacher for any active class.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Communication Dashboard{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Communication</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+            <div class="col">
+                <div class="card radius-10 border-start border-0 border-3 border-info">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Total Notices</p>
+                                <h4 class="my-1 text-info">{{ total_notices }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="bx bx-bell"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card radius-10 border-start border-0 border-3 border-danger">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Unread Messages</p>
+                                <h4 class="my-1 text-danger">{{ unread_messages }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="bx bx-envelope"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card radius-10 border-start border-0 border-3 border-success">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Notifications</p>
+                                <h4 class="my-1 text-success">{{ unread_notifications }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class="bx bx-notification"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Notices -->
+        <div class="card radius-10">
+            <div class="card-header border-bottom-0 bg-transparent">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h5 class="mb-0">Recent Notices</h5>
+                    </div>
+                    <div class="ms-auto">
+                        <a href="{% url 'communication:notice_list' %}" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-borderless mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Published Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notice in recent_notices %}
+                            <tr>
+                                <td><a href="{% url 'communication:notice_detail' notice.pk %}">{{ notice.title }}</a></td>
+                                <td>{{ notice.category.name|default:"-" }}</td>
+                                <td>
+                                    {% if notice.priority == 'urgent' %}
+                                        <span class="badge bg-danger">Urgent</span>
+                                    {% elif notice.priority == 'high' %}
+                                        <span class="badge bg-warning text-dark">High</span>
+                                    {% elif notice.priority == 'medium' %}
+                                        <span class="badge bg-info text-dark">Medium</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Low</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ notice.published_date|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No recent notices</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    
+{% endblock %}

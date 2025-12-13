@@ -1,0 +1,5 @@
+.footer .float-right, 
+.footer .version, 
+.footer small {
+    display: none !important;
+}

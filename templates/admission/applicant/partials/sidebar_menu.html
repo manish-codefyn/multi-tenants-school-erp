@@ -1,0 +1,122 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-user-check"></i></div>
+        <div class="menu-title">Admission</div>
+    </a>
+    <ul>
+        <!-- Public Section - Available to all -->
+        <li> 
+            <a href="{% url 'admission:landing' %}">
+                <i class="bx bx-home-alt"></i>Admission Portal
+            </a>
+        </li>
+        
+        <!-- Applicant Section -->
+        {% if user.is_authenticated and user.role in 'student,parent,guardian'|make_list or not user.is_authenticated %}
+        <li class="menu-label">For Applicants</li>
+        <li> 
+            <a href="{% url 'admission:apply' %}">
+                <i class="bx bx-edit"></i>Apply Online
+            </a>
+        </li>
+        <li> 
+            <a href="{% url 'admission:status' %}">
+                <i class="bx bx-search-alt"></i>Check Status
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- Staff Management Section -->
+        {% if user.is_authenticated and user.role in 'principal,headmaster,teacher,accountant'|make_list or user.is_staff %}
+        <li class="menu-label">Staff Management</li>
+        <li> 
+            <a href="{% url 'admission:staff_list' %}">
+                <i class="bx bx-list-ul"></i>All Applications
+            </a>
+        </li>
+        
+        <!-- For users with update permissions -->
+        {% if perms.admission.change_admission or user.is_staff %}
+        <li> 
+            <a href="{% url 'admission:staff_list' %}?action=review">
+                <i class="bx bx-clipboard"></i>Review Applications
+            </a>
+        </li>
+        {% endif %}
+        
+        <!-- For users with delete permissions -->
+        {% if perms.admission.delete_admission or user.is_staff %}
+        <li> 
+            <a href="{% url 'admission:staff_list' %}?status=archived">
+                <i class="bx bx-archive"></i>Archived Applications
+            </a>
+        </li>
+        {% endif %}
+        {% endif %}
+        
+        <!-- Admin Section -->
+        {% if user.is_authenticated and user.role in 'principal,headmaster,system_admin'|make_list or user.is_superuser %}
+        <li class="menu-label">Administration</li>
+        <li> 
+            <a href="javascript:;" class="has-arrow">
+                <i class="bx bx-cog"></i>Settings
+            </a>
+            <ul>
+                <li> 
+                    <a href="#">
+                        <i class="bx bx-slider-alt"></i>Configure Admission
+                    </a>
+                </li>
+                <li> 
+                    <a href="#">
+                        <i class="bx bx-calendar"></i>Set Deadlines
+                    </a>
+                </li>
+                <li> 
+                    <a href="#">
+                        <i class="bx bx-dollar-circle"></i>Fee Structure
+                    </a>
+                </li>
+            </ul>
+        </li>
+        
+        <li> 
+            <a href="javascript:;" class="has-arrow">
+                <i class="bx bx-stats"></i>Analytics
+            </a>
+            <ul>
+                <li> 
+                    <a href="#">
+                        <i class="bx bx-trending-up"></i>Admission Trends
+                    </a>
+                </li>
+                <li> 
+                    <a href="#">
+                        <i class="bx bx-pie-chart-alt"></i>Demographics
+                    </a>
+                </li>
+                <li> 
+                    <a href="#">
+                        <i class="bx bx-bar-chart-alt"></i>Performance
+                    </a>
+                </li>
+            </ul>
+        </li>
+        {% endif %}
+        
+        <!-- System Superuser Section -->
+        {% if user.is_superuser or user.role == 'system_superuser' %}
+        <li class="menu-label">System Admin</li>
+        <li> 
+            <a href="#">
+                <i class="bx bx-data"></i>Database Backup
+            </a>
+        </li>
+        <li> 
+            <a href="#">
+                <i class="bx bx-key"></i>Permission Management
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</li>

@@ -1,0 +1,23 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+<div class="modal fade" id="addMedicalInfoModal" tabindex="-1" role="dialog" aria-labelledby="addMedicalInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMedicalInfoModalLabel">{% trans "Add Medical Information" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+             <form method="post" action="#"> 
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <p class="text-muted">{% trans "To add medical information, please edit the student profile." %}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+                     <a href="{% url 'students:student_update' student.id %}" class="btn btn-primary">{% trans "Go to Edit Profile" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

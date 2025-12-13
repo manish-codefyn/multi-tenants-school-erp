@@ -1,0 +1,73 @@
+{% extends "layouts/auth.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">{% trans "Online Admission Application" %}</h4>
+                </div>
+                <div class="card-body p-4">
+                    {% include 'admission/public/partials/stepper.html' with step=4 progress=75 %}
+                    
+                    <h5 class="mb-4">{% trans "Step 4: Document Upload" %}</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    {% trans "Upload New Document" %}
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" enctype="multipart/form-data" novalidate>
+                                        {% csrf_token %}
+                                        {{ document_form|crispy }}
+                                        <button type="submit" class="btn btn-primary mt-3">
+                                            {% trans "Upload Document" %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    {% trans "Uploaded Documents" %}
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    {% for doc in object.documents.all %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ doc.get_document_type_display }}</strong><br>
+                                                <small class="text-muted">{{ doc.file_name }}</small>
+                                            </div>
+                                            <span class="badge bg-success rounded-pill"><i class="fas fa-check"></i></span>
+                                        </li>
+                                    {% empty %}
+                                        <li class="list-group-item text-muted text-center">
+                                            {% trans "No documents uploaded yet" %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'admission:apply_step3' object.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left ms-2"></i> {% trans "Back" %}
+                        </a>
+                        <a href="{% url 'admission:apply_step5' object.pk %}" class="btn btn-primary">
+                            {% trans "Continue to Review" %} <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-user"></i></div>
+        <div class="menu-title">Students</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'students:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'students:student_list' %}"><i class="bx bx-radio-circle"></i>All Students</a></li>
+        <li><a href="{% url 'students:bulk_upload' %}"><i class="bx bx-radio-circle"></i>Bulk Upload</a></li>
+    </ul>
+</li>

@@ -1,0 +1,354 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Master Dashboard - EduERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-4">Master Dashboard</h4>
+        <p class="text-muted">Comprehensive overview of all ERP modules</p>
+    </div>
+</div>
+
+<!-- Main Statistics Cards -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 mb-4">
+    <!-- Students -->
+    <div class="col">
+        <div class="card radius-10 bg-gradient-cosmic stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Total Students</p>
+                        <h4 class="my-1 text-white">{{ total_students|default:"0" }}</h4>
+                        <small class="text-white-50">{{ active_students }} Active</small>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-user"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Users -->
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ibiza stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Total Users</p>
+                        <h4 class="my-1 text-white">{{ total_users|default:"0" }}</h4>
+                        <small class="text-white-50">{{ active_users }} Active</small>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-group"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Revenue -->
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ohhappiness stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Total Revenue</p>
+                        <h4 class="my-1 text-white">₹{{ total_revenue|floatformat:0|default:"0" }}</h4>
+                        <small class="text-white-50">{{ pending_invoices }} Pending</small>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-rupee"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Staff -->
+    <div class="col">
+        <div class="card radius-10 bg-gradient-kyoto stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-dark">Staff Members</p>
+                        <h4 class="my-1 text-dark">{{ staff_count|default:"0" }}</h4>
+                        <small class="text-muted">Active Staff</small>
+                    </div>
+                    <div class="text-dark fs-1"><i class="bx bx-id-card"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Module Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">Module Statistics</h5>
+    </div>
+    
+    <!-- Academics -->
+    <div class="col-md-3">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-1 text-muted">Courses</p>
+                        <h5 class="mb-0">{{ total_courses }}</h5>
+                    </div>
+                    <div class="fs-3 text-primary"><i class="bx bx-book"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Library -->
+    <div class="col-md-3">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-1 text-muted">Books</p>
+                        <h5 class="mb-0">{{ total_books }}</h5>
+                        <small class="text-muted">{{ books_issued }} Issued</small>
+                    </div>
+                    <div class="fs-3 text-success"><i class="bx bx-library"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hostel -->
+    <div class="col-md-3">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-1 text-muted">Hostels</p>
+                        <h5 class="mb-0">{{ total_hostels }}</h5>
+                        <small class="text-muted">{{ hostel_allocations }} Allocated</small>
+                    </div>
+                    <div class="fs-3 text-warning"><i class="bx bx-building"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transportation -->
+    <div class="col-md-3">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-1 text-muted">Vehicles</p>
+                        <h5 class="mb-0">{{ total_vehicles }}</h5>
+                        <small class="text-muted">{{ total_routes }} Routes</small>
+                    </div>
+                    <div class="fs-3 text-info"><i class="bx bx-bus"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inventory -->
+    <div class="col-md-3">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-1 text-muted">Inventory Items</p>
+                        <h5 class="mb-0">{{ total_items }}</h5>
+                        <small class="text-danger">{{ low_stock_items }} Low Stock</small>
+                    </div>
+                    <div class="fs-3 text-secondary"><i class="bx bx-package"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Events -->
+    <div class="col-md-3">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-1 text-muted">Upcoming Events</p>
+                        <h5 class="mb-0">{{ upcoming_events }}</h5>
+                    </div>
+                    <div class="fs-3 text-primary"><i class="bx bx-calendar"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Exams -->
+    <div class="col-md-3">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-1 text-muted">Upcoming Exams</p>
+                        <h5 class="mb-0">{{ upcoming_exams }}</h5>
+                    </div>
+                    <div class="fs-3 text-success"><i class="bx bx-edit"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Security -->
+    <div class="col-md-3">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-1 text-muted">Open Incidents</p>
+                        <h5 class="mb-0">{{ open_incidents }}</h5>
+                        <small class="text-muted">{{ recent_audits }} Audits</small>
+                    </div>
+                    <div class="fs-3 text-danger"><i class="bx bx-shield"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-3 mb-4">
+    <!-- Student Status Chart -->
+    <div class="col-md-6">
+        <div class="card radius-10">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">Student Status Distribution</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="studentStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Roles Chart -->
+    <div class="col-md-6">
+        <div class="card radius-10">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">User Roles Distribution</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="userRolesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="row">
+    <div class="col-12">
+        <div class="card radius-10">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">Recent Activities</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Event</th>
+                                <th>User</th>
+                                <th>Severity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activity in recent_activities %}
+                            <tr>
+                                <td>{{ activity.created_at|date:"M d, H:i" }}</td>
+                                <td>{{ activity.event_type }}</td>
+                                <td>{{ activity.user.get_full_name|default:"-" }}</td>
+                                <td><span class="badge bg-{{ activity.severity|lower }}">{{ activity.get_severity_display }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    // Student Status Chart
+    const studentStatusCtx = document.getElementById('studentStatusChart').getContext('2d');
+    new Chart(studentStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ student_status_labels|safe }},
+            datasets: [{
+                data: {{ student_status_data|safe }},
+                backgroundColor: [
+                    '#0d6efd',
+                    '#198754',
+                    '#ffc107',
+                    '#dc3545',
+                    '#6c757d'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // User Roles Chart
+    const userRolesCtx = document.getElementById('userRolesChart').getContext('2d');
+    new Chart(userRolesCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ user_roles_labels|safe }},
+            datasets: [{
+                label: 'Users',
+                data: {{ user_roles_data|safe }},
+                backgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

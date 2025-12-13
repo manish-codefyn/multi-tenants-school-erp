@@ -1,0 +1,26 @@
+<!--breadcrumb-->
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">{{ page_title }}</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a>
+                </li>
+                {% if parent_text %}
+                    <li class="breadcrumb-item"><a href="{{ parent_url|default:'#' }}">{{ parent_text }}</a></li>
+                {% endif %}
+                {% if current_text %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ current_text }}</li>
+                {% endif %}
+            </ol>
+        </nav>
+    </div>
+    <div class="ms-auto">
+        <div class="btn-group">
+            {% if action_url %}
+                <a href="{{ action_url }}" class="btn btn-primary">{{ action_text }}</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!--end breadcrumb-->

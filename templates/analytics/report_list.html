@@ -1,0 +1,73 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Analytics Reports{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Reports</h5>
+            <!-- Export Buttons handled by DataTables -->
+        </div>
+        <div class="table-responsive">
+            <table id="reportTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Access Level</th>
+                        <th>Last Generated</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'analytics:report_detail' report.pk %}" class="text-primary fw-bold">
+                                {{ report.title }}
+                            </a>
+                            {% if report.description %}
+                            <p class="text-muted font-13 mb-0">{{ report.description|truncatechars:50 }}</p>
+                            {% endif %}
+                        </td>
+                        <td>{{ report.get_report_type_display }}</td>
+                        <td>
+                            <span class="badge bg-light-secondary text-secondary">{{ report.get_access_level_display }}</span>
+                        </td>
+                        <td>{{ report.last_generated|date:"Y-m-d H:i"|default:"Never" }}</td>
+                        <td>
+                            {% if report.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'analytics:report_detail' report.pk %}" class="ms-3" title="View"><i class="bx bx-show"></i></a>
+                                <a href="{% url 'analytics:report_export' report.pk %}" class="ms-3" title="Export CSV"><i class="bx bx-download"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#reportTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#reportTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Inventory Dashboard - EduERP{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-4">Inventory Management</h4>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+    <div class="col">
+        <div class="card radius-10 bg-gradient-cosmic">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Total Items</p>
+                        <h4 class="my-1 text-white">{{ total_items|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-package"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ibiza">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Low Stock Items</p>
+                        <h4 class="my-1 text-white">{{ low_stock_items|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-error"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ohhappiness">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Suppliers</p>
+                        <h4 class="my-1 text-white">{{ total_suppliers|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-store"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-kyoto">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-dark">Categories</p>
+                        <h4 class="my-1 text-dark">{{ total_categories|default:"0" }}</h4>
+                    </div>
+                    <div class="text-dark fs-1"><i class="bx bx-category"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 col-lg-6">
+        <div class="card radius-10">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'inventory:item_create' %}" class="btn btn-primary"><i class="bx bx-plus-circle me-2"></i>Add New Item</a>
+                    <a href="{% url 'inventory:stock_movement_create' %}" class="btn btn-success"><i class="bx bx-transfer me-2"></i>Record Stock Movement</a>
+                    <a href="{% url 'inventory:item_list' %}" class="btn btn-outline-primary"><i class="bx bx-list-ul me-2"></i>View All Items</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

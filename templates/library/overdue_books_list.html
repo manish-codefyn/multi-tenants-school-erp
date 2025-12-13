@@ -1,0 +1,81 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Overdue Books{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Library</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Overdue Books</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bx bx-error-circle"></i> <strong>{{ overdue_books.count }}</strong> books are currently overdue
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Member</th>
+                                <th>Issue Date</th>
+                                <th>Due Date</th>
+                                <th>Days Overdue</th>
+                                <th>Fine</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in overdue_books %}
+                            <tr>
+                                <td><a href="{% url 'library:book_detail' issue.book.pk %}">{{ issue.book.title }}</a></td>
+                                <td>{{ issue.member.user.get_full_name }}</td>
+                                <td>{{ issue.issue_date }}</td>
+                                <td>{{ issue.due_date }}</td>
+                                <td><span class="badge bg-danger">{{ issue.days_overdue }}</span></td>
+                                <td>₹{{ issue.fine_amount|default:"0" }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'library:return_book' issue.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-primary"><i class="bx bx-check"></i> Return</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">No overdue books</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                        {% endif %}
+                        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+ 
+{% endblock %}

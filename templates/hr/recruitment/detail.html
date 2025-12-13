@@ -1,0 +1,117 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ object.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Job Details: {{ object.title }}</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:recruitment_list' %}">Recruitment</a></li>
+                        <li class="breadcrumb-item active">Details</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Description</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-uppercase">Job Description</h6>
+                        <p class="text-muted">{{ object.description|linebreaks }}</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-uppercase">Requirements</h6>
+                        <p class="text-muted">{{ object.requirements|linebreaks }}</p>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-end gap-2">
+                    <a href="{% url 'hr:recruitment_list' %}" class="btn btn-light">Back to List</a>
+                    
+                    {% if perms.hr.change_recruitment %}
+                    <a href="{% url 'hr:recruitment_update' object.pk %}" class="btn btn-primary">Edit</a>
+                    {% endif %}
+                    
+                    {% if object.status == 'OPEN' and perms.hr.change_recruitment %}
+                    <form method="post" action="{% url 'hr:recruitment_close' object.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Close Position</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Job Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <th class="ps-0" scope="row">Department :</th>
+                                    <td class="text-muted">{{ object.department.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Positions :</th>
+                                    <td class="text-muted">{{ object.number_of_positions }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Status :</th>
+                                    <td>
+                                        {% if object.status == 'OPEN' %}
+                                            <span class="badge bg-success">Open</span>
+                                        {% elif object.status == 'CLOSED' %}
+                                            <span class="badge bg-danger">Closed</span>
+                                        {% elif object.status == 'ON_HOLD' %}
+                                            <span class="badge bg-warning">On Hold</span>
+                                        {% elif object.status == 'DRAFT' %}
+                                            <span class="badge bg-secondary">Draft</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Closing Date :</th>
+                                    <td class="text-muted">{{ object.closing_date }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Posted On :</th>
+                                    <td class="text-muted">{{ object.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Applications</h5>
+                    <a href="{% url 'hr:jobapplication_list' %}?recruitment={{ object.pk }}" class="btn btn-sm btn-soft-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <h2 class="fw-bold">{{ application_count|default:0 }}</h2>
+                        <p class="text-muted mb-0">Total Applications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

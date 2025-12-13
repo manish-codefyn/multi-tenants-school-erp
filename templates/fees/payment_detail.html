@@ -1,0 +1,87 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Payment Receipt - {{ payment.receipt_number }}{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Fee Management</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'fees:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'fees:payment_list' %}">Payments</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ payment.receipt_number }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="ms-auto">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="bx bx-printer"></i> Print Receipt
+                </button>
+            </div>
+        </div>
+
+        <!-- Receipt -->
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <h3>Fee Payment Receipt</h3>
+                    <p class="text-muted">Receipt No: <strong>{{ payment.receipt_number }}</strong></p>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>Student Details</h6>
+                        <p class="mb-1"><strong>Name:</strong> {{ payment.student_account.student.get_full_name }}</p>
+                        <p class="mb-1"><strong>Course:</strong> {{ payment.student_account.course.name }}</p>
+                        <p class="mb-1"><strong>Academic Year:</strong> {{ payment.student_account.academic_year.name }}</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <h6>Payment Details</h6>
+                        <p class="mb-1"><strong>Date:</strong> {{ payment.payment_date|date:"M d, Y" }}</p>
+                        <p class="mb-1"><strong>Mode:</strong> {{ payment.get_payment_mode_display }}</p>
+                        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-success">{{ payment.get_status_display }}</span></p>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Description</th>
+                                <th class="text-end">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Fee Payment</td>
+                                <td class="text-end">₹{{ payment.amount|floatformat:2 }}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th>Total Paid</th>
+                                <th class="text-end">₹{{ payment.amount|floatformat:2 }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                {% if payment.transaction_id %}
+                <p><strong>Transaction ID:</strong> {{ payment.transaction_id }}</p>
+                {% endif %}
+
+                {% if payment.remarks %}
+                <p><strong>Remarks:</strong> {{ payment.remarks }}</p>
+                {% endif %}
+
+                <div class="mt-4 text-muted">
+                    <small>Received by: {{ payment.received_by.get_full_name }} on {{ payment.created_at|date:"M d, Y H:i" }}</small>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Events</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'events:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}">Events</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="ms-auto">
+                <a href="{% url 'events:event_update' event.pk %}" class="btn btn-warning"><i class="bx bx-edit"></i> Edit</a>
+                <form method="post" action="{% url 'events:event_publish' event.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-{% if event.is_published %}secondary{% else %}success{% endif %}">
+                        <i class="bx bx-{% if event.is_published %}hide{% else %}show{% endif %}"></i>
+                        {% if event.is_published %}Unpublish{% else %}Publish{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Event Details -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>{{ event.title }}</h3>
+                        <p class="text-muted">{{ event.category.name }} | {{ event.start_date }} - {{ event.end_date }}</p>
+                        <hr>
+                        <div class="mb-3">
+                            <h6>Description</h6>
+                            <p>{{ event.description }}</p>
+                        </div>
+                        {% if event.venue %}
+                        <div class="mb-3">
+                            <h6>Venue</h6>
+                            <p>{{ event.venue }}</p>
+                        </div>
+                        {% endif %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Registration Deadline:</strong> {{ event.registration_deadline }}</p>
+                                <p><strong>Max Participants:</strong> {{ event.max_participants|default:"Unlimited" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Event Type:</strong> {{ event.get_event_type_display }}</p>
+                                <p><strong>Status:</strong> 
+                                    {% if event.is_published %}
+                                    <span class="badge bg-success">Published</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Draft</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Competition Details -->
+                {% if has_competition %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Competition Details</h5>
+                            <a href="{% url 'events:competition_update' competition.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        </div>
+                        <p><strong>Judging Criteria:</strong> {{ competition.judging_criteria }}</p>
+                        <p><strong>Prizes:</strong> {{ competition.prizes }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <p class="text-muted">No competition configured</p>
+                        <a href="{% url 'events:competition_create' event.pk %}" class="btn btn-primary">Add Competition</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Registrations -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Registration Statistics</h5>
+                        <hr>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Approved:</span>
+                                <strong class="text-success">{{ approved_count }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Pending:</span>
+                                <strong class="text-warning">{{ pending_count }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Total:</span>
+                                <strong>{{ registrations.count }}</strong>
+                            </div>
+                        </div>
+                        <a href="{% url 'events:registration_list' %}?event={{ event.pk }}" class="btn btn-primary w-100">View All Registrations</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h6>Recent Registrations</h6>
+                        <hr>
+                        <div class="list-group">
+                            {% for reg in registrations|slice:":5" %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ reg.student.get_full_name }}</span>
+                                    <span class="badge bg-{{ reg.status|yesno:'success,warning,danger' }}">{{ reg.get_status_display }}</span>
+                                </div>
+                                <small class="text-muted">{{ reg.registration_date }}</small>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted text-center">No registrations yet</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

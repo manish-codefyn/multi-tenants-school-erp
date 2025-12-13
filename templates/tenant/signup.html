@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Organization</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .signup-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        .form-group { 
+            margin: 20px 0; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold;
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            box-sizing: border-box;
+        }
+        .btn { 
+            background: #007bff; 
+            color: white; 
+            padding: 12px 20px; 
+            border: none; 
+            border-radius: 4px; 
+            width: 100%; 
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .domain-hint {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .domain-hint input {
+            flex: 1;
+        }
+        .domain-hint span {
+            margin-left: 10px;
+            color: #666;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <h1 style="text-align: center; margin-bottom: 30px;">Create Your Organization</h1>
+        
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Organization Name:</label>
+                <input type="text" name="tenant_name" required placeholder="e.g., Acme Corporation">
+            </div>
+            
+            <div class="form-group">
+                <label>Subdomain:</label>
+                <div class="domain-hint">
+                    <input type="text" name="domain_name" placeholder="your-company" required>
+                    <span>.localhost:8000</span>
+                </div>
+                <small>This will be your organization's web address</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Admin Email:</label>
+                <input type="email" name="admin_email" required placeholder="admin@yourcompany.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Admin Password:</label>
+                <input type="password" name="admin_password" required>
+            </div>
+            
+            <button type="submit" class="btn">Create Organization</button>
+        </form>
+        
+        <div class="login-link">
+            <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+        </div>
+    </div>
+</body>
+</html>

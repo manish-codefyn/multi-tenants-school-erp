@@ -1,0 +1,126 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ hostel.name }}{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Hostel Management</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hostel:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hostel:hostel_list' %}">Hostels</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ hostel.name }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="ms-auto">
+                <a href="{% url 'hostel:hostel_update' hostel.pk %}" class="btn btn-sm btn-primary"><i class="bx bx-edit"></i> Edit</a>
+            </div>
+        </div>
+
+        <!-- Hostel Details -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="mb-3">{{ hostel.name }}</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong>Type:</strong> {{ hostel.get_hostel_type_display }}</p>
+                                <p><strong>Total Capacity:</strong> {{ hostel.total_capacity }}</p>
+                                <p><strong>Contact:</strong> {{ hostel.contact_number }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Warden:</strong> {{ hostel.warden.get_full_name|default:"Not Assigned" }}</p>
+                                <p><strong>Address:</strong> {{ hostel.address }}</p>
+                            </div>
+                        </div>
+                        {% if hostel.facilities %}
+                        <div class="mb-3">
+                            <strong>Facilities:</strong>
+                            <div class="mt-2">
+                                {% for facility in hostel.facilities %}
+                                <span class="badge bg-info me-1">{{ facility }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Blocks -->
+                <div class="card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">Blocks</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if blocks %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Block Name</th>
+                                        <th>Total Floors</th>
+                                        <th>Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for block in blocks %}
+                                    <tr>
+                                        <td>{{ block.name }}</td>
+                                        <td>{{ block.total_floors }}</td>
+                                        <td>{{ block.description|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No blocks added yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Stats -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Statistics</h5>
+                        <hr>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Total Rooms:</span>
+                                <strong>{{ total_rooms }}</strong>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Occupied Rooms:</span>
+                                <strong class="text-danger">{{ occupied_rooms }}</strong>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Available Rooms:</span>
+                                <strong class="text-success">{{ total_rooms|add:"-"|add:occupied_rooms }}</strong>
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {% widthratio occupied_rooms total_rooms 100 %}%"
+                                 aria-valuenow="{% widthratio occupied_rooms total_rooms 100 %}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                                {% widthratio occupied_rooms total_rooms 100 %}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+{% endblock %}

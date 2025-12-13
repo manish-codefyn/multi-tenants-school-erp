@@ -1,0 +1,58 @@
+<!-- templates/tenant/partials/navbar.html -->
+{% load tenant_tags %}
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" data-aos="fade-down">
+    <div class="container">
+        <!-- Dynamic Logo/Brand -->
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'tenant:home' %}">
+            {% if tenant.logo %}
+                <img src="{{ tenant.logo.url }}" alt="{{ tenant.name }}" height="40" class="me-2">
+            {% endif %}
+            <span class="fw-bold">{{ tenant.name }}</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'tenant:home' %}">Home</a>
+                </li>
+                
+                <!-- Dynamic Features -->
+                {% tenant_feature_enabled 'blog' as blog_enabled %}
+                {% if blog_enabled %}
+                <li class="nav-item">
+                    <a class="nav-link" href="">Blog</a>
+                </li>
+                {% endif %}
+                
+                {% tenant_feature_enabled 'news' as news_enabled %}
+                {% if news_enabled %}
+                <li class="nav-item">
+                    <a class="nav-link" href="">News</a>
+                </li>
+                {% endif %}
+                
+                {% tenant_feature_enabled 'events' as events_enabled %}
+                {% if events_enabled %}
+                <li class="nav-item">
+                    <a class="nav-link" href="">Events</a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Dynamic Institute Info -->
+            <div class="navbar-text">
+                <small class="text-muted">
+                    {{ tenant.get_type_display }} • {{ tenant.city }}
+                    {% if tenant.established_year %}
+                    • Since {{ tenant.established_year }}
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</nav>

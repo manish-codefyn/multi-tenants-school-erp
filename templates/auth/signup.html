@@ -1,0 +1,166 @@
+{% extends 'layouts/auth.html' %}
+{% load static %}
+
+{% block title %}Sign Up - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="section-authentication-cover">
+        <div class="">
+            <div class="row g-0">
+                <!-- Left side with image -->
+                <div class="col-12 col-xl-7 col-xxl-8 auth-cover-left align-items-center justify-content-center d-none d-xl-flex">
+                    <div class="card shadow-none bg-transparent shadow-none rounded-0 mb-0">
+                        <div class="card-body">
+                            <img src="{% static 'assets/images/login-images/login-cover.svg' %}" class="img-fluid auth-img-cover-login" width="650" alt="Sign Up Cover"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side with signup form -->
+                <div class="col-12 col-xl-5 col-xxl-4 auth-cover-right align-items-center justify-content-center">
+                    <div class="card rounded-0 m-3 shadow-none bg-transparent mb-0">
+                        <div class="card-body p-sm-5">
+                            <div class="">
+                                <div class="mb-3 text-center">
+                                    <img src="{{ tenant_logo }}" width="60" alt="Logo">
+                                </div>
+                                <div class="text-center mb-4">
+                                    <h5 class="auth-title">Sign Up</h5>
+                                    <p class="mb-0">Create your account to get started</p>
+                                </div>
+                                
+                                <div class="form-body">
+                                    <form method="post" id="signup-form" class="row g-3" novalidate>
+                                        {% csrf_token %}
+                                        
+                                        {% if form.non_field_errors %}
+                                        <div class="col-12">
+                                            <div class="alert alert-danger">
+                                                {% for error in form.non_field_errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                        <div class="col-md-6">
+                                            <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                            {{ form.first_name }}
+                                            {% if form.first_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.first_name.errors.0 }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                            {{ form.last_name }}
+                                            {% if form.last_name.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.last_name.errors.0 }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                                            {{ form.email }}
+                                            {% if form.email.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.email.errors.0 }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                                            <div class="input-group" id="show_hide_password">
+                                                {{ form.password }}
+                                                <a href="javascript:;" class="input-group-text bg-transparent toggle-password">
+                                                    <i class="bx bx-hide"></i>
+                                                </a>
+                                            </div>
+                                            {% if form.password.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.password.errors.0 }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <label for="{{ form.confirm_password.id_for_label }}" class="form-label">Confirm Password</label>
+                                            <div class="input-group" id="show_hide_confirm_password">
+                                                {{ form.confirm_password }}
+                                                <a href="javascript:;" class="input-group-text bg-transparent toggle-password">
+                                                    <i class="bx bx-hide"></i>
+                                                </a>
+                                            </div>
+                                            {% if form.confirm_password.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.confirm_password.errors.0 }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                                <label class="form-check-label" for="terms">I read and agree to Terms & Conditions</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <div class="d-grid">
+                                                <button type="submit" class="btn btn-primary" id="signup-btn">Sign Up</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <div class="text-center">
+                                                <p class="mb-0">Already have an account? 
+                                                    <a href="{% url 'login' %}">Sign in here</a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end row-->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('signup-form').addEventListener('submit', function(e) {
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating account...';
+});
+
+// Toggle password visibility
+document.querySelectorAll('.toggle-password').forEach(function(button) {
+    button.addEventListener('click', function() {
+        const passwordInput = this.parentElement.querySelector('input');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('bx-hide');
+            icon.classList.add('bx-show');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('bx-show');
+            icon.classList.add('bx-hide');
+        }
+    });
+});
+</script>
+{% endblock %}

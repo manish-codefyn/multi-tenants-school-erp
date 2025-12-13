@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admission Application - {{ application.application_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+            @top-left {
+                content: "{{ tenant.name }}";
+                font-size: 10px;
+                color: #666;
+            }
+            @top-right {
+                content: "Application: {{ application.application_number }}";
+                font-size: 10px;
+                color: #666;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                color: #666;
+            }
+        }
+        
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            line-height: 1.4;
+            color: #333;
+            font-size: 12px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #3B82F6;
+            padding-bottom: 15px;
+        }
+        
+        .institute-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1E40AF;
+            margin-bottom: 5px;
+        }
+        
+        .institute-details {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .application-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1E40AF;
+            margin-top: 10px;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            background-color: #3B82F6;
+            color: white;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 2px;
+        }
+        
+        .info-value {
+            color: #333;
+            padding: 4px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .photo-section {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .applicant-photo {
+            width: 120px;
+            height: 150px;
+            border: 1px solid #ddd;
+            background-color: #f9fafb;
+            display: inline-block;
+        }
+        
+        .signature-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .signature-line {
+            width: 300px;
+            border-bottom: 1px solid #333;
+            margin: 40px auto 5px;
+        }
+        
+        .signature-label {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .declaration {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-left: 4px solid #3B82F6;
+            margin: 20px 0;
+            font-size: 11px;
+        }
+        
+        .document-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .document-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .document-status {
+            float: right;
+            font-weight: bold;
+        }
+        
+        .verified {
+            color: #10B981;
+        }
+        
+        .pending {
+            color: #F59E0B;
+        }
+        
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px;
+            color: rgba(0, 0, 0, 0.1);
+            z-index: -1;
+            font-weight: bold;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Watermark -->
+    <div class="watermark">
+        {{ tenant.code }}
+    </div>
+
+    <!-- Header Section -->
+    <div class="header">
+        {% if tenant.logo %}
+        <div style="text-align: center; margin-bottom: 10px;">
+            <img src="{{ tenant.logo.url }}" alt="{{ tenant.name }}" style="max-height: 60px;">
+        </div>
+        {% endif %}
+        
+        <div class="institute-name">{{ tenant.name }}</div>
+        <div class="institute-details">
+            {{ tenant.address }}, {{ tenant.city }}, {{ tenant.state }} - {{ tenant.pincode }}<br>
+            Phone: {{ tenant.phone }} | Email: {{ tenant.email }}{% if tenant.website %} | Website: {{ tenant.website }}{% endif %}
+        </div>
+        <div class="application-title">ADMISSION APPLICATION FORM</div>
+    </div>
+
+    <!-- Application Basic Information -->
+    <div class="section">
+        <div class="section-title">Application Details</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Application Number</div>
+                <div class="info-value">{{ application.application_number }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Application Date</div>
+                <div class="info-value">{{ application.submitted_date|date:"F j, Y" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Academic Year</div>
+                <div class="info-value">{{ application.academic_year.name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value" style="font-weight: bold; color: {% if application.status == 'submitted' %}#F59E0B{% elif application.status == 'approved' %}#10B981{% elif application.status == 'rejected' %}#EF4444{% else %}#6B7280{% endif %};">
+                    {{ application.get_status_display }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Information -->
+    <div class="section">
+        <div class="section-title">Personal Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">{{ application.full_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Date of Birth</div>
+                <div class="info-value">{{ application.date_of_birth|date:"F j, Y" }} (Age: {{ application.age }} years)</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Gender</div>
+                <div class="info-value">{{ application.get_gender_display }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Category</div>
+                <div class="info-value">{{ application.get_category_display }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Religion</div>
+                <div class="info-value">{{ application.get_religion_display }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Blood Group</div>
+                <div class="info-value">{{ application.get_blood_group_display }}</div>
+            </div>
+            <div class="info-item full-width">
+                <div class="info-label">Nationality</div>
+                <div class="info-value">{{ application.nationality }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="section">
+        <div class="section-title">Contact Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Email Address</div>
+                <div class="info-value">{{ application.email }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Mobile Number</div>
+                <div class="info-value">{{ application.mobile }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Alternate Mobile</div>
+                <div class="info-value">{{ application.alternate_mobile|default:"-" }}</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+            <div class="info-label">Permanent Address</div>
+            <div class="info-value" style="min-height: 40px;">
+                {{ application.permanent_address }}<br>
+                {{ application.permanent_city }}, {{ application.permanent_state }} - {{ application.permanent_pincode }}<br>
+                {{ application.permanent_country }}
+            </div>
+        </div>
+        
+        {% if not application.correspondence_same_as_permanent and application.correspondence_address %}
+        <div style="margin-top: 15px;">
+            <div class="info-label">Correspondence Address</div>
+            <div class="info-value" style="min-height: 40px;">
+                {{ application.correspondence_address }}<br>
+                {{ application.correspondence_city }}, {{ application.correspondence_state }} - {{ application.correspondence_pincode }}<br>
+                {{ application.correspondence_country }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Academic Information -->
+    <div class="section">
+        <div class="section-title">Academic Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Applying for Class/Course</div>
+                <div class="info-value">{{ application.applying_for_class }}</div>
+            </div>
+            {% if application.applying_for_course %}
+            <div class="info-item">
+                <div class="info-label">Course</div>
+                <div class="info-value">{{ application.applying_for_course.name }}</div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if application.previous_school or application.previous_class %}
+        <div style="margin-top: 15px;">
+            <div class="info-label">Previous Academic Details</div>
+            <div class="info-value" style="min-height: 40px;">
+                {% if application.previous_school %}School: {{ application.previous_school }}<br>{% endif %}
+                {% if application.previous_class %}Class: {{ application.previous_class }}<br>{% endif %}
+                {% if application.previous_marks %}Marks: {{ application.previous_marks }}%<br>{% endif %}
+                {% if application.previous_board %}Board: {{ application.previous_board }}{% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Parent/Guardian Information -->
+    <div class="section">
+        <div class="section-title">Parent/Guardian Information</div>
+        
+        <!-- Father's Information -->
+        <div style="margin-bottom: 15px;">
+            <div style="font-weight: bold; color: #555; margin-bottom: 8px;">Father's Details</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">{{ application.father_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Occupation</div>
+                    <div class="info-value">{{ application.father_occupation|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Qualification</div>
+                    <div class="info-value">{{ application.father_qualification|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Mobile</div>
+                    <div class="info-value">{{ application.father_mobile|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ application.father_email|default:"-" }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mother's Information -->
+        <div style="margin-bottom: 15px;">
+            <div style="font-weight: bold; color: #555; margin-bottom: 8px;">Mother's Details</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">{{ application.mother_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Occupation</div>
+                    <div class="info-value">{{ application.mother_occupation|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Qualification</div>
+                    <div class="info-value">{{ application.mother_qualification|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Mobile</div>
+                    <div class="info-value">{{ application.mother_mobile|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ application.mother_email|default:"-" }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Guardian's Information (if provided) -->
+        {% if application.guardian_name %}
+        <div>
+            <div style="font-weight: bold; color: #555; margin-bottom: 8px;">Guardian's Details</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">{{ application.guardian_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Relation</div>
+                    <div class="info-value">{{ application.guardian_relation|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Occupation</div>
+                    <div class="info-value">{{ application.guardian_occupation|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Mobile</div>
+                    <div class="info-value">{{ application.guardian_mobile|default:"-" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ application.guardian_email|default:"-" }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Page Break for Documents -->
+    <div class="page-break"></div>
+
+    <!-- Document Checklist -->
+    <div class="section">
+        <div class="section-title">Document Checklist</div>
+        <ul class="document-list">
+            {% for document in application.documents.all %}
+            <li class="document-item">
+                {{ document.get_document_type_display }}
+                <span class="document-status {% if document.is_verified %}verified{% else %}pending{% endif %}">
+                    {% if document.is_verified %}✓ Verified{% else %}⏳ Pending{% endif %}
+                </span>
+            </li>
+            {% empty %}
+            <li class="document-item">No documents uploaded yet</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Payment Information -->
+    {% if application.application_fee_paid %}
+    <div class="section">
+        <div class="section-title">Payment Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Application Fee</div>
+                <div class="info-value">Paid (₹{{ application.application_fee_amount }})</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Payment Reference</div>
+                <div class="info-value">{{ application.payment_reference|default:"-" }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Declaration -->
+    <div class="section">
+        <div class="section-title">Declaration</div>
+        <div class="declaration">
+            <p>I hereby declare that all the information provided in this application form is true and correct to the best of my knowledge. I understand that any false information may lead to cancellation of my admission.</p>
+            
+            <p>I agree to abide by the rules and regulations of {{ tenant.name }} and undertake to pay all fees as per the schedule.</p>
+            
+            <div class="signature-section">
+                <div class="signature-line"></div>
+                <div class="signature-label">Signature of Applicant/Parent</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Office Use Only -->
+    {% if application.reviewed_by or application.review_notes %}
+    <div class="section">
+        <div class="section-title">For Office Use Only</div>
+        <div class="info-grid">
+            {% if application.reviewed_by %}
+            <div class="info-item">
+                <div class="info-label">Reviewed By</div>
+                <div class="info-value">{{ application.reviewed_by.get_full_name }}</div>
+            </div>
+            {% endif %}
+            {% if application.review_date %}
+            <div class="info-item">
+                <div class="info-label">Review Date</div>
+                <div class="info-value">{{ application.review_date|date:"F j, Y" }}</div>
+            </div>
+            {% endif %}
+            {% if application.approval_date %}
+            <div class="info-item">
+                <div class="info-label">Approval Date</div>
+                <div class="info-value">{{ application.approval_date|date:"F j, Y" }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% if application.review_notes %}
+        <div style="margin-top: 15px;">
+            <div class="info-label">Review Notes</div>
+            <div class="info-value">{{ application.review_notes }}</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Generated on {% now "F j, Y \a\t g:i A" %} | {{ tenant.name }} Admission System</p>
+        <p>This is a computer-generated document and does not require a physical signature.</p>
+    </div>
+</body>
+</html>

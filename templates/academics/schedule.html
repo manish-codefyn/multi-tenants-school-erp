@@ -1,0 +1,69 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static custom_filters %}
+
+{% block title %}My Schedule | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <h4 class="mb-0">My Schedule</h4>
+                    <div class="ms-auto">
+                        <button class="btn btn-primary radius-30"><i class="bx bx-printer"></i> Print Schedule</button>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs nav-primary" role="tablist">
+                    {% for day in days %}
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {% if forloop.first %}active{% endif %}" data-bs-toggle="tab" href="#{{ day }}" role="tab" aria-selected="true">
+                            <div class="d-flex align-items-center">
+                                <div class="tab-title">{{ day|title }}</div>
+                            </div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="tab-content py-3">
+                    {% for day in days %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="{{ day }}" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Period</th>
+                                        <th>Time</th>
+                                        <th>Class & Section</th>
+                                        <th>Subject</th>
+                                        <th>Room</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entry in schedule_by_day|get_item:day %}
+                                    <tr>
+                                        <td>{{ entry.period_number }}</td>
+                                        <td>{{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}</td>
+                                        <td>{{ entry.class_name.name }} - {{ entry.section.name }}</td>
+                                        <td>{{ entry.subject.subject.name }}</td>
+                                        <td>{{ entry.room|default:"-" }}</td>
+                                        <td><span class="badge bg-info">{{ entry.get_period_type_display }}</span></td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">No classes scheduled for this day.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

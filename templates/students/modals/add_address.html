@@ -1,0 +1,28 @@
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+<div class="modal fade" id="addAddressModal" tabindex="-1" role="dialog" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">{% trans "Add Address" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <!-- NOTE: Address creation usually requires complex forms, might be better to redirect or handle via AJAX carefully. 
+                 For now, providing a simple form structure assuming backend can handle it or use AJAX submission.
+                 Ideally, this should post to an address creation endpoint.
+            -->
+            <form method="post" action="#"> 
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <p class="text-muted">{% trans "To add an address, please edit the student profile using the Edit button." %}</p>
+                    <!-- Fallback: Redirect to edit page for complex nested models if no specific endpoint exists -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+                    <a href="{% url 'students:student_update' student.id %}" class="btn btn-primary">{% trans "Go to Edit Profile" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

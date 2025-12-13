@@ -1,0 +1,61 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}My Certificates{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-content">
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Events</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">My Certificates</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for certificate in certificates %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <i class="bx bx-award text-warning" style="font-size: 48px;"></i>
+                        </div>
+                        <h5 class="card-title text-center">{{ certificate.event.title }}</h5>
+                        <p class="text-center text-muted">{{ certificate.get_certificate_type_display }}</p>
+                        <hr>
+                        <p><strong>Certificate No:</strong> {{ certificate.certificate_number }}</p>
+                        <p><strong>Issue Date:</strong> {{ certificate.issue_date }}</p>
+                        {% if certificate.remarks %}
+                        <p><strong>Remarks:</strong> {{ certificate.remarks }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'events:download_certificate' certificate.pk %}" class="btn btn-primary btn-sm w-100">
+                            <i class="bx bx-download"></i> Download PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bx bx-award" style="font-size: 64px; color: #ccc;"></i>
+                        <p class="text-muted mt-3">You don't have any certificates yet</p>
+                        <p class="text-muted">Participate in events to earn certificates!</p>
+                        <a href="{% url 'events:student_event_list' %}" class="btn btn-primary">Browse Events</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

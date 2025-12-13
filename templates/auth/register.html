@@ -1,0 +1,112 @@
+{% extends 'layouts/auth.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Register | School Management System{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="section-authentication-cover">
+        <div class="row g-0">
+
+            <!-- LEFT COVER IMAGE -->
+            <div class="col-12 col-xl-7 col-xxl-8 auth-cover-left d-none d-xl-flex align-items-center justify-content-center">
+                <div class="card shadow-none bg-transparent rounded-0">
+                    <div class="card-body">
+                        <img src="{% static 'assets/images/login-images/register-cover.svg' %}" class="img-fluid auth-img-cover-login" width="550" alt="Register Image">
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT FORM SIDE -->
+            <div class="col-12 col-xl-5 col-xxl-4 auth-cover-right d-flex align-items-center justify-content-center">
+                <div class="card rounded-0 m-3 shadow-none bg-transparent w-100">
+                    <div class="card-body p-sm-5">
+
+                        <!-- LOGO -->
+                        <div class="text-center mb-4">
+                            {% if tenant_logo %}
+                                <img src="{{ tenant_logo.url }}" width="60" class="mb-2" alt="School Logo">
+                            {% else %}
+                                <img src="{% static 'assets/images/logo-icon.png' %}" width="60" class="mb-2" alt="Logo">
+                            {% endif %}
+                            <h5 class="mt-3">
+                                {% if tenant_name %}
+                                    {{ tenant_name }}
+                                {% else %}
+                                    School Management System
+                                {% endif %}
+                            </h5>
+                            <p class="text-muted">Please fill the details to create your account</p>
+                        </div>
+
+                        <!-- FORM -->
+                        <form id="register-form" method="post" class="row g-3">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+
+                            <div class="col-12">
+                                <div class="d-grid">
+                                    <button id="register-btn" type="submit" class="btn btn-primary">
+                                        <i class="bi bi-person-plus me-2"></i> Create Account
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-12 text-center mt-2">
+                                <p class="mb-0">
+                                    Already have an account?
+                                    <a href="{% url 'login' %}" class="text-primary fw-semibold">Sign in</a>
+                                </p>
+                            </div>
+                        </form>
+
+                        <!-- SOCIAL LOGIN SEPARATOR -->
+                        <div class="login-separater text-center my-4">
+                            <span>OR SIGN UP WITH</span>
+                            <hr>
+                        </div>
+
+                        <!-- SOCIAL BUTTONS (Optional) -->
+                        <div class="text-center">
+                            <a href="#" class="list-inline-item bg-facebook text-white rounded-3 px-3 py-2 mx-1"><i class="bx bxl-facebook"></i></a>
+                            <a href="#" class="list-inline-item bg-google text-white rounded-3 px-3 py-2 mx-1"><i class="bx bxl-google"></i></a>
+                            <a href="#" class="list-inline-item bg-linkedin text-white rounded-3 px-3 py-2 mx-1"><i class="bx bxl-linkedin"></i></a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Disable button after submit
+    document.getElementById('register-form').addEventListener('submit', function () {
+        let btn = document.getElementById('register-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Creating account...';
+    });
+
+    // Password show/hide
+    $(document).ready(function () {
+        $("#show_hide_password a").on('click', function (event) {
+            event.preventDefault();
+            let input = $('#show_hide_password input');
+            let icon = $('#show_hide_password i');
+
+            if (input.attr("type") === "text") {
+                input.attr('type', 'password');
+                icon.addClass("bx-hide").removeClass("bx-show");
+            } else {
+                input.attr('type', 'text');
+                icon.removeClass("bx-hide").addClass("bx-show");
+            }
+        });
+    });
+</script>
+{% endblock %}

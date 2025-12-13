@@ -1,0 +1,251 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block extra_css %}
+    {% include "includes/datatable_styles.html" %}
+    <style>
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .avatar-initials {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            color: #333;
+            font-weight: bold;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block page_title %}{% trans "Students" %}{% endblock %}
+{% block page_description %}{% trans "Manage student records and information" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{% trans "Student List" %}</h5>
+            </div>
+            <div class="card-body">
+                <!-- Filter Form -->
+                <form method="get" class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <input type="text" name="search" class="form-control" placeholder="Search..." 
+                               value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="class_id" class="form-select">
+                            <option value="">All Classes</option>
+                            {% for class in classes %}
+                            <option value="{{ class.id }}" {% if request.GET.class_id == class.id|stringformat:"s" %}selected{% endif %}>
+                                {{ class.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                        <a href="{% url 'students:student_list' %}" class="btn btn-secondary">Clear</a>
+                    </div>
+                  <div class="col-md-3 text-end">
+                <div class="d-flex gap-2 justify-content-end">
+                    {% if perms.students.add_student %}
+                    <a href="{% url 'students:student_create' %}" class="btn btn-success btn-sm">
+                        <i class="bx bx-plus"></i> <span class="d-none d-sm-inline">{% trans "Add" %}</span>
+                    </a>
+                    {% endif %}
+                    
+                    {% if perms.students.export_student_data %}
+                    <div class="dropdown">
+                        <button class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bx bx-download"></i> <span class="d-none d-sm-inline">{% trans "Export" %}</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'students:student_export' %}?format=excel">Excel</a></li>
+                            <li><a class="dropdown-item" href="{% url 'students:student_export' %}?format=csv">CSV</a></li>
+                            <!-- <li><a class="dropdown-item" href="{% url 'students:student_export' %}?format=pdf">PDF</a></li> -->
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+                </form>
+
+                <!-- Student Table -->
+                <div class="table-responsive">
+                    <table id="studentTable" class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Avatar" %}</th>
+                                <th>{% trans "Admission No." %}</th>
+                                <th>{% trans "Student Name" %}</th>
+                                <th>{% trans "Class" %}</th>
+                                <th>{% trans "Phone" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in object_list %}
+                            <tr>
+                                <td>
+                                    {% if student.profile_picture %}
+                                    <img src="{{ student.profile_picture.url }}" 
+                                         alt="{{ student.full_name }}" 
+                                         class="student-avatar">
+                                    {% else %}
+                                    <div class="avatar-initials">
+                                        {{ student.first_name|first|upper }}{{ student.last_name|first|upper }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ student.admission_number }}</strong>
+                                    {% if student.roll_number %}
+                                    <br><small class="text-muted">Roll: {{ student.roll_number }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ student.full_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ student.personal_email }}</small>
+                                    <br>
+                                    <small class="text-muted">Age: {{ student.age }}</small>
+                                </td>
+                                <td>
+                                    {% if student.current_class %}
+                                    {{ student.current_class.name }}
+                                    {% if student.section %}
+                                    <br><small class="text-muted">Section: {{ student.section.name }}</small>
+                                    {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>{{ student.mobile_primary }}</td>
+                                <td>
+                                    {% if student.status == "ACTIVE" %}
+                                    <span class="badge bg-success status-badge">Active</span>
+                                    {% elif student.status == "INACTIVE" %}
+                                    <span class="badge bg-warning status-badge">Inactive</span>
+                                    {% elif student.status == "GRADUATED" %}
+                                    <span class="badge bg-info status-badge">Graduated</span>
+                                    {% elif student.status == "SUSPENDED" %}
+                                    <span class="badge bg-danger status-badge">Suspended</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'students:student_detail' student.id %}" 
+                                           class="btn btn-sm btn-info" title="View">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        {% if perms.students.change_student %}
+                                        <a href="{% url 'students:student_update' student.id %}" 
+                                           class="btn btn-sm btn-primary" title="Edit">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.students.delete_student %}
+                                        <a href="{% url 'students:student_delete' student.id %}" 
+                                           class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="alert alert-info mb-0">
+                                        <i class="bx bx-info-circle"></i>
+                                        {% trans "No students found. Add your first student." %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <!-- {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                Previous
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                Next
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %} -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {% include "includes/datatable_scripts.html" %}
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            $('#studentTable').DataTable({
+                pageLength: 25,
+                responsive: true,
+                order: [[2, 'asc']],
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ]
+            });
+        });
+    </script>
+{% endblock %}

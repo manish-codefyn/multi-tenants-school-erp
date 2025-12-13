@@ -1,0 +1,22 @@
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="position-relative m-4">
+            <div class="progress" style="height: 1px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ progress }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            
+            <div class="position-absolute top-0 start-0 translate-middle btn btn-sm {% if step >= 1 %}btn-primary{% else %}btn-secondary{% endif %} rounded-pill" style="width: 2rem; height:2rem;">1</div>
+            <div class="position-absolute top-0 start-25 translate-middle btn btn-sm {% if step >= 2 %}btn-primary{% else %}btn-secondary{% endif %} rounded-pill" style="left: 25%; width: 2rem; height:2rem;">2</div>
+            <div class="position-absolute top-0 start-50 translate-middle btn btn-sm {% if step >= 3 %}btn-primary{% else %}btn-secondary{% endif %} rounded-pill" style="left: 50%; width: 2rem; height:2rem;">3</div>
+            <div class="position-absolute top-0 start-75 translate-middle btn btn-sm {% if step >= 4 %}btn-primary{% else %}btn-secondary{% endif %} rounded-pill" style="left: 75%; width: 2rem; height:2rem;">4</div>
+            <div class="position-absolute top-0 start-100 translate-middle btn btn-sm {% if step >= 5 %}btn-primary{% else %}btn-secondary{% endif %} rounded-pill" style="left: 100%; width: 2rem; height:2rem;">5</div>
+        </div>
+        <div class="d-flex justify-content-between text-muted small mt-2">
+            <span>Registration</span>
+            <span>Contact</span>
+            <span>Academic</span>
+            <span>Documents</span>
+            <span>Review</span>
+        </div>
+    </div>
+</div>

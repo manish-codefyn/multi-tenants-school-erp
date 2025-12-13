@@ -1,0 +1,60 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Book Issues{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Book Issues</h5>
+            <a href="{% url 'library:book_issue_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Issue Book</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="issueTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Issue #</th>
+                        <th>Member</th>
+                        <th>Book</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Fine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issues %}
+                    <tr>
+                        <td><code>{{ issue.issue_number }}</code></td>
+                        <td>{{ issue.member.get_full_name }}</td>
+                        <td>{{ issue.book_copy.book.title|truncatewords:5 }}</td>
+                        <td>{{ issue.issue_date|date:"M d, Y" }}</td>
+                        <td>{{ issue.due_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if issue.status == 'RETURNED' %}<span class="badge bg-success">{{ issue.get_status_display }}</span>
+                            {% elif issue.status == 'OVERDUE' %}<span class="badge bg-danger">{{ issue.get_status_display }}</span>
+                            {% else %}<span class="badge bg-info">{{ issue.get_status_display }}</span>{% endif %}
+                        </td>
+                        <td>₹{{ issue.fine_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#issueTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#issueTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

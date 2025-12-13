@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="description" content="EduERP by Codefyn: Multi-Tenant ERP built for the future of education management. Scalable and comprehensive solutions for modern schools and institutions.">
+    <meta name="keywords" content="EduERP, Codefyn, Multi-Tenant ERP, education management, school ERP, institution software, Django, Python">
+    <meta name="author" content="Codefyn">
+    <meta name="robots" content="index, follow">
+
+    <link rel="canonical" href="https://www.codefyn.com.com/"> 
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'public/img/favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'public/img/favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'public/img/favicon/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'public/img/favicon/site.webmanifest' %}">
+    <link rel="mask-icon" href="{% static 'public/img/favicon/safari-pinned-tab.svg' %}" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+    
+    <meta property="og:title" content="EduERP by Codefyn | Future of Education Management">
+    <meta property="og:description" content="Multi-Tenant ERP built for scalable and comprehensive education management solutions.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.codefyn.com.com/">
+    <meta property="og:image" content="{% static 'public/img/social-share-image.jpg' %}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@CodefynOfficial">
+    <meta name="twitter:creator" content="@CodefynOfficial">
+    
+    <title>{% block title %}EduERP by Codefyn{% endblock %}</title>
+
+    {% load static %}
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{% static 'public/css/main.min.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    {% include "public/partials/nav.html" %}
+
+    <!-- Messages -->
+  
+    {% include "public/partials/messages.html" %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        <!-- Default content can go here -->
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+
+    {% include "public/partials/footer.html" %}
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.min.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

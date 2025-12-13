@@ -1,0 +1,123 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Library</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'library:book_list' %}">Books</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ book.title }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="ms-auto">
+                <a href="{% url 'library:book_update' book.pk %}" class="btn btn-warning"><i class="bx bx-edit"></i> Edit</a>
+                {% if book.available_copies > 0 %}
+                <a href="{% url 'library:issue_book' %}?book={{ book.pk }}" class="btn btn-success"><i class="bx bx-book-open"></i> Issue Book</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body text-center">
+                        {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" class="img-fluid mb-3" alt="{{ book.title }}">
+                        {% else %}
+                        <div class="bg-light p-5 mb-3">
+                            <i class="bx bx-book" style="font-size: 64px; color: #ccc;"></i>
+                        </div>
+                        {% endif %}
+                        <h4>{{ book.title }}</h4>
+                        <p class="text-muted">{{ book.author }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Book Details</h5>
+                        <hr>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+                                <p><strong>Publisher:</strong> {{ book.publisher }}</p>
+                                <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
+                                <p><strong>Category:</strong> {{ book.category }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Total Copies:</strong> {{ book.total_copies }}</p>
+                                <p><strong>Available:</strong> 
+                                    {% if book.available_copies > 0 %}
+                                    <span class="badge bg-success">{{ book.available_copies }}</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">0</span>
+                                    {% endif %}
+                                </p>
+                                <p><strong>Language:</strong> {{ book.language }}</p>
+                                <p><strong>Pages:</strong> {{ book.pages }}</p>
+                            </div>
+                        </div>
+                        {% if book.description %}
+                        <h6>Description</h6>
+                        <p>{{ book.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Issue History -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Issue History</h5>
+                        <hr>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Member</th>
+                                        <th>Issue Date</th>
+                                        <th>Due Date</th>
+                                        <th>Return Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for issue in book.issues.all|slice:":10" %}
+                                    <tr>
+                                        <td>{{ issue.member.user.get_full_name }}</td>
+                                        <td>{{ issue.issue_date }}</td>
+                                        <td>{{ issue.due_date }}</td>
+                                        <td>{{ issue.return_date|default:"-" }}</td>
+                                        <td>
+                                            {% if issue.is_returned %}
+                                            <span class="badge bg-success">Returned</span>
+                                            {% elif issue.is_overdue %}
+                                            <span class="badge bg-danger">Overdue</span>
+                                            {% else %}
+                                            <span class="badge bg-warning">Issued</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No issue history</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+{% endblock %}

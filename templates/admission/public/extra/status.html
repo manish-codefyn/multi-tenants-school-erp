@@ -1,0 +1,73 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Check Application Status" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-white py-3">
+                    <h2 class="h4 mb-0 text-center text-primary">{% trans "Check Application Status" %}</h2>
+                </div>
+                <div class="card-body p-4">
+                    {% crispy form %}
+                </div>
+            </div>
+
+            {% if status_checked and application %}
+                <div class="card shadow border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="h5 mb-0">{% trans "Application Details" %}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">{% trans "Application Number" %}</small>
+                                <span class="h5">{{ application.application_number }}</span>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <small class="text-muted d-block">{% trans "Current Status" %}</small>
+                                <span class="badge bg-{% if application.status == 'ADMITTED' %}success{% elif application.status == 'REJECTED' %}danger{% elif application.status == 'WAITLISTED' %}warning{% else %}info{% endif %} fs-6">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <strong class="d-block text-muted">{% trans "Applicant Name" %}</strong>
+                                {{ application.full_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong class="d-block text-muted">{% trans "Program Applied" %}</strong>
+                                {{ application.program }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong class="d-block text-muted">{% trans "Submission Date" %}</strong>
+                                {{ application.submission_date|date:"d M Y" }}
+                            </div>
+                            {% if application.decision_date %}
+                                <div class="col-md-6 mb-3">
+                                    <strong class="d-block text-muted">{% trans "Decision Date" %}</strong>
+                                    {{ application.decision_date|date:"d M Y" }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if application.status == 'ADMITTED' %}
+                            <div class="alert alert-success mt-3">
+                                <h4 class="alert-heading">{% trans "Congratulations!" %}</h4>
+                                <p>{% trans "Your application has been accepted. Please contact the school administration for further admission formalities." %}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

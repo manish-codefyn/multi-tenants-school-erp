@@ -1,0 +1,187 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Class - Academics{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Class{% else %}Add Class{% endif %}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'academics:dashboard' %}">Academics</a></li>
+<li class="breadcrumb-item"><a href="{% url 'academics:class_list' %}">Classes</a></li>
+<li class="breadcrumb-item active" aria-current="page">{% if form.instance.pk %}Edit{% else %}Add{% endif %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bx bx-book-content"></i>
+                    {% if form.instance.pk %}Edit Class{% else %}Add New Class{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Class Name -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                Class Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">e.g., Grade 10, Class X</small>
+                        </div>
+
+                        <!-- Numeric Name -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.numeric_name.id_for_label }}" class="form-label">
+                                Numeric Name
+                            </label>
+                            {{ form.numeric_name }}
+                            {% if form.numeric_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.numeric_name.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">e.g., 10, X</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Code -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.code.id_for_label }}" class="form-label">
+                                Code <span class="text-danger">*</span>
+                            </label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                            <div class="invalid-feedback d-block">{{ form.code.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">e.g., G10, CLS-X</small>
+                        </div>
+
+                        <!-- Level -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.level.id_for_label }}" class="form-label">
+                                Level <span class="text-danger">*</span>
+                            </label>
+                            {{ form.level }}
+                            {% if form.level.errors %}
+                            <div class="invalid-feedback d-block">{{ form.level.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Order -->
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.order.id_for_label }}" class="form-label">
+                                Display Order <span class="text-danger">*</span>
+                            </label>
+                            {{ form.order }}
+                            {% if form.order.errors %}
+                            <div class="invalid-feedback d-block">{{ form.order.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Lower numbers appear first</small>
+                        </div>
+
+                        <!-- Pass Percentage -->
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.pass_percentage.id_for_label }}" class="form-label">
+                                Pass Percentage
+                            </label>
+                            {{ form.pass_percentage }}
+                            {% if form.pass_percentage.errors %}
+                            <div class="invalid-feedback d-block">{{ form.pass_percentage.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Max Strength -->
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.max_strength.id_for_label }}" class="form-label">
+                                Max Strength
+                            </label>
+                            {{ form.max_strength }}
+                            {% if form.max_strength.errors %}
+                            <div class="invalid-feedback d-block">{{ form.max_strength.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Total capacity</small>
+                        </div>
+                    </div>
+
+                    <!-- Tuition Fee -->
+                    {% if form.tuition_fee %}
+                    <div class="mb-3">
+                        <label for="{{ form.tuition_fee.id_for_label }}" class="form-label">
+                            Tuition Fee
+                        </label>
+                        {{ form.tuition_fee }}
+                        {% if form.tuition_fee.errors %}
+                        <div class="invalid-feedback d-block">{{ form.tuition_fee.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Class Teacher -->
+                    {% if form.class_teacher %}
+                    <div class="mb-3">
+                        <label for="{{ form.class_teacher.id_for_label }}" class="form-label">
+                            Class Teacher
+                        </label>
+                        {{ form.class_teacher }}
+                        {% if form.class_teacher.errors %}
+                        <div class="invalid-feedback d-block">{{ form.class_teacher.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Optional - Can be assigned later</small>
+                    </div>
+                    {% endif %}
+
+                    <!-- Description -->
+                    {% if form.description %}
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Active Status -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                Active
+                            </label>
+                        </div>
+                        <small class="text-muted">Only active classes are available for enrollment</small>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'academics:class_list' %}" class="btn btn-secondary">
+                            <i class="bx bx-x"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save"></i> {% if form.instance.pk %}Update{% else %}Create{% endif %} Class
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

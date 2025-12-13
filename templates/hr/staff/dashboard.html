@@ -1,0 +1,17 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Staff Dashboard - {{ tenant.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Welcome, {{ user.first_name }}!</h4>
+                <p class="card-text">This is your Staff Dashboard.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

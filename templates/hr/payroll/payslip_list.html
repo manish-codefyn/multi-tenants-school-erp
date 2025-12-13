@@ -1,0 +1,86 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Payroll History{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Payroll History</h5>
+        <a href="{% url 'hr:payroll_generate' %}" class="btn btn-primary">
+            <i class="bi bi-gear-wide-connected me-2"></i>Generate Payroll
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Month</th>
+                        <th>Staff Member</th>
+                        <th>Basic Salary</th>
+                        <th>Allowances</th>
+                        <th>Deductions</th>
+                        <th>Net Salary</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payslip in payslips %}
+                    <tr>
+                        <td>{{ payslip.month|date:"F Y" }}</td>
+                        <td>
+                            <div class="fw-bold">{{ payslip.staff.get_full_name }}</div>
+                            <div class="small text-muted">{{ payslip.staff.email }}</div>
+                        </td>
+                        <td>{{ payslip.basic_salary }}</td>
+                        <td class="text-success">+{{ payslip.total_allowances }}</td>
+                        <td class="text-danger">-{{ payslip.total_deductions }}</td>
+                        <td class="fw-bold">{{ payslip.net_salary }}</td>
+                        <td>
+                            <span class="badge bg-{% if payslip.status == 'paid' %}success{% elif payslip.status == 'generated' %}info{% else %}secondary{% endif %}">
+                                {{ payslip.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'hr:payslip_detail' payslip.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            No payslips found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

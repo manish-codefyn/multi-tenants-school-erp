@@ -1,0 +1,196 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Fee Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Fee Management</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'fees:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item active" aria-current="page">Fee Dashboard</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-info">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Total Students</p>
+                        <h4 class="my-1 text-info">{{ total_students }}</h4>
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto">
+                        <i class="bx bxs-group"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-danger">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Total Fees</p>
+                        <h4 class="my-1 text-danger">₹{{ total_fees|floatformat:2 }}</h4>
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto">
+                        <i class="bx bx-rupee"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-success">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Collected</p>
+                        <h4 class="my-1 text-success">₹{{ total_collected|floatformat:2 }}</h4>
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto">
+                        <i class="bx bx-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 border-start border-0 border-3 border-warning">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Pending</p>
+                        <h4 class="my-1 text-warning">₹{{ total_pending|floatformat:2 }}</h4>
+                        <p class="mb-0 font-13">{{ overdue_count }} Overdue</p>
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto">
+                        <i class="bx bx-time"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Unpaid Accounts -->
+    <div class="col-12 col-lg-8">
+        <div class="card radius-10">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Recent Unpaid Accounts</h6>
+                    </div>
+                    <div class="dropdown ms-auto">
+                        <a href="{% url 'fees:account_list' %}" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Student</th>
+                                <th>Category</th>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in recent_accounts %}
+                            <tr>
+                                <td>{{ account.student.get_full_name }}</td>
+                                <td>{{ account.fee_structure.category.name }}</td>
+                                <td>₹{{ account.total_amount }}</td>
+                                <td>₹{{ account.paid_amount }}</td>
+                                <td><span class="badge bg-danger">₹{{ account.balance_amount }}</span></td>
+                                <td>
+                                    <a href="{% url 'fees:account_detail' account.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No unpaid accounts</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="col-12 col-lg-4">
+        <div class="card radius-10">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0">Recent Payments</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for payment in recent_payments %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0">{{ payment.student_fee_account.student.get_full_name }}</h6>
+                                <p class="mb-0 text-secondary">{{ payment.payment_date }}</p>
+                            </div>
+                            <div class="text-end">
+                                <h6 class="mb-0 text-success">₹{{ payment.amount }}</h6>
+                                <small class="text-muted">{{ payment.get_payment_method_display }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted">No recent payments</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Methods Breakdown -->
+<div class="row">
+    <div class="col-12">
+        <div class="card radius-10">
+            <div class="card-header">
+                <h6 class="mb-0">Payment Methods Breakdown</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for method in payment_methods %}
+                    <div class="col-md-3">
+                        <div class="card border">
+                            <div class="card-body text-center">
+                                <h5>{{ method.get_payment_method_display }}</h5>
+                                <h4 class="text-primary">₹{{ method.total|floatformat:2 }}</h4>
+                                <p class="text-muted mb-0">{{ method.count }} transactions</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

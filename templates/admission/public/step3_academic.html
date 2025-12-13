@@ -1,0 +1,56 @@
+{% extends "layouts/auth.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0">{% trans "Online Admission Application" %}</h4>
+                </div>
+                <div class="card-body p-4">
+                    {% include 'admission/public/partials/stepper.html' with step=3 progress=50 %}
+                    
+                    <h5 class="mb-4">{% trans "Step 3: Academic Information" %}</h5>
+                    
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.previous_school|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.previous_board|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.previous_qualification|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.previous_percentage|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.passing_year|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'admission:apply_step2' object.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left ms-2"></i> {% trans "Back" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% trans "Save & Continue" %} <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ role_name }}{% endblock %}
+
+{% block extra_css %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<style>
+.dt-buttons {
+    margin-bottom: 15px;
+}
+.dt-button {
+    margin-right: 5px !important;
+}
+.empty-state-icon {
+    font-size: 48px;
+    color: #ccc;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">User Management</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{% url 'admin_user_list' %}">Users</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ role_name }}</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="ms-auto">
+        <a href="{% url 'admin_user_create' %}" class="btn btn-primary">
+            <i class="bx bx-plus"></i> Add User
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 mb-3">
+    <div class="col">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Total {{ role_name }}</p>
+                        <h4 class="my-1">{{ users.count }}</h4>
+                    </div>
+                    <div class="widgets-icons bg-light-primary text-primary ms-auto">
+                        <i class="bx {{ role_icon }}"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Users List -->
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0">{{ role_name }} List</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="roleUsersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Date Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-2 bg-light rounded-circle d-flex align-items-center justify-content-center">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="" class="rounded-circle" width="32" height="32">
+                                    {% else %}
+                                    {{ user.first_name|first }}{{ user.last_name|first }}
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ user.get_full_name }}</div>
+                                    {% if user.employee_id %}
+                                    <small class="text-muted">ID: {{ user.employee_id }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small text-muted">{{ user.email }}</div>
+                        </td>
+                        <td>{{ user.phone|default:"-" }}</td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'admin_user_detail' user.pk %}">
+                                            <i class="bx bx-show me-2"></i>View
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'admin_user_edit' user.pk %}">
+                                            <i class="bx bx-edit me-2"></i>Edit
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="post" action="{% url 'admin_user_status' user.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            {% if user.is_active %}
+                                            <button type="submit" name="action" value="deactivate" class="dropdown-item text-warning">
+                                                <i class="bx bx-pause-circle me-2"></i>Deactivate
+                                            </button>
+                                            <button type="submit" name="action" value="block" class="dropdown-item text-danger">
+                                                <i class="bx bx-slash-circle me-2"></i>Block
+                                            </button>
+                                            {% else %}
+                                            <button type="submit" name="action" value="activate" class="dropdown-item text-success">
+                                                <i class="bx bx-check-circle me-2"></i>Activate
+                                            </button>
+                                            {% endif %}
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="bx {{ role_icon }} empty-state-icon"></i>
+                            <p class="mt-2">No {{ role_name|lower }} found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- DataTables Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<!-- JSZip for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- pdfmake for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+<script>
+// Wait for jQuery to be available
+(function() {
+    function initDataTable() {
+        if (typeof jQuery === 'undefined') {
+            console.error('jQuery is not loaded!');
+            return;
+        }
+        
+        if (typeof $.fn.dataTable === 'undefined') {
+            console.error('DataTables is not loaded!');
+            return;
+        }
+
+        console.log('Initializing DataTable for role users...');
+        
+        // Initialize DataTable
+        var table = $('#roleUsersTable').DataTable({
+            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                 "<'row'<'col-sm-12 col-md-12'B>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-sm btn-primary',
+                    text: '<i class="bx bx-copy me-1"></i> Copy',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4]
+                    }
+                },
+                {
+                    extend: 'excel',
+                    className: 'btn btn-sm btn-success',
+                    text: '<i class="bx bx-file me-1"></i> Excel',
+                    title: '{{ role_name }} List - {{ request.tenant.name }}',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4]
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    className: 'btn btn-sm btn-danger',
+                    text: '<i class="bx bxs-file-pdf me-1"></i> PDF',
+                    title: '{{ role_name }} List - {{ request.tenant.name }}',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4]
+                    },
+                    customize: function(doc) {
+                        doc.content[1].table.widths = ['25%', '25%', '15%', '15%', '20%'];
+                        doc.styles.tableHeader.fillColor = '#6c63ff';
+                        doc.styles.tableHeader.color = 'white';
+                    }
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-sm btn-info',
+                    text: '<i class="bx bx-printer me-1"></i> Print',
+                    title: '{{ role_name }} List - {{ request.tenant.name }}',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4]
+                    },
+                    customize: function(win) {
+                        $(win.document.body)
+                            .css('font-size', '10pt')
+                            .prepend(
+                                '<div style="text-align:center; margin-bottom:20px;">' +
+                                '<h2>{{ request.tenant.name }}</h2>' +
+                                '<p>{{ role_name }} List Report</p>' +
+                                '<p>Generated on: ' + new Date().toLocaleDateString() + '</p>' +
+                                '</div>'
+                            );
+                        
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css('font-size', 'inherit');
+                    }
+                }
+            ],
+            pageLength: 25,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[4, 'desc']], // Sort by joined date descending
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search {{ role_name|lower }}...",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ {{ role_name|lower }}",
+                infoEmpty: "No {{ role_name|lower }} available",
+                infoFiltered: "(filtered from _MAX_ total {{ role_name|lower }})",
+                zeroRecords: "No matching {{ role_name|lower }} found",
+                emptyTable: "No {{ role_name|lower }} available in table"
+            },
+            columnDefs: [
+                {
+                    targets: 5, // Actions column
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+            responsive: true,
+            stateSave: true, // Remember user's settings
+            stateDuration: 60 * 60 * 24 // 24 hours
+        });
+
+        console.log('DataTable initialized successfully!');
+    }
+
+    // Try to initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initDataTable, 100);
+        });
+    } else {
+        setTimeout(initDataTable, 100);
+    }
+})();
+</script>
+{% endblock %}

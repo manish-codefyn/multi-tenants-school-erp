@@ -1,0 +1,60 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block extra_css %}
+    {% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Classes</h5>
+            <a href="{% url 'academics:class_create' %}" class="btn btn-primary btn-sm"><i class='bx bx-plus'></i> Add New</a>
+        </div>
+        <div class="table-responsive">
+            <table id="classTable" class="table table-striped table-bordered" data-datatable data-title="Classes" data-export-columns="[0, 1, 2, 3, 4, 5]">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Level</th>
+                        <th>Class Teacher</th>
+                        <th>Strength</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for class in classes %}
+                    <tr>
+                        <td>{{ class.name }}</td>
+                        <td>{{ class.code }}</td>
+                        <td>{{ class.get_level_display }}</td>
+                        <td>{{ class.class_teacher.get_full_name|default:"-" }}</td>
+                        <td>{{ class.current_strength }} / {{ class.max_strength }}</td>
+                        <td>
+                            {% if class.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'academics:class_update' class.pk %}" class="ms-3" title="Edit"><i class='bx bxs-edit'></i></a>
+                                <a href="{% url 'academics:class_delete' class.pk %}" class="ms-3 text-danger" title="Delete"><i class='bx bxs-trash'></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {% include "includes/datatable_scripts.html" %}
+{% endblock %}

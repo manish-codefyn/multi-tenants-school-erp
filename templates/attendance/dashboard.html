@@ -1,0 +1,62 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-2">Attendance Dashboard</h2>
+        <p class="text-muted">Overview of student attendance</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Stats -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Total Present</h6>
+                        <h2 class="mb-0">{{ total_present }}</h2>
+                    </div>
+                    <i class="fas fa-user-check fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-danger text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Total Absent</h6>
+                        <h2 class="mb-0">{{ total_absent }}</h2>
+                    </div>
+                    <i class="fas fa-user-times fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{% url 'attendance:mark_attendance' %}" class="btn btn-primary mb-2">
+                        <i class="fas fa-clipboard-check me-2"></i> Mark Attendance
+                    </a>
+                    <a href="{% url 'attendance:qr_attendance' %}" class="btn btn-outline-primary mb-2">
+                        <i class="fas fa-qrcode me-2"></i> QR Code Scan
+                    </a>
+                    <a href="{% url 'attendance:report' %}" class="btn btn-outline-secondary mb-2">
+                        <i class="fas fa-file-alt me-2"></i> Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

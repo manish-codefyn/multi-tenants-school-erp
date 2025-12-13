@@ -1,0 +1,70 @@
+{% extends 'layouts/dashboard.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Bulk Mark Attendance{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0">Bulk Mark Student Attendance</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {{ form.date|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.session|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.course|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Select filters above to load students. Currently showing all active students.
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students|default:form.fields.course.queryset.model.objects.none %} 
+                                <!-- Logic to be improved in view to pass students context -->
+                                <!-- For now, we'll rely on the view logic or just show a placeholder if no students -->
+                                {% endfor %}
+                                
+                                <!-- Placeholder for JS implementation or simple form -->
+                                <tr>
+                                    <td colspan="3" class="text-center py-5 text-muted">
+                                        Please use the filters to load students (Implementation Pending)
+                                        <br>
+                                        <small>For now, please use Single Mark or implement JS to load students dynamically.</small>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Save Bulk Attendance</button>
+                        <a href="{% url 'attendance:student_list' %}" class="btn btn-light">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

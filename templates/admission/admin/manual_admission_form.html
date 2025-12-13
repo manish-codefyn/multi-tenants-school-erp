@@ -1,0 +1,354 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Edit{% else %}Create{% endif %} Manual Admission - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.form-section h5 {
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+.form-section h6 {
+    color: #6c757d;
+    font-size: 0.95rem;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+        <div class="breadcrumb-title pe-3">Admission</div>
+        <div class="ps-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 p-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admission:dashboard' %}">Admission</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admission:manual_admission_list' %}">Manual Admissions</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{% if object %}Edit{% else %}Create{% endif %}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">{% if object %}Edit Manual Admission{% else %}New Manual Admission{% endif %}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h5><i class="bx bx-user me-2"></i>Personal Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Middle Name</label>
+                            {{ form.middle_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                            {{ form.date_of_birth }}
+                            {% if form.date_of_birth.errors %}<div class="text-danger small">{{ form.date_of_birth.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Gender <span class="text-danger">*</span></label>
+                            {{ form.gender }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Category</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Religion</label>
+                            {{ form.religion }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Blood Group</label>
+                            {{ form.blood_group }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nationality</label>
+                            {{ form.nationality }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="form-section">
+                    <h5><i class="bx bx-phone me-2"></i>Contact Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Mobile <span class="text-danger">*</span></label>
+                            {{ form.mobile }}
+                            {% if form.mobile.errors %}<div class="text-danger small">{{ form.mobile.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Alternate Mobile</label>
+                            {{ form.alternate_mobile }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address Information -->
+                <div class="form-section">
+                    <h5><i class="bx bx-map me-2"></i>Address Information</h5>
+                    <h6>Permanent Address</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Address</label>
+                            {{ form.permanent_address }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">City</label>
+                            {{ form.permanent_city }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">State</label>
+                            {{ form.permanent_state }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Pincode</label>
+                            {{ form.permanent_pincode }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Country</label>
+                            {{ form.permanent_country }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        {{ form.correspondence_same_as_permanent }}
+                        <label class="form-check-label">Correspondence address same as permanent</label>
+                    </div>
+                    
+                    <h6>Correspondence Address</h6>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Address</label>
+                            {{ form.correspondence_address }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">City</label>
+                            {{ form.correspondence_city }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">State</label>
+                            {{ form.correspondence_state }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Pincode</label>
+                            {{ form.correspondence_pincode }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Country</label>
+                            {{ form.correspondence_country }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Information -->
+                <div class="form-section">
+                    <h5><i class="bx bx-book me-2"></i>Academic Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Academic Year <span class="text-danger">*</span></label>
+                            {{ form.academic_year }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Applying for Class</label>
+                            {{ form.applying_for_class }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Applying for Course</label>
+                            {{ form.applying_for_course }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Previous School</label>
+                            {{ form.previous_school }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Previous Class</label>
+                            {{ form.previous_class }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Previous Marks (%)</label>
+                            {{ form.previous_marks }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Previous Board</label>
+                            {{ form.previous_board }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parent Information -->
+                <div class="form-section">
+                    <h5><i class="bx bx-group me-2"></i>Parent/Guardian Information</h5>
+                    
+                    <h6>Father's Details</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Father's Name</label>
+                            {{ form.father_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Occupation</label>
+                            {{ form.father_occupation }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Qualification</label>
+                            {{ form.father_qualification }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile</label>
+                            {{ form.father_mobile }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            {{ form.father_email }}
+                        </div>
+                    </div>
+                    
+                    <h6>Mother's Details</h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Mother's Name</label>
+                            {{ form.mother_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Occupation</label>
+                            {{ form.mother_occupation }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Qualification</label>
+                            {{ form.mother_qualification }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile</label>
+                            {{ form.mother_mobile }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            {{ form.mother_email }}
+                        </div>
+                    </div>
+                    
+                    <h6>Guardian's Details (if applicable)</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Guardian's Name</label>
+                            {{ form.guardian_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Relation</label>
+                            {{ form.guardian_relation }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Occupation</label>
+                            {{ form.guardian_occupation }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile</label>
+                            {{ form.guardian_mobile }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            {{ form.guardian_email }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Details -->
+                <div class="form-section">
+                    <h5><i class="bx bx-file me-2"></i>Application Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Application Fee Paid</label>
+                            {{ form.application_fee_paid }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fee Amount</label>
+                            {{ form.application_fee_amount }}
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Payment Reference</label>
+                            {{ form.payment_reference }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'admission:manual_admission_list' %}" class="btn btn-secondary">
+                        <i class="bx bx-x"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-save"></i> {% if object %}Update{% else %}Create{% endif %} Admission
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Add form-control classes
+    $('input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea').addClass('form-control');
+    $('input[type="checkbox"]').addClass('form-check-input');
+    
+    // Handle correspondence address checkbox
+    $('input[name="correspondence_same_as_permanent"]').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('textarea[name="correspondence_address"]').val($('textarea[name="permanent_address"]').val()).prop('readonly', true);
+            $('input[name="correspondence_city"]').val($('input[name="permanent_city"]').val()).prop('readonly', true);
+            $('input[name="correspondence_state"]').val($('input[name="permanent_state"]').val()).prop('readonly', true);
+            $('input[name="correspondence_pincode"]').val($('input[name="permanent_pincode"]').val()).prop('readonly', true);
+            $('input[name="correspondence_country"]').val($('input[name="permanent_country"]').val()).prop('readonly', true);
+        } else {
+            $('textarea[name="correspondence_address"]').prop('readonly', false);
+            $('input[name="correspondence_city"]').prop('readonly', false);
+            $('input[name="correspondence_state"]').prop('readonly', false);
+            $('input[name="correspondence_pincode"]').prop('readonly', false);
+            $('input[name="correspondence_country"]').prop('readonly', false);
+        }
+    });
+});
+</script>
+{% endblock %}

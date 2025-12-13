@@ -1,0 +1,191 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Admission Dashboard - {{ block.super }}{% endblock %}
+
+{% block content %}
+{% include "partials/breadcrumb.html" with page_title="Admission Management Dashboard" parent_text="Home" parent_url="#" current_text="Admission" %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-end mb-4">
+        <div>
+            <a href="{% url 'admission:enquiry_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-envelope"></i> Enquiries
+            </a>
+            <a href="{% url 'admission:application_list' %}" class="btn btn-primary">
+                <i class="bi bi-file-text"></i> Applications
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Enquiries</h6>
+                            <h3 class="mb-0">{{ total_enquiries }}</h3>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-envelope-fill text-primary fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Applications</h6>
+                            <h3 class="mb-0">{{ total_applications }}</h3>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-file-text-fill text-info fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Pending Review</h6>
+                            <h3 class="mb-0 text-warning">{{ pending_applications }}</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-clock-fill text-warning fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Approved</h6>
+                            <h3 class="mb-0 text-success">{{ approved_applications }}</h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Enquiries -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Recent Enquiries</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Course</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enquiry in recent_enquiries %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'admission:enquiry_detail' enquiry.pk %}">
+                                            {{ enquiry.first_name }} {{ enquiry.last_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ enquiry.course.name }}</td>
+                                    <td>{{ enquiry.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ enquiry.status|default:'secondary' }}">
+                                            {{ enquiry.get_status_display|default:'New' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        No recent enquiries
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top text-center">
+                    <a href="{% url 'admission:enquiry_list' %}" class="text-decoration-none">
+                        View All Enquiries <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Applications -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Pending Applications</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>App #</th>
+                                    <th>Name</th>
+                                    <th>Course</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in pending_apps %}
+                                <tr>
+                                    <td>{{ app.application_number }}</td>
+                                    <td>{{ app.first_name }} {{ app.last_name }}</td>
+                                    <td>{{ app.course.name }}</td>
+                                    <td>
+                                        <a href="{% url 'admission:application_review' app.pk %}" 
+                                           class="btn btn-sm btn-primary">
+                                            Review
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        No pending applications
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top text-center">
+                    <a href="{% url 'admission:application_list' %}?status=pending" class="text-decoration-none">
+                        View All Pending <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

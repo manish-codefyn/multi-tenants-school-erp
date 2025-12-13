@@ -1,0 +1,47 @@
+[
+    {
+        "schema_name": "public",
+        "users": [
+            {
+                "email": "admin@system.com",
+                "password": "AdminPassword123!",
+                "first_name": "System",
+                "last_name": "Administrator",
+                "role": "super_admin",
+                "is_superuser": true,
+                "is_staff": true,
+                "is_verified": true
+            }
+        ]
+    },
+    {
+        "schema_name": "school_a",
+        "users": [
+            {
+                "email": "admin@springfield.edu",
+                "password": "SchoolAPassword123!",
+                "first_name": "Principal",
+                "last_name": "Skinner",
+                "role": "admin",
+                "is_superuser": true,
+                "is_staff": true,
+                "is_verified": true
+            }
+        ]
+    },
+    {
+        "schema_name": "school_b",
+        "users": [
+            {
+                "email": "admin@westbridge.edu",
+                "password": "SchoolBPassword123!",
+                "first_name": "Principal",
+                "last_name": "Vance",
+                "role": "admin",
+                "is_superuser": true,
+                "is_staff": true,
+                "is_verified": true
+            }
+        ]
+    }
+]

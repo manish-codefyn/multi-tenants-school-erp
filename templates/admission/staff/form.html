@@ -1,0 +1,36 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Update Application Status" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Update Application Status" %}</h1>
+        <a href="{% url 'admission:staff_detail' object.pk %}" class="btn btn-secondary">
+            <i class="bx bx-left-arrow-alt"></i> {% trans "Back to Details" %}
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Update Status" %} - {{ object.application_number }}</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">{% trans "Update Status" %}</button>
+                            <a href="{% url 'admission:staff_detail' object.pk %}" class="btn btn-secondary btn-lg">{% trans "Cancel" %}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

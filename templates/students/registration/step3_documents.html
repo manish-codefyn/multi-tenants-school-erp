@@ -1,0 +1,65 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Register New Student - Step 3" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10 col-lg-11">
+        <!-- Stepper Partial -->
+        {% include 'students/partials/registration_stepper.html' with step=3 %}
+
+        <div class="card border-0 shadow-lg rounded-3 overflow-hidden">
+             <div class="card-header bg-white py-3 border-bottom">
+                 <h5 class="card-title mb-0 fw-bold text-primary"><i class="fas fa-file-upload me-2"></i>{% trans "Upload Documents" %}</h5>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                
+                <div class="alert alert-info border-0 bg-info bg-opacity-10 d-flex align-items-center mb-4">
+                    <i class="fas fa-info-circle text-info fs-4 me-3"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1">{% trans "Document Requirements" %}</h6>
+                        <p class="mb-0 small text-muted">{% trans "Please upload at least one valid identification document. Accepted formats: PDF, JPG, PNG." %}</p>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        {% for field in form %}
+                            <div class="col-md-6">
+                                <div class="card h-100 border-dashed bg-light">
+                                    <div class="card-body">
+                                        {{ field|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                        <a href="{% url 'students:student_detail' student.id %}" class="btn btn-light btn-lg px-4 text-muted">
+                            {% trans "Skip & Finish" %}
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm">
+                            {% trans "Complete Registration" %} <i class="fas fa-check-circle ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-dashed {
+        border: 2px dashed #dee2e6;
+        transition: all 0.2s;
+    }
+    .border-dashed:hover {
+        border-color: var(--bs-primary);
+        background-color: #fff;
+    }
+</style>
+{% endblock %}

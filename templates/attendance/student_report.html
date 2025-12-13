@@ -1,0 +1,101 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center">
+            {% if student.photo %}
+            <img src="{{ student.photo.url }}" class="rounded-circle me-3" width="60" height="60" alt="Student Photo">
+            {% else %}
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                <i class="fas fa-user fa-2x"></i>
+            </div>
+            {% endif %}
+            <div>
+                <h2 class="mb-0">{{ student.full_name }}</h2>
+                <p class="text-muted mb-0">Class: {{ student.current_class.name }} - {{ student.section.name }} | Admission No: {{ student.admission_number }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6>Attendance Rate</h6>
+                <h3>{{ attendance_percentage }}%</h3>
+                <small>Class Avg: {{ class_percentage }}%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6>Present Days</h6>
+                <h3>{{ present_days }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6>Absent Days</h6>
+                <h3>{{ absent_days }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h6>Late/Half Days</h6>
+                <h3>{{ late_days }}/{{ half_days }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Attendance History ({{ current_month }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ record.date|date:"D, d M Y" }}</td>
+                        <td>
+                            {% if record.status == 'PRESENT' %}
+                                <span class="badge bg-success">Present</span>
+                            {% elif record.status == 'ABSENT' %}
+                                <span class="badge bg-danger">Absent</span>
+                            {% elif record.status == 'LATE' %}
+                                <span class="badge bg-warning">Late</span>
+                            {% elif record.status == 'HALF_DAY' %}
+                                <span class="badge bg-warning">Half Day</span>
+                            {% elif record.status == 'LEAVE' %}
+                                <span class="badge bg-info">Leave</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ record.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.remarks|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center">No records found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

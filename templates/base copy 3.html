@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    {% load static %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- favicon -->
+    <link rel="icon" href="{% static 'assets/images/favicon-32x32.png' %}" type="image/png"/>
+
+ {% load static %}
+
+<!--plugins-->
+<link href="{% static 'assets/plugins/notifications/css/lobibox.min.css' %}" rel="stylesheet"/>
+<link href="{% static 'assets/plugins/vectormap/jquery-jvectormap-2.0.2.css' %}" rel="stylesheet"/>
+<link href="{% static 'assets/plugins/simplebar/css/simplebar.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/plugins/perfect-scrollbar/css/perfect-scrollbar.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/plugins/metismenu/css/metisMenu.min.css' %}" rel="stylesheet" />
+
+<!-- loader -->
+<link href="{% static 'assets/css/pace.min.css' %}" rel="stylesheet"/>
+<script src="{% static 'assets/js/pace.min.js' %}"></script>
+
+<!-- Bootstrap CSS -->
+<link href="{% static 'assets/css/bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'assets/css/bootstrap-extended.css' %}" rel="stylesheet">
+
+<!-- Google Font (keep external, no static required) -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+
+<link href="{% static 'assets/css/app.css' %}" rel="stylesheet">
+<link href="{% static 'assets/css/icons.css' %}" rel="stylesheet">
+
+<!-- Theme Style CSS -->
+<link rel="stylesheet" href="{% static 'assets/css/dark-theme.css' %}" />
+<link rel="stylesheet" href="{% static 'assets/css/semi-dark.css' %}" />
+<link rel="stylesheet" href="{% static 'assets/css/header-colors.css' %}" />
+
+
+    <!-- Page Specific CSS -->
+    {% block extra_css %}{% endblock %}
+
+    <!-- Dynamic Title -->
+    <title>{% block title %}{{ site_title|default:tenant.name }} — codefyn {% endblock %}</title>
+
+    <!-- Dynamic Meta Tags -->
+    <meta name="description" content="{{ site_description }}">
+    <meta name="keywords" content="{{ site_keywords }}">
+    <meta name="author" content="{{ meta_author }}">
+    
+    <!-- Dynamic Favicon -->
+    {% if tenant.favicon %}
+        <link rel="icon" href="{{ tenant.favicon.url }}" type="image/x-icon">
+        <link rel="apple-touch-icon" href="{{ tenant.favicon.url }}">
+    {% else %}
+        <link rel="icon" href="{% static 'img/default-favicon.ico' %}" type="image/x-icon">
+    {% endif %}
+</head>
+
+<body onload="info_noti()">
+    {% block body_content %}
+    <!-- Default body content - can be overridden by layouts -->
+    {% endblock %}
+
+
+
+<!--start switcher-->
+<div class="switcher-wrapper">
+	<div class="switcher-btn"><i class='bx bx-cog bx-spin'></i></div>
+	<div class="switcher-body">
+		<div class="d-flex align-items-center">
+			<h5 class="mb-0 text-uppercase">Theme Customizer</h5>
+			<button type="button" class="btn-close ms-auto close-switcher" aria-label="Close"></button>
+		</div>
+		<hr/>
+		<h6 class="mb-0">Theme Styles</h6>
+		<hr/>
+		<div class="d-flex align-items-center justify-content-between">
+			<div class="form-check">
+				<input class="form-check-input" type="radio" name="flexRadioDefault" id="lightmode" checked>
+				<label class="form-check-label" for="lightmode">Light</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="radio" name="flexRadioDefault" id="darkmode">
+				<label class="form-check-label" for="darkmode">Dark</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="radio" name="flexRadioDefault" id="semidark">
+				<label class="form-check-label" for="semidark">Semi Dark</label>
+			</div>
+		</div>
+		<hr/>
+		<div class="form-check">
+			<input class="form-check-input" type="radio" id="minimaltheme" name="flexRadioDefault">
+			<label class="form-check-label" for="minimaltheme">Minimal Theme</label>
+		</div>
+		<hr/>
+		<h6 class="mb-0">Header Colors</h6>
+		<hr/>
+		<div class="header-colors-indigators">
+			<div class="row row-cols-auto g-3">
+				{% for i in "12345678" %}
+				<div class="col">
+					<div class="indigator headercolor{{ i }}" id="headercolor{{ i }}"></div>
+				</div>
+				{% endfor %}
+			</div>
+		</div>
+		<hr/>
+		<h6 class="mb-0">Sidebar Colors</h6>
+		<hr/>
+		<div class="header-colors-indigators">
+			<div class="row row-cols-auto g-3">
+				{% for i in "12345678" %}
+				<div class="col">
+					<div class="indigator sidebarcolor{{ i }}" id="sidebarcolor{{ i }}"></div>
+				</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</div>
+<!--end switcher-->
+
+<!-- Bootstrap JS -->
+<script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+
+<!-- Plugins -->
+<script src="{% static 'assets/js/jquery.min.js' %}"></script>
+<script src="{% static 'assets/plugins/simplebar/js/simplebar.min.js' %}"></script>
+<script src="{% static 'assets/plugins/metismenu/js/metisMenu.min.js' %}"></script>
+<script src="{% static 'assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js' %}"></script>
+<script src="{% static 'assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js' %}"></script>
+<script src="{% static 'assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js' %}"></script>
+<script src="{% static 'assets/plugins/chartjs/js/chart.js' %}"></script>
+<script src="{% static 'assets/plugins/chartjs/js/Chart.extension.js' %}"></script>
+<script src="{% static 'assets/plugins/sparkline-charts/jquery.sparkline.min.js' %}"></script>
+
+<!-- Notification JS -->
+<script src="{% static 'assets/plugins/notifications/js/lobibox.min.js' %}"></script>
+<script src="{% static 'assets/plugins/notifications/js/notifications.min.js' %}"></script>
+
+<script src="{% static 'assets/js/index3.js' %}"></script>
+<script src="{% static 'assets/js/app.js' %}"></script>
+
+    <!-- Page Specific JS -->
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

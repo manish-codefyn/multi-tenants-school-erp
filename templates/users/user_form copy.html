@@ -1,0 +1,113 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static crispy_forms_tags i18n %}
+
+{% block title %}{% trans "User Management" %}{% endblock %}
+
+{% block content %}
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">{% trans "Users" %}</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{% url 'users:user_list' %}">{% trans "Users" %}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{% if object %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %} {% trans "User" %}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12 mx-auto">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bx bx-user-plus me-2"></i>{% trans "User Details" %}</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Identity Section -->
+                    <h6 class="mb-3 text-uppercase text-primary fw-bold small"><i class="bx bx-id-card me-2"></i>{% trans "Identity & Role" %}</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                             {{ form.email|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                             {{ form.role|as_crispy_field }}
+                        </div>
+                         <div class="col-md-4">
+                             {{ form.is_verified|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <!-- Personal Information -->
+                    <h6 class="mb-3 text-uppercase text-primary fw-bold small mt-4"><i class="bx bx-user me-2"></i>{% trans "Personal Information" %}</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            {{ form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.last_name|as_crispy_field }}
+                        </div>
+                         <div class="col-md-6">
+                            {{ form.phone_number|as_crispy_field }}
+                        </div>
+                         <div class="col-md-6">
+                            {{ form.date_of_birth|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <!-- Settings & Permissions -->
+                     <h6 class="mb-3 text-uppercase text-primary fw-bold small mt-4"><i class="bx bx-cog me-2"></i>{% trans "Settings & Permissions" %}</h6>
+                    <div class="row g-3 mb-4">
+                         <div class="col-md-6">
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                     {{ form.is_active|as_crispy_field }}
+                                     {{ form.is_staff|as_crispy_field }}
+                                     {{ form.is_superuser|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Optional Password Fields for Create only, or handled separately -->
+                             {% if not object %}
+                                <div class="alert alert-info border-0 bg-info bg-opacity-10">
+                                    <i class="bx bx-info-circle me-2"></i>{% trans "Password will be generated automatically if not provided." %}
+                                </div>
+                             {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Hidden Fields -->
+                    {% for field in form %}
+                        {% if field.name not in "email,role,is_verified,first_name,last_name,phone_number,date_of_birth,is_active,is_staff,is_superuser" %}
+                            {{ field|as_crispy_field }}
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                         <a href="{% url 'users:user_list' %}" class="btn btn-light btn-lg px-4">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
+                            <i class="bx bx-save me-2"></i>{% trans "Save User" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

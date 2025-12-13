@@ -1,0 +1,148 @@
+[
+    {
+        "schema_name": "public",
+        "name": "System Tenant",
+        "display_name": "System Management",
+        "contact_email": "admin@system.com",
+        "contact_phone": "+91-11-26587342",
+        "max_users": 100,
+        "max_storage_mb": 10240,
+        "domain": "localhost",
+        "status": "active",
+        "plan": "enterprise",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": true,
+        "password_policy": {
+            "min_length": 12,
+            "require_special_chars": true
+        }
+    },
+    {
+        "schema_name": "delhi_public",
+        "name": "Delhi Public School",
+        "display_name": "Delhi Public School, RK Puram",
+        "contact_email": "admin@dpsrkp.org",
+        "contact_phone": "+91-11-26171234",
+        "max_users": 5000,
+        "max_storage_mb": 5120,
+        "domain": "dpsrkp.localhost",
+        "status": "active",
+        "plan": "professional",
+        "is_active": true,
+        "force_password_reset": true,
+        "mfa_required": false,
+        "password_policy": {
+            "min_length": 8
+        }
+    },
+    {
+        "schema_name": "dav_mumbai",
+        "name": "DAV Public School",
+        "display_name": "DAV Public School, Mumbai",
+        "contact_email": "admin@davmumbai.edu.in",
+        "contact_phone": "+91-22-26784567",
+        "max_users": 3500,
+        "max_storage_mb": 10240,
+        "domain": "davmumbai.localhost",
+        "status": "trial",
+        "plan": "basic",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": false,
+        "password_policy": {
+            "min_length": 8
+        }
+    },
+    {
+        "schema_name": "kendriya",
+        "name": "Kendriya Vidyalaya",
+        "display_name": "Kendriya Vidyalaya No. 1, Delhi",
+        "contact_email": "principal@kvd1delhi.edu.in",
+        "contact_phone": "+91-11-26893456",
+        "max_users": 2000,
+        "max_storage_mb": 5120,
+        "domain": "kvd1delhi.localhost",
+        "status": "active",
+        "plan": "basic",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": false,
+        "password_policy": {
+            "min_length": 8
+        }
+    },
+    {
+        "schema_name": "srm_chennai",
+        "name": "SRM Public School",
+        "display_name": "SRM Public School, Chennai",
+        "contact_email": "info@srmpschennai.edu.in",
+        "contact_phone": "+91-44-27452345",
+        "max_users": 2800,
+        "max_storage_mb": 10240,
+        "domain": "srmpschennai.localhost",
+        "status": "trial",
+        "plan": "professional",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": false,
+        "password_policy": {
+            "min_length": 8
+        }
+    },
+    {
+        "schema_name": "bishop_bangalore",
+        "name": "Bishop Cotton School",
+        "display_name": "Bishop Cotton Boys' School, Bangalore",
+        "contact_email": "admin@bishopcotton.com",
+        "contact_phone": "+91-80-22211456",
+        "max_users": 3200,
+        "max_storage_mb": 10240,
+        "domain": "bishopcotton.localhost",
+        "status": "active",
+        "plan": "enterprise",
+        "is_active": true,
+        "force_password_reset": true,
+        "mfa_required": true,
+        "password_policy": {
+            "min_length": 10,
+            "require_special_chars": true
+        }
+    },
+    {
+        "schema_name": "dps_kolkata",
+        "name": "Delhi Public School",
+        "display_name": "Delhi Public School, Kolkata",
+        "contact_email": "contact@dpskolkata.edu.in",
+        "contact_phone": "+91-33-24856789",
+        "max_users": 4000,
+        "max_storage_mb": 5120,
+        "domain": "dpskolkata.localhost",
+        "status": "active",
+        "plan": "professional",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": false,
+        "password_policy": {
+            "min_length": 8
+        }
+    },
+    {
+        "schema_name": "sanskriti_ahmedabad",
+        "name": "Sanskriti School",
+        "display_name": "Sanskriti The School, Ahmedabad",
+        "contact_email": "admin@sanskritiahmedabad.edu.in",
+        "contact_phone": "+91-79-27451234",
+        "max_users": 1800,
+        "max_storage_mb": 5120,
+        "domain": "sanskritiahmedabad.localhost",
+        "status": "trial",
+        "plan": "basic",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": false,
+        "password_policy": {
+            "min_length": 8
+        }
+    }
+]

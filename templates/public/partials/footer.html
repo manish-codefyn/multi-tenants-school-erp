@@ -1,0 +1,74 @@
+{% load static %}
+<footer class="footer py-5 text-white" style="background-color: #0b1f3c;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-5 mb-lg-0">
+                <h5 class="fw-bolder mb-3 text-uppercase border-bottom border-primary pb-2">EduERP</h5>
+                <p class="small text-white-50"> ERP built for the future of education management. We empower institutions with seamless integration and scalability.</p>
+                
+                <div class="mt-4">
+                    <a href="https://www.facebook.com/codefyn/" class="text-white-50 me-3 fs-5 hover-scale"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.youtube.com/@codefyn" class="text-white-50 me-3 fs-5 hover-scale"><i class="bi bi-twitter"></i></a>
+                    <a href="https://www.instagram.com/codefyn/" class="text-white-50 me-3 fs-5 hover-scale"><i class="bi bi-linkedin"></i></a>
+                    <a href="https://www.facebook.com/codefyn/" class="text-white-50 fs-5 hover-scale"><i class="bi bi-instagram"></i></a>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-5 mb-lg-0">
+                <h5 class="fw-bold mb-4 text-white">Contact Us</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-envelope-fill me-2 text-primary"></i> 
+                        <a href="mailto:sales@codefyn.com" class="text-white-50 hover-underline">sales@codefyn.com</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-phone-fill me-2 text-primary"></i> 
+                        <a href="tel:+919239397147" class="text-white-50 hover-underline">+91 92393 97147</a>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-geo-alt-fill me-2 text-primary"></i> 
+                        <span class="text-white-50">Siliguri Wb-734001, India</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="col-lg-3 col-md-6 mb-5 mb-lg-0">
+                <h5 class="fw-bold mb-4 text-white">Quick Links</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2"><a href="{% url 'home' %}" class="text-white-50 hover-underline">Home</a></li>
+                    <li class="mb-2"><a href="{% url 'tenant_list' %}" class="text-white-50 hover-underline">Tenants</a></li>
+                    <li class="mb-2"><a href="#" class="text-white-50 hover-underline">Modules</a></li>
+                    <li class="mb-2"><a href="https://www.codefyn.com/inquiry/" class="text-white-50 hover-underline">Support</a></li>
+                    <!-- <li class="mb-2"><a href="#" class="text-white-50 hover-underline">Privacy Policy</a></li> -->
+                </ul>
+            </div>
+            
+           <div class="col-lg-2 col-md-6">
+            <h5 class="fw-bold mb-4 text-white">Powered By</h5>
+            <div class="mt-3">
+                <a href="http://www.codefyn.com" target="_blank">
+                    <img src="{% static 'img/logo.png' %}" 
+                        alt="Codefyn Logo"  width="165"
+                        class="filter-white" style=" filter: brightness(0) invert(1);" >
+                </a>
+            </div>
+            <!-- <p class="mb-0 small">
+                <a href="http://www.codefyn.com" target="_blank" class="fw-bold text-primary hover-underline">
+                    Codefyn
+                </a>
+            </p> -->
+
+         
+        </div>
+
+
+        </div>
+        
+        <hr class="text-white-50 my-5">
+        
+        <div class="text-center">
+            <p class="mb-0 small text-white-50">&copy; 2024 EduERP by Codefyn. All Rights Reserved. | Designed with <i class="bi bi-heart-fill text-danger mx-1"></i></p>
+        </div>
+    </div>
+</footer>
+

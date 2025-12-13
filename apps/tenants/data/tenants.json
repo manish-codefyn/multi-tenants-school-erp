@@ -1,0 +1,57 @@
+[
+    {
+        "schema_name": "public",
+        "name": "System Tenant",
+        "display_name": "System Management",
+        "contact_email": "admin@system.com",
+        "contact_phone": "+91-11-26587342",
+        "max_users": 100,
+        "max_storage_mb": 10240,
+        "domain": "localhost",
+        "status": "active",
+        "plan": "enterprise",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": true,
+        "password_policy": {
+            "min_length": 12,
+            "require_special_chars": true
+        }
+    },
+    {
+        "schema_name": "dps_kolkata",
+        "name": "Delhi Public School",
+        "display_name": "Delhi Public School, Kolkata",
+        "contact_email": "contact@dpskolkata.edu.in",
+        "contact_phone": "+91-33-24856789",
+        "max_users": 4000,
+        "max_storage_mb": 5120,
+        "domain": "dpskolkata.localhost",
+        "status": "active",
+        "plan": "professional",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": false,
+        "password_policy": {
+            "min_length": 8
+        }
+    },
+    {
+        "schema_name": "sanskriti_ahmedabad",
+        "name": "Sanskriti School",
+        "display_name": "Sanskriti The School, Ahmedabad",
+        "contact_email": "admin@sanskritiahmedabad.edu.in",
+        "contact_phone": "+91-79-27451234",
+        "max_users": 1800,
+        "max_storage_mb": 5120,
+        "domain": "sanskritiahmedabad.localhost",
+        "status": "trial",
+        "plan": "basic",
+        "is_active": true,
+        "force_password_reset": false,
+        "mfa_required": false,
+        "password_policy": {
+            "min_length": 8
+        }
+    }
+]

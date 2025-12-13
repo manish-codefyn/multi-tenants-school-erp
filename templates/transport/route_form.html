@@ -1,0 +1,100 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Edit Route{% else %}Add Route{% endif %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">{% if object %}Edit Route{% else %}Add New Route{% endif %}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'transport:dashboard' %}">Transport</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'transport:route_list' %}">Routes</a></li>
+                    <li class="breadcrumb-item active">{% if object %}Edit{% else %}Add{% endif %}</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'transport:route_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Route Code *</label>
+                                {{ form.code }}
+                                {% if form.code.errors %}
+                                    <div class="text-danger small">{{ form.code.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Route Name *</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">{{ form.name.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Point *</label>
+                                {{ form.start_point }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">End Point *</label>
+                                {{ form.end_point }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Total Distance (KM) *</label>
+                                {{ form.total_distance }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estimated Time (Minutes) *</label>
+                                {{ form.estimated_time }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Stops (JSON Format)</label>
+                            {{ form.stops }}
+                            <small class="text-muted">Example: [{"name": "Stop 1", "lat": 0, "lng": 0}]</small>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label">Active</label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Save Route
+                            </button>
+                            <a href="{% url 'transport:route_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

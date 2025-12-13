@@ -1,0 +1,104 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-2">My Attendance History</h2>
+            <p class="text-muted">View your attendance records</p>
+        </div>
+        <div class="card bg-light">
+             <div class="card-body py-2">
+                 <h5 class="mb-0 text-primary">{{ attendance_percentage }}%</h5>
+                 <small>Attendance Rate</small>
+             </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Stats Cards -->
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6>Present</h6>
+                <h3>{{ present_days }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6>Absent</h6>
+                <h3>{{ absent_days }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h6>Late</h6>
+                <h3>{{ late_days }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6>Working Hours</h6>
+                <h3>{{ total_hours }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white">
+         <h5 class="mb-0">Records for {{ current_month }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Hours</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ record.date|date:"D, d M Y" }}</td>
+                        <td>
+                            {% if record.status == 'PRESENT' %}
+                                <span class="badge bg-success">Present</span>
+                            {% elif record.status == 'ABSENT' %}
+                                <span class="badge bg-danger">Absent</span>
+                            {% elif record.status == 'LATE' %}
+                                <span class="badge bg-warning">Late</span>
+                            {% elif record.status == 'LEAVE' %}
+                                <span class="badge bg-info">Leave</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ record.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.check_in|default:"-" }}</td>
+                        <td>{{ record.check_out|default:"-" }}</td>
+                        <td>{{ record.total_hours|default:"-" }}</td>
+                        <td>{{ record.remarks }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No records found for this month</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

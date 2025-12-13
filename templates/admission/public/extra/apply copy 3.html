@@ -1,0 +1,477 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Online Admission Application" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="h4 mb-0">{% trans "Online Admission Application" %}</h2>
+                        <span class="badge bg-light text-primary">Step 1 of 1</span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>{% trans "Please correct the errors below:" %}</strong>
+                        <ul class="mb-0 mt-1">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Hidden fields if any -->
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
+                        <!-- Program Selection -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="bx bx-graduation-cap me-2"></i>{% trans "Program Selection" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.admission_cycle|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.program|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student Personal Information -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="bx bx-user me-2"></i>{% trans "Student Personal Information" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ form.first_name|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.middle_name|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.last_name|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ form.date_of_birth|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.gender|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.blood_group|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ form.category|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.nationality|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.religion|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="bx bx-address-book me-2"></i>{% trans "Contact Information" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.email|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.confirm_email|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.phone|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.alternate_phone|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address Details -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="bx bx-home me-2"></i>{% trans "Address Details" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.address_line1|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.address_line2|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    {{ form.city|as_crispy_field }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    {{ form.state|as_crispy_field }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    {{ form.pincode|as_crispy_field }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    {{ form.country|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Previous Academic Details -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="bx bx-book me-2"></i>{% trans "Previous Academic Details" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.previous_school|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.previous_board|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ form.previous_qualification|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.previous_percentage|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.passing_year|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Medical Information -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="bx bx-heartbeat me-2"></i>{% trans "Medical Information" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    {{ form.has_medical_conditions|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.medical_conditions_details|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.allergies|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ form.emergency_contact_name|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.emergency_contact_relation|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.emergency_contact_phone|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Entrance Exam Details -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="fas fa-pen-alt me-2"></i>{% trans "Entrance Exam Details" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ form.entrance_exam_name|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.entrance_exam_rank|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.entrance_exam_score|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="bx bx-info-circle me-2"></i>{% trans "Additional Information" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {{ form.house_choice|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.transport_required|as_crispy_field }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {{ form.hostel_required|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.special_requirements|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.how_heard|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    {{ form.comments|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Creation -->
+                        <div class="form-section mb-5">
+                            <div class="section-header mb-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <i class="bx bx-user-lock me-2"></i>{% trans "Account Creation" %}
+                                </h3>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    {{ form.create_account|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="row" id="password-fields" style="display: none;">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.password|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.confirm_password|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="form-section mb-5">
+                            <div class="card border-primary">
+                                <div class="card-header bg-light">
+                                    {{ form.accept_terms|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-section mt-4">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="reset" class="btn btn-outline-secondary me-md-2">
+                                    <i class="fas fa-redo me-1"></i>{% trans "Reset Form" %}
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="bx bx-paper-plane me-2"></i>{% trans "Submit Application" %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .section-header {
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .form-check-input:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .invalid-feedback {
+        display: block;
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+    }
+    
+    .alert ul {
+        margin-bottom: 0;
+    }
+    
+    /* Make checkbox fields look better */
+    .form-check {
+        padding-left: 2.5em;
+    }
+    
+    .form-check-input {
+        margin-left: -2.5em;
+        margin-top: 0.3em;
+    }
+    
+    /* Required field indicator */
+    .required-asterisk {
+        color: #dc3545;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.querySelectorAll('.needs-validation')
+        
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+    
+    // Show/hide medical conditions based on checkbox
+    document.addEventListener('DOMContentLoaded', function() {
+        const medicalCheckbox = document.getElementById('id_has_medical_conditions');
+        const medicalConditionsField = document.getElementById('id_medical_conditions_details').closest('.mb-3');
+        const allergiesField = document.getElementById('id_allergies').closest('.mb-3');
+        
+        function toggleMedicalFields() {
+            if (medicalCheckbox.checked) {
+                medicalConditionsField.style.display = 'block';
+                allergiesField.style.display = 'block';
+            } else {
+                medicalConditionsField.style.display = 'none';
+                allergiesField.style.display = 'none';
+            }
+        }
+        
+        // Initial state
+        if (medicalCheckbox && medicalConditionsField && allergiesField) {
+            toggleMedicalFields();
+            medicalCheckbox.addEventListener('change', toggleMedicalFields);
+        }
+
+        // Account creation toggle
+        const createAccountCheckbox = document.getElementById('id_create_account');
+        const passwordFields = document.getElementById('password-fields');
+        
+        function togglePasswordFields() {
+            if (createAccountCheckbox.checked) {
+                passwordFields.style.display = 'flex';
+            } else {
+                passwordFields.style.display = 'none';
+            }
+        }
+
+        if (createAccountCheckbox && passwordFields) {
+            togglePasswordFields();
+            createAccountCheckbox.addEventListener('change', togglePasswordFields);
+        }
+        
+        // Auto-hide medical fields if they're empty
+        if (document.getElementById('id_medical_conditions_details') && 
+            !document.getElementById('id_medical_conditions_details').value && 
+            document.getElementById('id_allergies') &&
+            !document.getElementById('id_allergies').value) {
+            if (medicalConditionsField) medicalConditionsField.style.display = 'none';
+            if (allergiesField) allergiesField.style.display = 'none';
+        }
+        
+        // Form reset functionality
+        document.querySelector('button[type="reset"]').addEventListener('click', function() {
+            // Show confirmation dialog
+            if (confirm('Are you sure you want to reset all form fields?')) {
+                // Reset medical fields visibility
+                setTimeout(function() {
+                    if (medicalCheckbox) toggleMedicalFields();
+                    if (createAccountCheckbox) togglePasswordFields();
+                }, 100);
+            } else {
+                return false;
+            }
+        });
+        
+        // Auto-fill nationality if empty
+        const nationalityField = document.getElementById('id_nationality');
+        if (nationalityField && !nationalityField.value) {
+            nationalityField.value = 'Indian';
+        }
+        
+        // Auto-fill country if empty
+        const countryField = document.getElementById('id_country');
+        if (countryField && !countryField.value) {
+            countryField.value = 'India';
+        }
+    });
+</script>
+{% endblock %}

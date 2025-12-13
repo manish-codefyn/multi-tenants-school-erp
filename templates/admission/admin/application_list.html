@@ -1,0 +1,225 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Applications - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+{% include "partials/breadcrumb.html" with page_title="Admission Applications" parent_text="Admission" parent_url=request.resolver_match.app_name|add:":dashboard" current_text="Applications" %}
+<div class="container-fluid">
+    
+
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by name, email, app#..." 
+                           value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Draft</option>
+                        <option value="submitted" {% if request.GET.status == 'submitted' %}selected{% endif %}>Submitted</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                        <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="course" class="form-select">
+                        <option value="">All Courses</option>
+                        <!-- Add course options dynamically -->
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filter
+                    </button>
+                </div>
+                <div class="col-md-3 text-end">
+                    <a href="{% url 'admission:application_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Applications Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">All Applications</h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportCopy">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportCSV">
+                    <i class="bi bi-filetype-csv"></i> CSV
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportExcel">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportPDF">
+                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportPrint">
+                    <i class="bi bi-printer"></i> Print
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="applicationsTable" class="table table-hover" data-datatable data-title="Report - {{ request.tenant.name }}">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>App #</th>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr>
+                            <td><input type="checkbox" class="app-checkbox" value="{{ app.pk }}"></td>
+                            <td>{{ app.application_number }}</td>
+                            <td>{{ app.created_at|date:"M d, Y" }}</td>
+                            <td>{{ app.first_name }} {{ app.last_name }}</td>
+                            <td>{{ app.email }}</td>
+                            <td>{{ app.course.name }}</td>
+                            <td>
+                                {% if app.status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif app.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% elif app.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif app.status == 'submitted' %}
+                                    <span class="badge bg-info">Submitted</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ app.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'admission:admin_application_review' app.pk %}" 
+                                   class="btn btn-sm btn-primary" title="Review">
+                                    <i class="bi bi-eye"></i> Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white border-top">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success btn-sm" id="bulkApprove">
+                        <i class="bi bi-check-circle"></i> Approve Selected
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" id="bulkReject">
+                        <i class="bi bi-x-circle"></i> Reject Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+<script src="{% static 'assets/plugins/datatable/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/buttons.bootstrap5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/jszip.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/pdfmake.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/vfs_fonts.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/buttons.print.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    var table = $('#applicationsTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [],
+        order: [[2, 'desc']],
+        pageLength: 25,
+        columnDefs: [
+            { orderable: false, targets: [0, 7] }
+        ]
+    });
+
+    // Select all checkbox
+    $('#selectAll').on('click', function() {
+        $('.app-checkbox').prop('checked', this.checked);
+    });
+
+    // Bulk approve
+    $('#bulkApprove').on('click', function() {
+        var selected = $('.app-checkbox:checked').map(function() {
+            return this.value;
+        }).get();
+        
+        if (selected.length === 0) {
+            alert('Please select at least one application');
+            return;
+        }
+        
+        if (confirm('Are you sure you want to approve ' + selected.length + ' application(s)?')) {
+            // Send AJAX request for bulk approval
+            $.post('{% url "admission:bulk_admit" %}', {
+                action: 'approve',
+                application_ids: selected,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            }, function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            });
+        }
+    });
+
+    // Bulk reject
+    $('#bulkReject').on('click', function() {
+        var selected = $('.app-checkbox:checked').map(function() {
+            return this.value;
+        }).get();
+        
+        if (selected.length === 0) {
+            alert('Please select at least one application');
+            return;
+        }
+        
+        if (confirm('Are you sure you want to reject ' + selected.length + ' application(s)?')) {
+            $.post('{% url "admission:bulk_admit" %}', {
+                action: 'reject',
+                application_ids: selected,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            }, function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

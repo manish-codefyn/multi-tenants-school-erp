@@ -1,0 +1,215 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Users{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Users</h5>
+            <a href="{% url 'users:user_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Add New</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="userTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Avatar</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Verified</th>
+                        <th>Staff</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_obj in users %}
+                    <tr>
+                        <td>
+                            {% if user_obj.avatar %}
+                            <img src="{{ user_obj.avatar.url }}" alt="{{ user_obj.get_full_name }}" class="rounded-circle" width="40" height="40">
+                            {% else %}
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                                {{ user_obj.first_name.0 }}{{ user_obj.last_name.0 }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ user_obj.get_full_name }}</td>
+                        <td>{{ user_obj.email }}</td>
+                        <td>
+                            <select class="form-select form-select-sm role-select" data-user-id="{{ user_obj.pk }}">
+                                {% for role_code, role_name in role_choices %}
+                                <option value="{{ role_code }}" {% if user_obj.role == role_code %}selected{% endif %}>
+                                    {{ role_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>{{ user_obj.phone_number|default:"-" }}</td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input status-toggle" type="checkbox" 
+                                       data-user-id="{{ user_obj.pk }}" 
+                                       {% if user_obj.is_active %}checked{% endif %}>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input verification-toggle" type="checkbox" 
+                                       data-user-id="{{ user_obj.pk }}" 
+                                       {% if user_obj.is_verified %}checked{% endif %}>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input staff-toggle" type="checkbox" 
+                                       data-user-id="{{ user_obj.pk }}" 
+                                       {% if user_obj.is_staff %}checked{% endif %}>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'users:user_detail' user_obj.pk %}" class="ms-3" title="View"><i class="bx bxs-show"></i></a>
+                                <a href="{% url 'users:user_update' user_obj.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
+                                <a href="#" class="ms-3 text-warning reset-password" data-user-id="{{ user_obj.pk }}" title="Reset Password"><i class="bx bx-key"></i></a>
+                                <a href="{% url 'users:user_delete' user_obj.pk %}" class="ms-3 text-danger" title="Delete"><i class="bx bxs-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#userTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#userTable_wrapper .col-md-6:eq(0)' );
+
+        // Status Toggle
+        $('.status-toggle').on('change', function() {
+            const userId = $(this).data('user-id');
+            const checkbox = $(this);
+            
+            $.ajax({
+                url: `/users/${userId}/toggle-status/`,
+                type: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    }
+                },
+                error: function() {
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                    toastr.error('Failed to update status');
+                }
+            });
+        });
+
+        // Verification Toggle
+        $('.verification-toggle').on('change', function() {
+            const userId = $(this).data('user-id');
+            const checkbox = $(this);
+            
+            $.ajax({
+                url: `/users/${userId}/toggle-verification/`,
+                type: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    }
+                },
+                error: function() {
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                    toastr.error('Failed to update verification');
+                }
+            });
+        });
+
+        // Staff Toggle
+        $('.staff-toggle').on('change', function() {
+            const userId = $(this).data('user-id');
+            const checkbox = $(this);
+            
+            $.ajax({
+                url: `/users/${userId}/toggle-staff/`,
+                type: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    }
+                },
+                error: function() {
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                    toastr.error('Failed to update staff status');
+                }
+            });
+        });
+
+        // Reset Password
+        $('.reset-password').on('click', function(e) {
+            e.preventDefault();
+            const userId = $(this).data('user-id');
+            
+            if (confirm('Are you sure you want to reset this user\'s password?')) {
+                $.ajax({
+                    url: `/users/${userId}/reset-password/`,
+                    type: 'POST',
+                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Failed to reset password');
+                    }
+                });
+            }
+        });
+
+        // Role Change
+        $('.role-select').on('change', function() {
+            const userId = $(this).data('user-id');
+            const newRole = $(this).val();
+            const select = $(this);
+            const originalRole = select.find('option[selected]').val(); // Store original just in case
+            
+            $.ajax({
+                url: `/users/${userId}/change-role/`,
+                type: 'POST',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: {
+                    'role': newRole
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                        select.val(originalRole); // Revert on failure
+                    }
+                },
+                error: function() {
+                    toastr.error('Failed to update role');
+                    select.val(originalRole); // Revert on error
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

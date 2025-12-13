@@ -1,0 +1,35 @@
+<div class="btn-group" role="group">
+    <button type="button" class="btn btn-outline-danger" onclick="exportToPDF()">
+        <i class="bx bxs-file-pdf me-1"></i> Export PDF
+    </button>
+    <button type="button" class="btn btn-outline-primary" onclick="window.print()">
+        <i class="bx bx-printer me-1"></i> Print
+    </button>
+</div>
+
+<style>
+@media print {
+    .no-print, .btn, .breadcrumb, .sidebar, header, footer {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function exportToPDF() {
+    const element = document.querySelector('.card-body');
+    const opt = {
+        margin: 10,
+        filename: 'document.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+</script>

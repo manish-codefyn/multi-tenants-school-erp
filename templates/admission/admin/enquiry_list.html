@@ -1,0 +1,149 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Enquiries - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+{% include "partials/breadcrumb.html" with page_title="Admission Enquiries" parent_text="Admission" parent_url=request.resolver_match.app_name|add:":dashboard" current_text="Enquiries" %}
+<div class="container-fluid">
+    
+
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by name, email, phone..." 
+                           value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="new" {% if request.GET.status == 'new' %}selected{% endif %}>New</option>
+                        <option value="contacted" {% if request.GET.status == 'contacted' %}selected{% endif %}>Contacted</option>
+                        <option value="converted" {% if request.GET.status == 'converted' %}selected{% endif %}>Converted</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-search"></i> Filter
+                    </button>
+                </div>
+                <div class="col-md-3 text-end">
+                    <a href="{% url 'admission:enquiry_list' %}" class="btn btn-outline-secondary">
+                        <i class="bx bx-x-circle"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Enquiries Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">All Enquiries</h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportCopy">
+                    <i class="bx bx-clipboard"></i> Copy
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportCSV">
+                    <i class="bx bx-filetype-csv"></i> CSV
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportExcel">
+                    <i class="bx bx-file-earmark-excel"></i> Excel
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportPDF">
+                    <i class="bx bx-file-earmark-pdf"></i> PDF
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="exportPrint">
+                    <i class="bx bx-printer"></i> Print
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="enquiriesTable" class="table table-hover" data-datatable data-title="Report - {{ request.tenant.name }}">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Course</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enquiry in enquiries %}
+                        <tr>
+                            <td>{{ enquiry.created_at|date:"M d, Y" }}</td>
+                            <td>{{ enquiry.first_name }} {{ enquiry.last_name }}</td>
+                            <td>{{ enquiry.email }}</td>
+                            <td>{{ enquiry.phone }}</td>
+                            <td>{{ enquiry.course.name }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ enquiry.get_status_display|default:'New' }}</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'admission:enquiry_detail' enquiry.pk %}" 
+                                   class="btn btn-sm btn-outline-primary" title="View Details">
+                                    <i class="bx bx-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+<script src="{% static 'assets/plugins/datatable/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/dataTables.bootstrap5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/buttons.bootstrap5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/jszip.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/pdfmake.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/vfs_fonts.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/buttons.print.min.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+    var table = $('#enquiriesTable').DataTables({
+        dom: 'Bfrtip',
+        buttons: [],
+        order: [[0, 'desc']],
+        pageLength: 25
+    });
+
+    // Custom export buttons
+    $('#exportCopy').on('click', function() {
+        table.button('.buttons-copy').trigger();
+    });
+    $('#exportCSV').on('click', function() {
+        table.button('.buttons-csv').trigger();
+    });
+    $('#exportExcel').on('click', function() {
+        table.button('.buttons-excel').trigger();
+    });
+    $('#exportPDF').on('click', function() {
+        table.button('.buttons-pdf').trigger();
+    });
+    $('#exportPrint').on('click', function() {
+        table.button('.buttons-print').trigger();
+    });
+});
+</script>
+{% endblock %}

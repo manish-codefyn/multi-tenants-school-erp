@@ -1,0 +1,238 @@
+<!-- templates/public/module_list.html -->
+{% extends 'public/base.html' %}
+
+{% block title %}Available Modules - EduERP{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section bg-gradient-primary text-white">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-4">Powerful Modules for Education</h1>
+                <p class="lead mb-4">Discover our comprehensive suite of modules designed to streamline educational institution management</p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+
+                    <span class="badge bg-white text-primary fs-6 px-3 py-2">
+                        <i class="fa-solid fa-circle-check me-2"></i>Fully Integrated
+                    </span>
+                    <span class="badge bg-white text-primary fs-6 px-3 py-2">
+                        <i class="fa-solid fa-bolt me-2"></i>Real-time Updates
+                    </span>
+                    <span class="badge bg-white text-primary fs-6 px-3 py-2">
+                        <i class="fa-solid fa-shield-check me-2"></i>Secure & Reliable
+                    </span>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+
+    <!-- Search and Filter Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Search Modules</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" placeholder="Search modules by name or description...">
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Filter by Category</label>
+                            <select class="form-select">
+                                <option value="">All Categories</option>
+                                <option value="academic">Academic</option>
+                                <option value="administrative">Administrative</option>
+                                <option value="financial">Financial</option>
+                                <option value="student">Student Services</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modules by Category -->
+    {% for category, modules in modules_by_category.items %}
+    <div class="category-section mb-5">
+
+        <!-- Category Header -->
+        <div class="d-flex align-items-center mb-4">
+            <div class="category-icon bg-primary bg-opacity-10 rounded p-3 me-3">
+                <i class="fa-solid
+                    {% if category == 'academic' %} fa-book
+                    {% elif category == 'administrative' %} fa-gear
+                    {% elif category == 'financial' %} fa-coins
+                    {% elif category == 'student' %} fa-users
+                    {% else %} fa-grid
+                    {% endif %}
+                    text-primary fs-2">
+                </i>
+            </div>
+            <div>
+                <h2 class="h3 fw-bold text-dark mb-1">{{ category|title }} Modules</h2>
+                <p class="text-muted mb-0">{{ modules|length }} module{{ modules|length|pluralize }} available</p>
+            </div>
+        </div>
+
+        <!-- Module Cards -->
+        <div class="row g-4">
+            {% for module in modules %}
+            <div class="col-xl-4 col-lg-6">
+                <div class="card module-card h-100 shadow-sm border-0">
+                    <div class="card-body p-4">
+
+                        <!-- Module Header -->
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="module-icon bg-primary bg-opacity-10 rounded p-3 me-3">
+                                <i class="fa-solid fa-cube text-primary fs-4"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h4 class="card-title fw-bold text-dark mb-1">{{ module.name }}</h4>
+                                <span class="badge bg-primary">{{ module.code }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <p class="card-text text-muted mb-4">{{ module.description }}</p>
+
+                        <!-- Features -->
+                        <div class="mb-4">
+                            <h6 class="fw-semibold text-dark mb-3">Key Features:</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for feature in module.features|slice:":3" %}
+                                <span class="badge bg-light text-dark border small">
+                                    <i class="fa-solid fa-circle-check text-success me-1"></i>{{ feature }}
+                                </span>
+                                {% endfor %}
+                                {% if module.features|length > 3 %}
+                                <span class="badge bg-secondary small">
+                                    +{{ module.features|length|add:"-3" }} more
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="row text-center g-2 mb-4">
+                            <div class="col-4">
+                                <div class="border rounded p-2">
+                                    <i class="fa-solid fa-building text-primary"></i>
+                                    <p class="mb-0 small text-muted">Tenants</p>
+                                    <p class="mb-0 fw-bold">{{ module.tenant_set.count }}</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border rounded p-2">
+                                    <i class="fa-solid fa-chart-line text-primary"></i>
+                                    <p class="mb-0 small text-muted">Status</p>
+                                    <p class="mb-0 fw-bold text-success">Active</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="border rounded p-2">
+                                    <i class="fa-solid fa-star text-primary"></i>
+                                    <p class="mb-0 small text-muted">Rating</p>
+                                    <p class="mb-0 fw-bold">4.8</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-fill">
+                                <i class="fa-solid fa-eye me-1"></i> View Details
+                            </button>
+                            <button class="btn btn-outline-primary">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    {% empty %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body py-5">
+                <i class="fa-solid fa-box-open display-1 text-muted mb-4"></i>
+                <h3 class="text-muted mb-3">No Modules Available</h3>
+                <p class="text-muted mb-4">There are currently no active modules in the system.</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-house me-1"></i> Return Home
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- CTA Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body p-5 text-center">
+                    <h3 class="h2 fw-bold mb-3">Ready to Get Started?</h3>
+                    <p class="lead mb-4 opacity-90">Join thousands of educational institutions using EduERP to transform their operations</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="{% url 'tenant_list' %}" class="btn btn-light btn-lg">
+                            <i class="fa-solid fa-building me-2"></i> View Institutions
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-lg">
+                            <i class="fa-solid fa-comments me-2"></i> Contact Sales
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('input[type="text"]');
+    const categoryFilter = document.querySelector('select');
+    const moduleCards = document.querySelectorAll('.module-card');
+
+    function filterModules() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const categoryValue = categoryFilter.value.toLowerCase();
+
+        moduleCards.forEach(card => {
+            const moduleName = card.querySelector('.card-title').textContent.toLowerCase();
+            const moduleDescription = card.querySelector('.card-text').textContent.toLowerCase();
+            const moduleCategory = card.closest('.category-section').querySelector('h2').textContent.toLowerCase();
+
+            const matchesSearch = moduleName.includes(searchTerm) || moduleDescription.includes(searchTerm);
+            const matchesCategory = !categoryValue || moduleCategory.includes(categoryValue);
+
+            card.style.display = (matchesSearch && matchesCategory) ? 'block' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', filterModules);
+    categoryFilter.addEventListener('change', filterModules);
+});
+</script>
+{% endblock %}

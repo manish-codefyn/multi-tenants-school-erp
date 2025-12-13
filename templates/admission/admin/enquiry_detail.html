@@ -1,0 +1,117 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Enquiry Details - {{ block.super }}{% endblock %}
+
+{% block content %}
+{% include "partials/breadcrumb.html" with page_title="Enquiry Details" parent_text="Enquiries" parent_url=request.resolver_match.app_name|add:":admin_enquiry_list" current_text="Details" action_text="Back to List" action_url=request.resolver_match.app_name|add:":admin_enquiry_list" %}
+<div class="container-fluid">
+    
+
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Personal Information -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">First Name</label>
+                            <p class="mb-0 fw-semibold">{{ enquiry.first_name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Last Name</label>
+                            <p class="mb-0 fw-semibold">{{ enquiry.last_name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Email</label>
+                            <p class="mb-0">
+                                <a href="mailto:{{ enquiry.email }}">{{ enquiry.email }}</a>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Phone</label>
+                            <p class="mb-0">
+                                <a href="tel:{{ enquiry.phone }}">{{ enquiry.phone }}</a>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Date of Birth</label>
+                            <p class="mb-0">{{ enquiry.date_of_birth|date:"M d, Y"|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Gender</label>
+                            <p class="mb-0">{{ enquiry.get_gender_display|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Interest -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Course Interest</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="text-muted small">Interested Course</label>
+                            <p class="mb-0 fw-semibold">{{ enquiry.course.name }}</p>
+                        </div>
+                        {% if enquiry.message %}
+                        <div class="col-md-12">
+                            <label class="text-muted small">Message</label>
+                            <p class="mb-0">{{ enquiry.message }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Status Card -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted small">Current Status</label>
+                        <p class="mb-0">
+                            <span class="badge bg-info fs-6">{{ enquiry.get_status_display|default:'New' }}</span>
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted small">Enquiry Date</label>
+                        <p class="mb-0">{{ enquiry.created_at|date:"M d, Y h:i A" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="mailto:{{ enquiry.email }}" class="btn btn-outline-primary">
+                            <i class="bi bi-envelope"></i> Send Email
+                        </a>
+                        <a href="tel:{{ enquiry.phone }}" class="btn btn-outline-success">
+                            <i class="bi bi-telephone"></i> Call
+                        </a>
+                        <button class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Mark as Contacted
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

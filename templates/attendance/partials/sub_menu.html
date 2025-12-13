@@ -1,0 +1,47 @@
+<!-- Update your sidebar template with these attendance URLs -->
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-calendar-check"></i></div>
+        <div class="menu-title">Attendance</div>
+    </a>
+    <ul>
+        <!-- Dashboard -->
+        <li> <a href="{% url 'attendance:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>Dashboard</a></li>
+        
+        <!-- Student Attendance -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Student Attendance</a>
+            <ul>
+                <li> <a href="{% url 'attendance:student_list' %}"><i class="bx bx-right-arrow-alt"></i>View Records</a></li>
+                <li> <a href="{% url 'attendance:student_mark' %}"><i class="bx bx-right-arrow-alt"></i>Mark Attendance</a></li>
+                <li> <a href="{% url 'attendance:student_bulk_mark' %}"><i class="bx bx-right-arrow-alt"></i>Bulk Marking</a></li>
+                <li> <a href="{% url 'attendance:my_attendance' %}"><i class="bx bx-right-arrow-alt"></i>My Attendance</a></li>
+            </ul>
+        </li>
+        
+        <!-- Staff Attendance -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Staff Attendance</a>
+            <ul>
+                <li> <a href="{% url 'attendance:staff_list' %}"><i class="bx bx-right-arrow-alt"></i>View Records</a></li>
+                <li> <a href="{% url 'attendance:staff_mark' %}"><i class="bx bx-right-arrow-alt"></i>Mark Attendance</a></li>
+                <li> <a href="{% url 'attendance:staff_my_attendance' %}"><i class="bx bx-right-arrow-alt"></i>My Attendance</a></li>
+            </ul>
+        </li>
+        
+        <!-- Reports -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Reports & Analytics</a>
+            <ul>
+                <li> <a href="{% url 'attendance:report' %}"><i class="bx bx-right-arrow-alt"></i>Attendance Report</a></li>
+                <li> <a href="{% url 'attendance:analytics' %}"><i class="bx bx-right-arrow-alt"></i>Analytics</a></li>
+                <li> <a href="{% url 'attendance:daily_report' %}"><i class="bx bx-right-arrow-alt"></i>Daily Report</a></li>
+                <li> <a href="{% url 'attendance:monthly_report' %}"><i class="bx bx-right-arrow-alt"></i>Monthly Report</a></li>
+                <li> <a href="{% url 'attendance:export' %}?type=student"><i class="bx bx-right-arrow-alt"></i>Export Data</a></li>
+            </ul>
+        </li>
+        
+        <!-- Tools -->
+        <li> <a href="{% url 'attendance:qr_attendance' %}"><i class="bx bx-right-arrow-alt"></i>QR Attendance</a></li>
+    </ul>
+</li>

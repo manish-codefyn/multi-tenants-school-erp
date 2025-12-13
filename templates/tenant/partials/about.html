@@ -1,0 +1,53 @@
+<section id="about" class="about-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-right">
+                <div class="about-image">
+                    {% if tenant.banner %}
+                        <img src="{{ tenant.banner.url }}" alt="{{ tenant.name }}" class="img-fluid">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1562774053-701939374585?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2064&q=80" 
+                             alt="{{ tenant.name }}" class="img-fluid">
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <h2 class="display-5 fw-bold mb-4">About {{ tenant.name }}</h2>
+                
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary">Institute Information</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><strong>Type:</strong> {{ tenant.get_type_display }}</li>
+                        {% if tenant.level %}<li class="mb-2"><strong>Level:</strong> {{ tenant.get_level_display }}</li>{% endif %}
+                        {% if tenant.affiliation %}<li class="mb-2"><strong>Affiliation:</strong> {{ tenant.get_affiliation_display }}</li>{% endif %}
+                        {% if tenant.established_year %}<li class="mb-2"><strong>Established:</strong> {{ tenant.established_year }}</li>{% endif %}
+                    </ul>
+                </div>
+                
+                {% if tenant.vision %}
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary">Our Vision</h5>
+                    <p class="text-muted">{{ tenant.vision }}</p>
+                </div>
+                {% endif %}
+                
+                {% if tenant.mission %}
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary">Our Mission</h5>
+                    <p class="text-muted">{{ tenant.mission }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <h5 class="fw-bold text-primary">Contact Information</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-envelope me-2"></i>{{ tenant.email }}</li>
+                        <li class="mb-2"><i class="bi bi-telephone me-2"></i>{{ tenant.phone }}</li>
+                        {% if tenant.website %}<li class="mb-2"><i class="bi bi-globe me-2"></i>{{ tenant.website }}</li>{% endif %}
+                        <li class="mb-2"><i class="bi bi-geo-alt me-2"></i>{{ tenant.address }}, {{ tenant.city }}, {{ tenant.state }} - {{ tenant.pincode }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

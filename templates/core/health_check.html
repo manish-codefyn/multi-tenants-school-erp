@@ -1,0 +1,133 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}System Health Check - EduERP{% endblock %}
+
+{% block content %}
+
+        <!-- Header -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card radius-10">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h4 class="mb-0">System Health Check</h4>
+                                <p class="mb-0 text-muted">Real-time system status monitoring</p>
+                            </div>
+                            <div>
+                                {% if overall_status == 'healthy' %}
+                                <span class="badge bg-success fs-5"><i class="bx bx-check-circle"></i> All Systems Operational</span>
+                                {% elif overall_status == 'warning' %}
+                                <span class="badge bg-warning fs-5"><i class="bx bx-error"></i> Some Issues Detected</span>
+                                {% else %}
+                                <span class="badge bg-danger fs-5"><i class="bx bx-x-circle"></i> Critical Issues</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Checks -->
+        <div class="row mt-3">
+            <!-- Database Health -->
+            <div class="col-12 col-lg-4">
+                <div class="card radius-10 h-100">
+                    <div class="card-header {% if db_health.status == 'healthy' %}bg-success{% elif db_health.status == 'warning' %}bg-warning{% else %}bg-danger{% endif %} text-white">
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-data fs-3 me-2"></i>
+                            <h6 class="mb-0 text-white">Database</h6>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Status:</strong>
+                            {% if db_health.status == 'healthy' %}
+                            <span class="badge bg-success">Healthy</span>
+                            {% elif db_health.status == 'warning' %}
+                            <span class="badge bg-warning">Warning</span>
+                            {% else %}
+                            <span class="badge bg-danger">Error</span>
+                            {% endif %}
+                        </div>
+                        <p class="mb-2"><strong>Message:</strong> {{ db_health.message }}</p>
+                        <p class="mb-0 small text-muted">{{ db_health.details }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cache Health -->
+            <div class="col-12 col-lg-4">
+                <div class="card radius-10 h-100">
+                    <div class="card-header {% if cache_health.status == 'healthy' %}bg-success{% elif cache_health.status == 'warning' %}bg-warning{% else %}bg-danger{% endif %} text-white">
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-server fs-3 me-2"></i>
+                            <h6 class="mb-0 text-white">Cache System</h6>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Status:</strong>
+                            {% if cache_health.status == 'healthy' %}
+                            <span class="badge bg-success">Healthy</span>
+                            {% elif cache_health.status == 'warning' %}
+                            <span class="badge bg-warning">Warning</span>
+                            {% else %}
+                            <span class="badge bg-danger">Error</span>
+                            {% endif %}
+                        </div>
+                        <p class="mb-2"><strong>Message:</strong> {{ cache_health.message }}</p>
+                        <p class="mb-0 small text-muted">{{ cache_health.details }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disk Space -->
+            <div class="col-12 col-lg-4">
+                <div class="card radius-10 h-100">
+                    <div class="card-header {% if disk_health.status == 'healthy' %}bg-success{% elif disk_health.status == 'warning' %}bg-warning{% else %}bg-danger{% endif %} text-white">
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-hdd fs-3 me-2"></i>
+                            <h6 class="mb-0 text-white">Disk Space</h6>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Status:</strong>
+                            {% if disk_health.status == 'healthy' %}
+                            <span class="badge bg-success">Healthy</span>
+                            {% elif disk_health.status == 'warning' %}
+                            <span class="badge bg-warning">Warning</span>
+                            {% else %}
+                            <span class="badge bg-danger">Critical</span>
+                            {% endif %}
+                        </div>
+                        <p class="mb-2"><strong>Message:</strong> {{ disk_health.message }}</p>
+                        <p class="mb-0 small text-muted">{{ disk_health.details }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card radius-10">
+                    <div class="card-body">
+                        <h6 class="mb-3">Quick Actions</h6>
+                        <div class="d-flex gap-2">
+                            <button onclick="location.reload()" class="btn btn-primary">
+                                <i class="bx bx-refresh"></i> Refresh Status
+                            </button>
+                            <a href="{% url 'core:master_dashboard' %}" class="btn btn-secondary">
+                                <i class="bx bx-arrow-back"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

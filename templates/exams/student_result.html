@@ -1,0 +1,87 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}My Results{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Examinations</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard:student_dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">My Results</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        {% for exam_name, marks in grouped_exams.items %}
+        <div class="card radius-10 mb-4">
+            <div class="card-header border-bottom-0 bg-light-primary">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h5 class="mb-0 text-primary">{{ exam_name }}</h5>
+                    </div>
+                    <div class="ms-auto">
+                        <a href="{% url 'exams:report_card' marks.0.exam_schedule.exam.pk %}" class="btn btn-sm btn-primary"><i class='bx bx-download'></i> Report Card</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Subject</th>
+                                <th>Date</th>
+                                <th>Max Marks</th>
+                                <th>Marks Obtained</th>
+                                <th>Grade</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mark in marks %}
+                            <tr>
+                                <td>{{ mark.exam_schedule.subject.name }}</td>
+                                <td>{{ mark.exam_schedule.date|date:"M d, Y" }}</td>
+                                <td>{{ mark.exam_schedule.max_marks }}</td>
+                                <td>
+                                    {% if mark.is_absent %}
+                                        <span class="badge bg-danger">Absent</span>
+                                    {% else %}
+                                        {{ mark.marks_obtained }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if mark.grade %}
+                                        <span class="badge bg-info text-dark">{{ mark.grade }}</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ mark.remarks|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info border-0 bg-light-info alert-dismissible fade show py-2">
+            <div class="d-flex align-items-center">
+                <div class="font-35 text-info"><i class='bx bx-info-circle'></i>
+                </div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-info">No Results Found</h6>
+                    <div class="text-info">You haven't participated in any exams yet or results are not published.</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+{% endblock %}

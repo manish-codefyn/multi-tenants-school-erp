@@ -1,0 +1,296 @@
+<!-- Hero Section -->
+<section class="hero-section" style="background: linear-gradient(rgba(13, 110, 253, 0.85), rgba(13, 110, 253, 0.5)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') center/cover;">
+    <div class="container">
+        <div class="row align-items-center min-vh-80">
+            <div class="col-lg-8 mx-auto text-center text-white">
+                <!-- Badge -->
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <span class="badge bg-white text-primary fs-6 px-4 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-star-fill me-2"></i>{{ tenant.get_type_display }}
+                    </span>
+                </div>
+                
+                <!-- Main Heading -->
+                <h1 class="display-4 fw-bold mb-4" data-aos="fade-up" data-aos-delay="300">
+                    Welcome to 
+                    <span class="text-warning">{{ tenant.name }}</span>
+                </h1>
+                
+                <!-- Subtitle -->
+                <p class="lead fs-3 mb-4 opacity-90" data-aos="fade-up" data-aos-delay="400">
+                    {% if tenant.motto %}{{ tenant.motto }}{% else %}Comprehensive School Management System{% endif %}
+                </p>
+                
+                <!-- Features List -->
+                <div class="row justify-content-center mb-5" data-aos="fade-up" data-aos-delay="500">
+                    <div class="col-md-10">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3">
+                                    <i class="bi bi-people-fill fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">{{ tenant.max_students }}+</div>
+                                        <small class="opacity-90">Students</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3">
+                                    <i class="bi bi-person-badge fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">{{ tenant.max_teachers }}+</div>
+                                        <small class="opacity-90">Teachers</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3">
+                                    <i class="bi bi-grid-3x3-gap fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">{{ tenant.enabled_modules.count }}+</div>
+                                        <small class="opacity-90">Modules</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CTA Buttons -->
+                <div class="hero-buttons" data-aos="fade-up" data-aos-delay="600">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'login' %}" class="btn btn-light btn-lg me-3 px-4 py-3 fw-semibold">
+                            <i class="bi bi-arrow-right-circle me-2"></i>Login to Your Account
+                        </a>
+                    {% else %}
+                        <a href="{% url 'dashboard_redirect' %}" class="btn btn-light btn-lg me-3 px-4 py-3 fw-semibold">
+                            <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                        </a>
+                    {% endif %}
+                    <a href="#admission" class="btn btn-outline-light btn-lg px-4 py-3 fw-semibold">
+                        <i class="bi bi-pencil-square me-2"></i>Apply Now
+                    </a>
+                </div>
+                
+                <!-- Stats -->
+                <div class="row mt-5 pt-4 border-top border-white border-opacity-25" data-aos="fade-up" data-aos-delay="700">
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">{{ tenant.max_students }}+</h3>
+                            <small class="opacity-90">Student Capacity</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">{{ tenant.max_teachers }}+</h3>
+                            <small class="opacity-90">Qualified Staff</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">{{ tenant.enabled_modules.count }}+</h3>
+                            <small class="opacity-90">Active Modules</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">99%</h3>
+                            <small class="opacity-90">Success Rate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <a href="#about" class="text-white">
+            <i class="bi bi-chevron-down fs-4"></i>
+        </a>
+    </div>
+</section>
+
+<style>
+.hero-section {
+    position: relative;
+    padding: 120px 0 100px;
+    background: linear-gradient(135deg, var(--primary-color, #0d6efd) 0%, var(--dark-color, #0a58ca) 100%) !important;
+    overflow: hidden;
+}
+
+.min-vh-80 {
+    min-height: 80vh;
+}
+
+.hero-section h1 {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    line-height: 1.2;
+}
+
+.hero-section .lead {
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.hero-buttons .btn {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border-width: 2px;
+    margin: 0.5rem;
+}
+
+.hero-buttons .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.btn-light {
+    background-color: #fff;
+    border-color: #fff;
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.btn-light:hover {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+    color: #0a58ca;
+}
+
+.btn-outline-light {
+    border-color: rgba(255,255,255,0.8);
+    color: white;
+    background: transparent;
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255,255,255,0.1);
+    border-color: white;
+    color: white;
+}
+
+.scroll-indicator {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: bounce 2s infinite;
+}
+
+.scroll-indicator a {
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.scroll-indicator a:hover {
+    opacity: 1;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    40% {
+        transform: translateX(-50%) translateY(-10px);
+    }
+    60% {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}
+
+/* Feature Cards Hover Effect */
+.bg-white.bg-opacity-10 {
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.bg-white.bg-opacity-10:hover {
+    background-color: rgba(255,255,255,0.2) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Badge Styling */
+.badge.bg-white {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* Stats Section */
+.border-top.border-white.border-opacity-25 {
+    backdrop-filter: blur(5px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 100px 0 80px;
+        text-align: center;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section .lead {
+        font-size: 1.25rem;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-buttons .btn {
+        margin: 0.5rem 0;
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .min-vh-80 {
+        min-height: 70vh;
+    }
+    
+    .row.g-4 .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .hero-buttons .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-section .lead {
+        font-size: 1.1rem;
+    }
+    
+    .hero-buttons .btn {
+        padding: 0.8rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .badge.fs-6 {
+        font-size: 0.8rem !important;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Animation for elements */
+[data-aos] {
+    transition: all 0.6s ease;
+}
+
+/* Ensure text readability */
+.text-white {
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+</style>

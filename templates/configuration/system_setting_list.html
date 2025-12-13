@@ -1,0 +1,75 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">System Settings</h5>
+            <a href="{% url 'configuration:setting_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Add New</a>
+        </div>
+        
+        <!-- Category Filter -->
+        <div class="mb-3">
+            <select class="form-select" id="categoryFilter" onchange="window.location.href='?category='+this.value">
+                <option value="">All Categories</option>
+                <option value="GENERAL">General</option>
+                <option value="ACADEMIC">Academic</option>
+                <option value="FINANCE">Finance</option>
+                <option value="COMMUNICATION">Communication</option>
+                <option value="SECURITY">Security</option>
+                <option value="APPEARANCE">Appearance</option>
+                <option value="INTEGRATION">Integration</option>
+                <option value="NOTIFICATION">Notifications</option>
+                <option value="SYSTEM">System</option>
+            </select>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="settingTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for setting in settings %}
+                    <tr>
+                        <td><code>{{ setting.key }}</code></td>
+                        <td>{{ setting.name }}</td>
+                        <td><span class="badge bg-info">{{ setting.get_category_display }}</span></td>
+                        <td>{{ setting.get_setting_type_display }}</td>
+                        <td>{{ setting.value|truncatewords:5 }}</td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'configuration:setting_update' setting.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
+                                <a href="{% url 'configuration:setting_delete' setting.pk %}" class="ms-3 text-danger" title="Delete"><i class="bx bxs-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#settingTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#settingTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

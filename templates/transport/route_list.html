@@ -1,0 +1,95 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Routes - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Transport Routes</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'transport:dashboard' %}">Transport</a></li>
+                    <li class="breadcrumb-item active">Routes</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'transport:route_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Route
+        </a>
+    </div>
+
+    <!-- Routes Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="routesTable" class="table table-hover" data-datatable data-title="Report - {{ request.tenant.name }}">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Start Point</th>
+                            <th>End Point</th>
+                            <th>Distance (KM)</th>
+                            <th>Time (min)</th>
+                            <th>Students</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for route in routes %}
+                        <tr>
+                            <td><strong>{{ route.code }}</strong></td>
+                            <td>{{ route.name }}</td>
+                            <td>{{ route.start_point }}</td>
+                            <td>{{ route.end_point }}</td>
+                            <td>{{ route.total_distance }}</td>
+                            <td>{{ route.estimated_time }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ route.student_count|default:0 }}</span>
+                            </td>
+                            <td>
+                                {% if route.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'transport:route_detail' route.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'transport:route_update' route.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+<script src="{% static 'assets/plugins/datatable/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'assets/plugins/datatable/js/dataTables.bootstrap5.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#routesTable').DataTable({
+        order: [[0, 'asc']],
+        pageLength: 25
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Online Admission Application" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <h2 class="h4 mb-0">{% trans "Online Admission Application" %}</h2>
+                </div>
+                <div class="card-body p-4">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{% trans "Please correct the errors below:" %}</strong>
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    {% crispy form %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

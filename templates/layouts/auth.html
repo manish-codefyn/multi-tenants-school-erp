@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block body_content %}
+<!-- Authentication pages layout -->
+<div class="wrapper">
+    <div class="auth-container">
+        {% include "partials/alert.html" %}
+        {% block content %}
+        <!-- Auth content (login, register, etc.) -->
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

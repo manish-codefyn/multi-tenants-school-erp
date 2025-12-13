@@ -1,0 +1,38 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Leave Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Leave Report</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:report_staff' %}">Reports</a></li>
+                        <li class="breadcrumb-item active">Leave</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="bx bx-calendar-x text-muted display-4"></i>
+                    </div>
+                    <h4>Leave Analytics</h4>
+                    <p class="text-muted mb-4">This feature is coming soon. You will be able to view leave trends and balance reports here.</p>
+                    <a href="{% url 'hr:dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

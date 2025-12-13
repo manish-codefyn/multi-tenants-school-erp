@@ -1,0 +1,12 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-shield"></i></div>
+        <div class="menu-title">Security</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'security:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'security:policy_list' %}"><i class="bx bx-radio-circle"></i>Policies</a></li>
+        <li><a href="{% url 'security:incident_list' %}"><i class="bx bx-radio-circle"></i>Incidents</a></li>
+        <li><a href="{% url 'security:audit_log_list' %}"><i class="bx bx-radio-circle"></i>Audit Logs</a></li>
+    </ul>
+</li>

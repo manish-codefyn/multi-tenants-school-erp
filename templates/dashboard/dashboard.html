@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Overview - NextGen Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="page-title fade-in">Analytics Overview</h1>
+<p class="page-description fade-in">Quick snapshot of your operations and performance trends.</p>
+
+{% include 'includes/stats_grid.html' %}
+{% include 'includes/content_grid.html' %}
+{% endblock %}

@@ -1,0 +1,68 @@
+<!-- Profile Picture Update Modal -->
+{% load static %}
+
+<div class="modal fade" id="profilePictureModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Profile Picture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="profilePictureForm" method="post" enctype="multipart/form-data" 
+                  action="{% url 'profile_picture_update' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <!-- Current Picture Preview -->
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <img id="currentProfilePicture" 
+                                 src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'assets/images/avatars/avatar-2.png' %}{% endif %}" 
+                                 alt="Current Profile Picture" 
+                                 class="rounded-circle border" 
+                                 width="150" height="150"
+                                 style="object-fit: cover;">
+                            <div id="pictureLoading" class="position-absolute top-50 start-50 translate-middle" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload New Picture -->
+                    <div class="mb-3">
+                        <label for="profilePictureInput" class="form-label">Upload New Picture</label>
+                        <input type="file" class="form-control" id="profilePictureInput" 
+                               name="profile_picture" accept="image/*">
+                        <div class="form-text">
+                            Supported formats: JPG, PNG, GIF, WEBP. Max size: 5MB. Recommended: 500x500 pixels.
+                        </div>
+                    </div>
+
+                    <!-- Remove Picture Option -->
+                    {% if request.user.profile_picture %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="removePicture" name="remove_picture">
+                        <label class="form-check-label" for="removePicture">
+                            Remove current profile picture
+                        </label>
+                    </div>
+                    {% endif %}
+
+                    <!-- Preview New Picture -->
+                    <div id="newPicturePreview" class="text-center mb-3" style="display: none;">
+                        <p class="small mb-2">New Picture Preview:</p>
+                        <img id="previewImage" src="#" alt="Preview" class="rounded border" 
+                             width="100" height="100" style="object-fit: cover; display: none;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="savePictureBtn">
+                        Update Picture
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,203 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Admission Reports - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+{% include "partials/breadcrumb.html" with page_title="Admission Reports & Analytics" parent_text="Admission" parent_url=request.resolver_match.app_name|add:":dashboard" current_text="Reports" %}
+<div class="container-fluid">
+    
+
+
+    <div class="row">
+        <!-- Applications by Status -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Applications by Status</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications by Course -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Applications by Course</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="courseChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Applications Trend -->
+        <div class="col-md-12 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Monthly Applications Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Breakdown Table -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Status Breakdown</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Status</th>
+                                    <th class="text-end">Count</th>
+                                    <th class="text-end">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in status_breakdown %}
+                                <tr>
+                                    <td>{{ item.status|title }}</td>
+                                    <td class="text-end">{{ item.count }}</td>
+                                    <td class="text-end">
+                                        {% widthratio item.count total_applications 100 %}%
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Breakdown Table -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Course Breakdown</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Course</th>
+                                    <th class="text-end">Applications</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in course_breakdown %}
+                                <tr>
+                                    <td>{{ item.course__name }}</td>
+                                    <td class="text-end">{{ item.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Status Chart
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+const statusChart = new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for item in status_breakdown %}'{{ item.status|title }}',{% endfor %}],
+        datasets: [{
+            data: [{% for item in status_breakdown %}{{ item.count }},{% endfor %}],
+            backgroundColor: [
+                '#0d6efd', '#6c757d', '#ffc107', '#28a745', '#dc3545'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Course Chart
+const courseCtx = document.getElementById('courseChart').getContext('2d');
+const courseChart = new Chart(courseCtx, {
+    type: 'bar',
+    data: {
+        labels: [{% for item in course_breakdown %}'{{ item.course__name }}',{% endfor %}],
+        datasets: [{
+            label: 'Applications',
+            data: [{% for item in course_breakdown %}{{ item.count }},{% endfor %}],
+            backgroundColor: '#0d6efd'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Monthly Chart
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+const monthlyChart = new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for item in monthly_applications %}'Month {{ item.month }}',{% endfor %}],
+        datasets: [{
+            label: 'Applications',
+            data: [{% for item in monthly_applications %}{{ item.count }},{% endfor %}],
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

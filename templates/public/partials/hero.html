@@ -1,0 +1,224 @@
+<!-- Hero Section -->
+<section class="hero-section" style="background: linear-gradient(rgba(13, 110, 253, 0.85), rgba(13, 110, 253, 0.5)), url('static/public/img/1.png') center/cover;">
+    <div class="container">
+        <div class="row align-items-center min-vh-80">
+            <div class="col-lg-8 mx-auto text-center text-white">
+                <!-- Badge -->
+                <div class="mb-4">
+                    <span class="badge bg-white text-primary fs-6 px-4 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-award-fill me-2"></i>Trusted by 500+ Educational Institutions
+                    </span>
+                </div>
+                
+                <!-- Main Heading -->
+                <h1 class="display-4 fw-bold mb-4">
+                    Transform Your Educational Institution with 
+                    <span class="text-warning">Smart ERP</span>
+                </h1>
+                
+                <!-- Subtitle -->
+                <p class="lead fs-3 mb-4 opacity-90">
+                    Comprehensive Multi-Tenant Management System for Modern Education
+                </p>
+                
+                <!-- Features List -->
+                <div class="row justify-content-center mb-5">
+                    <div class="col-md-10">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3">
+                                    <i class="bi bi-people-fill fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">Student</div>
+                                        <small class="opacity-90">Management</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3">
+                                    <i class="bi bi-journal-text fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">Academic</div>
+                                        <small class="opacity-90">Planning</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3">
+                                    <i class="bi bi-graph-up fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">Performance</div>
+                                        <small class="opacity-90">Analytics</small>
+                                    </div>
+                <!-- Stats -->
+                <div class="row mt-5 pt-4 border-top border-white border-opacity-25">
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">50K+</h3>
+                            <small class="opacity-90">Students Managed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">500+</h3>
+                            <small class="opacity-90">Institutions</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">25+</h3>
+                            <small class="opacity-90">Modules</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">24/7</h3>
+                            <small class="opacity-90">Support</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <a href="#features" class="text-white">
+            <i class="bi bi-chevron-down fs-4"></i>
+        </a>
+    </div>
+</section>
+
+<style>
+.hero-section {
+    position: relative;
+    padding: 120px 0 100px;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    overflow: hidden;
+}
+
+.min-vh-80 {
+    min-height: 80vh;
+}
+
+.hero-section h1 {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    line-height: 1.2;
+}
+
+.hero-section .lead {
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.hero-buttons .btn {
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border-width: 2px;
+    margin: 0.5rem;
+}
+
+.hero-buttons .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.btn-light:hover {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+}
+
+.btn-outline-light:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.scroll-indicator {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: bounce 2s infinite;
+}
+
+.scroll-indicator a {
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.scroll-indicator a:hover {
+    opacity: 1;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    40% {
+        transform: translateX(-50%) translateY(-10px);
+    }
+    60% {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}
+
+/* Feature Cards Hover Effect */
+.bg-white.bg-opacity-10 {
+    transition: all 0.3s ease;
+}
+
+.bg-white.bg-opacity-10:hover {
+    background-color: rgba(255,255,255,0.2) !important;
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 100px 0 80px;
+        text-align: center;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section .lead {
+        font-size: 1.25rem;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-buttons .btn {
+        margin: 0.5rem 0;
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .min-vh-80 {
+        min-height: 70vh;
+    }
+    
+    .row.g-4 .col-md-4 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-section .lead {
+        font-size: 1.1rem;
+    }
+    
+    .hero-buttons .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+</style>

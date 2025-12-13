@@ -1,0 +1,651 @@
+{% extends 'layouts/applicant.html' %}
+{% load static %}
+
+{% block title %}Application Details - {{ application.application_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .application-detail-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        overflow: hidden;
+    }
+    
+    .application-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 0 !important;
+    }
+    
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .info-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .info-section h6 {
+        color: #495057;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 500;
+        color: #6c757d;
+        min-width: 150px;
+    }
+    
+    .info-value {
+        color: #495057;
+        font-weight: 400;
+        text-align: right;
+        flex: 1;
+    }
+    
+    .document-card {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .document-card:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+    }
+    
+    .document-verified {
+        border-color: #28a745;
+        background: #f8fff9;
+    }
+    
+    .document-pending {
+        border-color: #ffc107;
+        background: #fffbf0;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 25px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        top: 5px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #dee2e6;
+        border: 3px solid white;
+        z-index: 2;
+    }
+    
+    .timeline-item.completed .timeline-marker {
+        background: #28a745;
+    }
+    
+    .timeline-item.current .timeline-marker {
+        background: #007bff;
+        animation: pulse 2s infinite;
+    }
+    
+    .timeline-content {
+        padding-bottom: 10px;
+    }
+    
+    .timeline-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        left: -21px;
+        top: 25px;
+        bottom: -25px;
+        width: 2px;
+        background: #dee2e6;
+        z-index: 1;
+    }
+    
+    .timeline-item.completed:not(:last-child)::after {
+        background: #28a745;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+        }
+    }
+    
+    .action-buttons .btn {
+        margin-right: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .document-preview {
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Application Header -->
+            <div class="card application-detail-card">
+                <div class="application-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-2 text-white">{{ application.full_name }}</h4>
+                            <p class="mb-1 text-white-50">
+                                <i class="bi bi-file-text"></i> {{ application.application_number }}
+                                {% if application.applying_for_course %}
+                                • <i class="bi bi-book"></i> {{ application.applying_for_course.name }}
+                                {% endif %}
+                            </p>
+                            <p class="mb-0 text-white-50">
+                                <i class="bi bi-calendar"></i> Applied on {{ application.submitted_date|date:"F j, Y" }}
+                                • <i class="bi bi-person"></i> Age: {{ application.age }} years
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <span class="status-badge badge 
+                                {% if application.status == 'submitted' %}bg-warning
+                                {% elif application.status == 'approved' %}bg-success
+                                {% elif application.status == 'rejected' %}bg-danger
+                                {% elif application.status == 'under_review' %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ application.get_status_display }}
+                            </span>
+                            <div class="mt-2">
+                                <small class="text-white-50">Academic Year: {{ application.academic_year.name }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Action Buttons -->
+                    <div class="action-buttons mb-4">
+                        <a href="{% url 'admission:download_application' application.pk %}" class="btn btn-outline-primary">
+                            <i class="bi bi-download"></i> Download PDF
+                        </a>
+                        <a href="{% url 'admission:application_status' application.pk  %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Status
+                        </a>
+                        {% if application.status == 'draft' %}
+                        <a href="{% url 'admission:application_wizard' %}?step={{ application.current_step }}" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Continue Application
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Application Progress Timeline -->
+                    <div class="info-section">
+                        <h6><i class="bi bi-clock-history"></i> Application Progress</h6>
+                        <div class="timeline">
+                            <div class="timeline-item {% if application.current_step >= 1 %}completed{% endif %} {% if application.current_step == 1 %}current{% endif %}">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Personal Information</h6>
+                                    <small class="text-muted">Step 1 - Basic details and contact information</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item {% if application.current_step >= 2 %}completed{% endif %} {% if application.current_step == 2 %}current{% endif %}">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Academic Information</h6>
+                                    <small class="text-muted">Step 2 - Educational background and course selection</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item {% if application.current_step >= 3 %}completed{% endif %} {% if application.current_step == 3 %}current{% endif %}">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Parent/Guardian Details</h6>
+                                    <small class="text-muted">Step 3 - Family information and contacts</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item {% if application.current_step >= 4 %}completed{% endif %} {% if application.current_step == 4 %}current{% endif %}">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Document Upload</h6>
+                                    <small class="text-muted">Step 4 - Required documents and certificates</small>
+                                </div>
+                            </div>
+                            <div class="timeline-item {% if application.status == 'submitted' %}completed{% endif %} {% if application.status == 'submitted' %}current{% endif %}">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Application Submitted</h6>
+                                    <small class="text-muted">Step 5 - Under review by admission team</small>
+                                    {% if application.submitted_date %}
+                                    <div class="text-success">
+                                        <small><i class="bi bi-check-circle"></i> Submitted on {{ application.submitted_date|date:"F j, Y" }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="info-section">
+                        <h6><i class="bi bi-person"></i> Personal Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <span class="info-label">Full Name:</span>
+                                    <span class="info-value">{{ application.full_name }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Date of Birth:</span>
+                                    <span class="info-value">{{ application.date_of_birth|date:"F j, Y" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Gender:</span>
+                                    <span class="info-value">{{ application.get_gender_display }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Category:</span>
+                                    <span class="info-value">{{ application.get_category_display }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <span class="info-label">Religion:</span>
+                                    <span class="info-value">{{ application.get_religion_display }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Blood Group:</span>
+                                    <span class="info-value">{{ application.get_blood_group_display }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Nationality:</span>
+                                    <span class="info-value">{{ application.nationality }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="info-section">
+                        <h6><i class="bi bi-telephone"></i> Contact Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <span class="info-label">Email:</span>
+                                    <span class="info-value">{{ application.email }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Mobile:</span>
+                                    <span class="info-value">{{ application.mobile }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Alternate Mobile:</span>
+                                    <span class="info-value">{{ application.alternate_mobile|default:"Not provided" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <div class="info-item">
+                                <span class="info-label">Permanent Address:</span>
+                                <span class="info-value">
+                                    {{ application.permanent_address }},<br>
+                                    {{ application.permanent_city }}, {{ application.permanent_state }} - {{ application.permanent_pincode }},<br>
+                                    {{ application.permanent_country }}
+                                </span>
+                            </div>
+                            
+                            {% if not application.correspondence_same_as_permanent and application.correspondence_address %}
+                            <div class="info-item mt-2">
+                                <span class="info-label">Correspondence Address:</span>
+                                <span class="info-value">
+                                    {{ application.correspondence_address }},<br>
+                                    {{ application.correspondence_city }}, {{ application.correspondence_state }} - {{ application.correspondence_pincode }},<br>
+                                    {{ application.correspondence_country }}
+                                </span>
+                            </div>
+                            {% else %}
+                            <div class="info-item mt-2">
+                                <span class="info-label">Correspondence Address:</span>
+                                <span class="info-value text-muted">Same as permanent address</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Academic Information -->
+                    <div class="info-section">
+                        <h6><i class="bi bi-book"></i> Academic Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <span class="info-label">Applying for:</span>
+                                    <span class="info-value">{{ application.applying_for_class }}</span>
+                                </div>
+                                {% if application.applying_for_course %}
+                                <div class="info-item">
+                                    <span class="info-label">Course:</span>
+                                    <span class="info-value">{{ application.applying_for_course.name }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if application.previous_school or application.previous_class %}
+                        <div class="mt-3">
+                            <h6 class="text-muted mb-2">Previous Academic Details</h6>
+                            <div class="row">
+                                {% if application.previous_school %}
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <span class="info-label">School/College:</span>
+                                        <span class="info-value">{{ application.previous_school }}</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if application.previous_class %}
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <span class="info-label">Class:</span>
+                                        <span class="info-value">{{ application.previous_class }}</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if application.previous_marks %}
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <span class="info-label">Marks/Percentage:</span>
+                                        <span class="info-value">{{ application.previous_marks }}%</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if application.previous_board %}
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <span class="info-label">Board/University:</span>
+                                        <span class="info-value">{{ application.previous_board }}</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Parent/Guardian Information -->
+            <div class="card application-detail-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="bi bi-people"></i> Parent/Guardian Information</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Father's Information -->
+                    <div class="mb-3">
+                        <h6 class="text-primary">Father's Details</h6>
+                        <div class="info-item">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">{{ application.father_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Occupation:</span>
+                            <span class="info-value">{{ application.father_occupation|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Qualification:</span>
+                            <span class="info-value">{{ application.father_qualification|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Mobile:</span>
+                            <span class="info-value">{{ application.father_mobile|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">{{ application.father_email|default:"Not provided" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Mother's Information -->
+                    <div class="mb-3">
+                        <h6 class="text-primary">Mother's Details</h6>
+                        <div class="info-item">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">{{ application.mother_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Occupation:</span>
+                            <span class="info-value">{{ application.mother_occupation|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Qualification:</span>
+                            <span class="info-value">{{ application.mother_qualification|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Mobile:</span>
+                            <span class="info-value">{{ application.mother_mobile|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">{{ application.mother_email|default:"Not provided" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Guardian's Information (if provided) -->
+                    {% if application.guardian_name %}
+                    <div>
+                        <h6 class="text-primary">Guardian's Details</h6>
+                        <div class="info-item">
+                            <span class="info-label">Name:</span>
+                            <span class="info-value">{{ application.guardian_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Relation:</span>
+                            <span class="info-value">{{ application.guardian_relation|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Occupation:</span>
+                            <span class="info-value">{{ application.guardian_occupation|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Mobile:</span>
+                            <span class="info-value">{{ application.guardian_mobile|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">{{ application.guardian_email|default:"Not provided" }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Documents Section -->
+            <div class="card application-detail-card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="bi bi-files"></i> Uploaded Documents</h6>
+                </div>
+                <div class="card-body">
+                    {% if application.documents.all %}
+                    <div class="row">
+                        {% for document in application.documents.all %}
+                        <div class="col-12 mb-3">
+                            <div class="document-card p-3 {% if document.is_verified %}document-verified{% else %}document-pending{% endif %}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">{{ document.get_document_type_display }}</h6>
+                                    <span class="badge {% if document.is_verified %}bg-success{% else %}bg-warning{% endif %}">
+                                        {% if document.is_verified %}Verified{% else %}Pending{% endif %}
+                                    </span>
+                                </div>
+                                
+                                <p class="text-muted small mb-2">
+                                    <i class="bi bi-file-earmark"></i> {{ document.document_name }}<br>
+                                    <i class="bi bi-hdd"></i> {{ document.file_size|filesizeformat }}
+                                </p>
+                                
+                                {% if document.document_file.url %}
+                                <div class="text-center mb-2">
+                                    {% if document.document_file.url|lower|slice:'-4:' in '.jpg,.jpeg,.png,.gif' %}
+                                    <img src="{{ document.document_file.url }}" alt="Document preview" class="document-preview img-fluid">
+                                    {% else %}
+                                    <i class="bi bi-file-earmark-pdf display-4 text-danger"></i>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                
+                                <div class="d-flex gap-2">
+                                    <a href="{{ document.document_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary flex-fill">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <a href="{{ document.document_file.url }}" download class="btn btn-sm btn-outline-secondary flex-fill">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </div>
+                                
+                                {% if document.is_verified and document.verified_by %}
+                                <div class="mt-2">
+                                    <small class="text-success">
+                                        <i class="bi bi-check-circle"></i> 
+                                        Verified by {{ document.verified_by.get_full_name }} 
+                                        on {{ document.verification_date|date:"M j, Y" }}
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-folder-x display-4"></i>
+                        <p class="mt-2 mb-0">No documents uploaded yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Payment Information -->
+            {% if application.application_fee_paid %}
+            <div class="card application-detail-card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="bi bi-credit-card"></i> Payment Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value text-success">
+                            <i class="bi bi-check-circle"></i> Paid
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Amount:</span>
+                        <span class="info-value">₹{{ application.application_fee_amount }}</span>
+                    </div>
+                    {% if application.payment_reference %}
+                    <div class="info-item">
+                        <span class="info-label">Reference:</span>
+                        <span class="info-value">{{ application.payment_reference }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Review Information (for staff/admin) -->
+            {% if application.reviewed_by or application.review_notes %}
+            <div class="card application-detail-card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="bi bi-clipboard-check"></i> Review Information</h6>
+                </div>
+                <div class="card-body">
+                    {% if application.reviewed_by %}
+                    <div class="info-item">
+                        <span class="info-label">Reviewed By:</span>
+                        <span class="info-value">{{ application.reviewed_by.get_full_name }}</span>
+                    </div>
+                    {% endif %}
+                    {% if application.review_date %}
+                    <div class="info-item">
+                        <span class="info-label">Review Date:</span>
+                        <span class="info-value">{{ application.review_date|date:"F j, Y" }}</span>
+                    </div>
+                    {% endif %}
+                    {% if application.approval_date %}
+                    <div class="info-item">
+                        <span class="info-label">Approval Date:</span>
+                        <span class="info-value">{{ application.approval_date|date:"F j, Y" }}</span>
+                    </div>
+                    {% endif %}
+                    {% if application.review_notes %}
+                    <div class="mt-3">
+                        <span class="info-label">Notes:</span>
+                        <p class="info-value mt-1 p-2 bg-light rounded">{{ application.review_notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any interactive functionality here
+        console.log('Application detail page loaded');
+        
+        // Example: Expand document preview on click
+        const documentPreviews = document.querySelectorAll('.document-preview');
+        documentPreviews.forEach(preview => {
+            preview.addEventListener('click', function() {
+                this.classList.toggle('expanded');
+                if (this.classList.contains('expanded')) {
+                    this.style.maxHeight = 'none';
+                    this.style.cursor = 'zoom-out';
+                } else {
+                    this.style.maxHeight = '200px';
+                    this.style.cursor = 'zoom-in';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

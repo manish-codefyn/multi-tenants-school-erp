@@ -1,0 +1,99 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Events</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'events:student_event_list' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    {% if event.banner %}
+                    <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">{{ event.category.name }}</span>
+                        <h3>{{ event.title }}</h3>
+                        <p class="text-muted">{{ event.start_date }} - {{ event.end_date }}</p>
+                        <hr>
+                        <h5>About This Event</h5>
+                        <p>{{ event.description }}</p>
+                        
+                        <h5 class="mt-4">Event Details</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="bx bx-calendar"></i> <strong>Date:</strong> {{ event.start_date }} to {{ event.end_date }}</li>
+                            <li><i class="bx bx-map"></i> <strong>Venue:</strong> {{ event.venue }}</li>
+                            <li><i class="bx bx-time"></i> <strong>Registration Deadline:</strong> {{ event.registration_deadline }}</li>
+                            {% if event.max_participants %}
+                            <li><i class="bx bx-group"></i> <strong>Max Participants:</strong> {{ event.max_participants }}</li>
+                            {% endif %}
+                        </ul>
+
+                        {% if event.rules %}
+                        <h5 class="mt-4">Rules & Regulations</h5>
+                        <p>{{ event.rules }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Registration</h5>
+                        <hr>
+                        {% if already_registered %}
+                        <div class="alert alert-success">
+                            <i class="bx bx-check-circle"></i> You are already registered for this event
+                        </div>
+                        <a href="{% url 'events:my_registrations' %}" class="btn btn-primary w-100">View My Registrations</a>
+                        {% elif not registration_open %}
+                        <div class="alert alert-warning">
+                            <i class="bx bx-info-circle"></i> Registration is closed
+                        </div>
+                        {% elif available_slots == 0 %}
+                        <div class="alert alert-danger">
+                            <i class="bx bx-x-circle"></i> Event is full
+                        </div>
+                        {% else %}
+                        {% if available_slots %}
+                        <p class="text-muted">{{ available_slots }} slots remaining</p>
+                        {% endif %}
+                        <a href="{% url 'events:student_register' event.pk %}" class="btn btn-success w-100">
+                            <i class="bx bx-user-plus"></i> Register Now
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if event.organizer %}
+                <div class="card">
+                    <div class="card-body">
+                        <h6>Organizer</h6>
+                        <p>{{ event.organizer }}</p>
+                        {% if event.contact_email %}
+                        <p><i class="bx bx-envelope"></i> {{ event.contact_email }}</p>
+                        {% endif %}
+                        {% if event.contact_phone %}
+                        <p><i class="bx bx-phone"></i> {{ event.contact_phone }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+{% endblock %}

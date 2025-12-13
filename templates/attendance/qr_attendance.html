@@ -1,0 +1,133 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-2">QR Code Attendance</h2>
+        <p class="text-muted">Scan student ID card QR code to mark attendance.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body text-center p-5">
+                <div class="mb-4">
+                    <i class="fas fa-qrcode fa-5x text-primary"></i>
+                </div>
+                <h4 class="mb-4">Scan QR Code</h4>
+                
+                <div class="form-group mb-3">
+                    <input type="text" id="reg_no_input" class="form-control form-control-lg text-center" placeholder="Click here and scan..." autofocus>
+                </div>
+                <p class="text-muted small">Ensure the input field is focused before scanning.</p>
+                
+                <div id="status-message" class="alert d-none mt-3" role="alert"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card" id="last-scanned-card" style="display: none;">
+            <div class="card-header bg-success text-white">
+                Last Scanned
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <img id="student-photo" src="" alt="Student Photo" class="rounded-circle img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                </div>
+                <h5 id="student-name" class="fw-bold"></h5>
+                <p id="student-reg" class="text-muted mb-1"></p>
+                <span id="student-class" class="badge bg-primary"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('reg_no_input');
+        const statusDiv = document.getElementById('status-message');
+        const card = document.getElementById('last-scanned-card');
+        const sName = document.getElementById('student-name');
+        const sReg = document.getElementById('student-reg');
+        const sClass = document.getElementById('student-class');
+        const sPhoto = document.getElementById('student-photo');
+        
+        let timeout = null;
+
+        input.addEventListener('input', function(e) {
+            clearTimeout(timeout);
+            
+            // Assume scanner sends a newline or we wait for a pause
+            timeout = setTimeout(() => {
+                const regNo = input.value.trim();
+                if (regNo.length > 0) {
+                    processScan(regNo);
+                }
+            }, 500); // 500ms pause triggers submit
+        });
+        
+        // Also handle "Enter" key which most scanners send
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(timeout);
+                const regNo = input.value.trim();
+                if (regNo.length > 0) {
+                    processScan(regNo);
+                }
+            }
+        });
+
+        function processScan(regNo) {
+            input.disabled = true;
+            
+            fetch('{% url "attendance:qr_attendance" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: 'reg_no=' + encodeURIComponent(regNo)
+            })
+            .then(response => response.json())
+            .then(data => {
+                input.value = '';
+                input.disabled = false;
+                input.focus();
+                
+                statusDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+                
+                if (data.status === 'success') {
+                    statusDiv.classList.add('alert-success');
+                    statusDiv.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${data.message}`;
+                    
+                    // Update side card
+                    card.style.display = 'block';
+                    sName.textContent = data.student.name;
+                    sReg.textContent = data.student.reg_no;
+                    sClass.textContent = data.student.class;
+                    if (data.student.photo_url) {
+                         sPhoto.src = data.student.photo_url;
+                    } else {
+                         sPhoto.src = 'https://via.placeholder.com/100'; 
+                    }
+                    
+                } else {
+                    statusDiv.classList.add('alert-danger');
+                    statusDiv.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i> ${data.message}`;
+                }
+            })
+            .catch(error => {
+                input.disabled = false;
+                input.focus();
+                statusDiv.classList.remove('d-none');
+                statusDiv.classList.add('alert-danger');
+                statusDiv.textContent = 'Network error occurred';
+                console.error('Error:', error);
+            });
+        }
+    });
+</script>
+{% endblock %}

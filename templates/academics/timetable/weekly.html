@@ -1,0 +1,179 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Weekly Timetable - Academics{% endblock %}
+
+{% block page_title %}Weekly Timetable{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'academics:dashboard' %}">Academics</a></li>
+<li class="breadcrumb-item"><a href="{% url 'academics:timetable_list' %}">Timetable</a></li>
+<li class="breadcrumb-item active" aria-current="page">Weekly View</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0"><i class="bx bx-calendar"></i> Weekly Timetable</h5>
+                    <div>
+                        {% if user.is_staff or user.is_superuser %}
+                        <a href="{% url 'academics:timetable_create' %}" class="btn btn-light btn-sm">
+                            <i class="bx bx-plus"></i> Add Period
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Filters -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label>Class</label>
+                        <select class="form-select" id="classFilter">
+                            <option value="">All Classes</option>
+                            {% for class in classes %}
+                            <option value="{{ class.id }}">{{ class.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Section</label>
+                        <select class="form-select" id="sectionFilter">
+                            <option value="">All Sections</option>
+                            {% for section in sections %}
+                            <option value="{{ section.id }}">{{ section.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary w-100" id="applyFilter">
+                            <i class="bx bx-filter"></i> Apply Filter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Timetable Grid -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 120px;">Period / Day</th>
+                                <th>Monday</th>
+                                <th>Tuesday</th>
+                                <th>Wednesday</th>
+                                <th>Thursday</th>
+                                <th>Friday</th>
+                                <th>Saturday</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for period_num in periods %}
+                            <tr>
+                                <td class="fw-bold bg-light">
+                                    Period {{ period_num }}<br>
+                                    <small class="text-muted">
+                                        {% if period_num == 1 %}09:00-09:45
+                                        {% elif period_num == 2 %}09:45-10:30
+                                        {% elif period_num == 3 %}10:45-11:30
+                                        {% elif period_num == 4 %}11:30-12:15
+                                        {% elif period_num == 5 %}13:00-13:45
+                                        {% elif period_num == 6 %}13:45-14:30
+                                        {% elif period_num == 7 %}14:30-15:15
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                {% for day in days %}
+                                <td>
+                                    {% with slot=timetable|get_slot:day:period_num %}
+                                    {% if slot %}
+                                    <div class="timetable-slot p-2">
+                                        <strong class="text-primary">{{ slot.class_subject.subject.name }}</strong><br>
+                                        <small class="text-muted">
+                                            {{ slot.class_subject.school_class.name }} - {{ slot.class_subject.section.name }}
+                                        </small><br>
+                                        <small>
+                                            <i class="bx bx-user"></i> {{ slot.teacher.get_full_name }}
+                                        </small>
+                                        {% if slot.room %}
+                                        <br><small><i class="bx bx-door-open"></i> Room {{ slot.room }}</small>
+                                        {% endif %}
+                                        {% if user.is_staff %}
+                                        <div class="mt-1">
+                                            <a href="{% url 'academics:timetable_update' slot.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bx bx-edit"></i>
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <div class="text-center text-muted p-2">
+                                        <small>-</small>
+                                    </div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Legend -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Legend:</h6>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <span><span class="badge bg-primary">Subject</span> Subject Name</span>
+                            <span><span class="badge bg-secondary">Class</span> Class & Section</span>
+                            <span><span class="badge bg-info">Teacher</span> Teacher Name</span>
+                            <span><span class="badge bg-success">Room</span> Room Number</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if not timetable %}
+                <div class="alert alert-info mt-3">
+                    <i class="bx bx-info-circle"></i>
+                    No timetable entries found for the selected filters.
+                    {% if user.is_staff %}
+                    <a href="{% url 'academics:timetable_create' %}">Create a timetable entry</a>.
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timetable-slot {
+    background: #f8f9fa;
+    border-radius: 4px;
+    min-height: 80px;
+}
+.timetable-slot:hover {
+    background: #e9ecef;
+}
+table td {
+    vertical-align: top;
+}
+</style>
+
+<script>
+document.getElementById('applyFilter').addEventListener('click', function() {
+    const classId = document.getElementById('classFilter').value;
+    const sectionId = document.getElementById('sectionFilter').value;
+    
+    let url = window.location.pathname + '?';
+    if (classId) url += `class=${classId}&`;
+    if (sectionId) url += `section=${sectionId}&`;
+    
+    window.location.href = url;
+});
+</script>
+{% endblock %}

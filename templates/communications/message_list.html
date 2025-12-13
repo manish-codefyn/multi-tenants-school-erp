@@ -1,0 +1,85 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Messages | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-lg-flex align-items-center mb-4 gap-3">
+                    <div class="position-relative">
+                        <input type="text" class="form-control ps-5 radius-30" placeholder="Search Messages">
+                        <span class="position-absolute top-50 product-show translate-middle-y"><i class="bx bx-search ms-3"></i></span>
+                    </div>
+                    <div class="ms-auto">
+                        <a href="{% url 'communications:message_compose' %}" class="btn btn-primary radius-30 mt-2 mt-lg-0"><i class="bx bx-plus"></i> Compose Message</a>
+                    </div>
+                </div>
+
+                <div class="email-wrapper">
+                    <div class="email-sidebar">
+                        <div class="email-sidebar-content">
+                            <div class="email-navigation">
+                                <div class="list-group list-group-flush">
+                                    <a href="{% url 'communications:messages' %}?folder=inbox" class="list-group-item {% if folder == 'inbox' %}active{% endif %} d-flex align-items-center">
+                                        <i class='bx bx-inbox me-3 font-20'></i><span>Inbox</span>
+                                        <span class="badge bg-primary rounded-pill ms-auto">5</span>
+                                    </a>
+                                    <a href="{% url 'communications:messages' %}?folder=sent" class="list-group-item {% if folder == 'sent' %}active{% endif %} d-flex align-items-center">
+                                        <i class='bx bx-send me-3 font-20'></i><span>Sent</span>
+                                    </a>
+                                    <a href="{% url 'communications:messages' %}?folder=drafts" class="list-group-item {% if folder == 'drafts' %}active{% endif %} d-flex align-items-center">
+                                        <i class='bx bx-file me-3 font-20'></i><span>Drafts</span>
+                                    </a>
+                                    <a href="#" class="list-group-item d-flex align-items-center">
+                                        <i class='bx bx-trash me-3 font-20'></i><span>Trash</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="email-header d-flex align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="email-toggle-btn"><i class='bx bx-menu'></i></div>
+                            <h4 class="email-header-title mb-0">
+                                {% if folder == 'inbox' %}Inbox{% elif folder == 'sent' %}Sent{% elif folder == 'drafts' %}Drafts{% else %}Messages{% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                    
+                    <div class="email-content">
+                        <div class="email-list">
+                            {% for message in messages %}
+                            <a href="{% url 'communications:message_detail' message.pk %}">
+                                <div class="d-md-flex align-items-center email-message px-3 py-1">
+                                    <div class="d-flex align-items-center email-actions">
+                                        <input class="form-check-input" type="checkbox" value="" />
+                                        <i class='bx bx-star font-20 mx-2 email-star'></i>
+                                    </div>
+                                    <div class="">
+                                        <p class="mb-0"><b>{{ message.sender.get_full_name|default:message.sender.email }}</b></p>
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <p class="mb-0 list-message-content text-truncate">{{ message.subject }} - {{ message.content|truncatechars:50 }}</p>
+                                    </div>
+                                    <div class="ms-2">
+                                        <p class="mb-0 email-time">{{ message.created_at|date:"M d" }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                            {% empty %}
+                            <div class="text-center p-5">
+                                <p class="mb-0">No messages found.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

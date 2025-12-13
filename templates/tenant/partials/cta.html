@@ -1,0 +1,26 @@
+<section class="cta-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center" data-aos="fade-up">
+                <h2 class="display-5 fw-bold mb-4">Ready to Transform Your School Management?</h2>
+                <p class="lead mb-5 opacity-90">
+                    Join thousands of educational institutions using our platform to streamline operations and enhance learning experiences.
+                </p>
+                
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-light btn-modern btn-lg px-5 me-3">
+                        <i class="bi bi-arrow-right-circle me-2"></i>Get Started Now
+                    </a>
+                {% else %}
+                    <a href="/dashboard/" class="btn btn-light btn-modern btn-lg px-5 me-3">
+                        <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                    </a>
+                {% endif %}
+                
+                <a href="#admission" class="btn btn-outline-light btn-modern btn-lg px-5">
+                    <i class="bi bi-pencil-square me-2"></i>Apply Now
+                </a>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,99 @@
+<li>
+        <a href="javascript:;" class="has-arrow">
+            <div class="parent-icon"><i class="bx bx-book"></i></div>
+            <div class="menu-title">Academics</div>
+        </a>
+        <ul>
+            <li><a href="{% url 'academics:dashboard' %}"><i class='bx bx-radio-circle'></i>Dashboard</a></li>
+            
+            <!-- Courses -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Courses</a>
+                <ul>
+                    <li><a href="{% url 'academics:course_list' %}">All Courses</a></li>
+                    <li><a href="{% url 'academics:course_create' %}">Create Course</a></li>
+                </ul>
+            </li>
+            
+            <!-- Subjects -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Subjects</a>
+                <ul>
+                    <li><a href="{% url 'academics:subject_list' %}">All Subjects</a></li>
+                    <li><a href="{% url 'academics:subject_create' %}">Create Subject</a></li>
+                </ul>
+            </li>
+            
+            <!-- Semesters -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Semesters</a>
+                <ul>
+                    <li><a href="{% url 'academics:semester_list' %}">All Semesters</a></li>
+                    <li><a href="{% url 'academics:semester_create' %}">Create Semester</a></li>
+                </ul>
+            </li>
+            
+            <!-- Batches -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Batches</a>
+                <ul>
+                    <li><a href="{% url 'academics:batch_list' %}">All Batches</a></li>
+                    <li><a href="{% url 'academics:batch_create' %}">Create Batch</a></li>
+                </ul>
+            </li>
+            
+            <!-- Enrollments -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Enrollments</a>
+                <ul>
+                    <li><a href="{% url 'academics:enrollment_list' %}">All Enrollments</a></li>
+                    <li><a href="{% url 'academics:enrollment_create' %}">Create Enrollment</a></li>
+                </ul>
+            </li>
+            
+            <!-- Timetable -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Timetable</a>
+                <ul>
+                    <li><a href="{% url 'academics:timetable_list' %}">View Timetable</a></li>
+                    <li><a href="{% url 'academics:timetable_create' %}">Create Timetable</a></li>
+                </ul>
+            </li>
+            
+            <!-- Attendance -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Attendance</a>
+                <ul>
+                    <li><a href="{% url 'academics:attendance_list' %}">View Attendance</a></li>
+                    <li><a href="{% url 'academics:mark_attendance' %}">Mark Attendance</a></li>
+                </ul>
+            </li>
+            
+            <!-- Assessments -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Assessments</a>
+                <ul>
+                    <li><a href="{% url 'academics:assessment_list' %}">All Assessments</a></li>
+                    <li><a href="{% url 'academics:assessment_create' %}">Create Assessment</a></li>
+                </ul>
+            </li>
+            
+            <!-- Grades -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Grades</a>
+                <ul>
+                    <li><a href="{% url 'academics:grade_list' %}">View Grades</a></li>
+                    <li><a href="{% url 'academics:enter_grades' %}">Enter Grades</a></li>
+                </ul>
+            </li>
+            
+            <!-- Reports -->
+            <li>
+                <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Reports</a>
+                <ul>
+                    <li><a href="{% url 'academics:attendance_report' %}">Attendance Report</a></li>
+                    <li><a href="{% url 'academics:progress_report' %}">Progress Report</a></li>
+                </ul>
+            </li>
+        </ul>
+    </li>

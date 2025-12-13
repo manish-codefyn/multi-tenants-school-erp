@@ -1,0 +1,61 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-wallet"></i></div>
+        <div class="menu-title">Fees</div>
+    </a>
+    <ul>
+        <!-- Dashboard -->
+        <li><a href="{% url 'fees:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>Dashboard</a></li>
+        
+        <!-- Fee Categories -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Fee Categories</a>
+            <ul>
+                <li><a href="{% url 'fees:category_list' %}"><i class="bx bx-right-arrow-alt"></i>All Categories</a></li>
+                <li><a href="{% url 'fees:category_create' %}"><i class="bx bx-right-arrow-alt"></i>Create Category</a></li>
+            
+            </ul>
+        </li>
+        
+        <!-- Fee Structures -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Fee Structures</a>
+            <ul>
+                <li><a href="{% url 'fees:structure_list' %}"><i class="bx bx-right-arrow-alt"></i>All Structures</a></li>
+                <li><a href="{% url 'fees:structure_create' %}"><i class="bx bx-right-arrow-alt"></i>Create Structure</a></li>
+                
+            </ul>
+        </li>
+        
+        <!-- Student Accounts -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Student Accounts</a>
+            <ul>
+                <li><a href="{% url 'fees:account_list' %}"><i class="bx bx-right-arrow-alt"></i>All Accounts</a></li>
+                
+            </ul>
+        </li>
+        
+        <!-- Payments -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Payments</a>
+            <ul>
+                <li><a href="{% url 'fees:payment_list' %}"><i class="bx bx-right-arrow-alt"></i>All Payments</a></li>
+                <li><a href="{% url 'fees:payment_create' %}"><i class="bx bx-right-arrow-alt"></i>Record Payment</a></li>
+                
+            </ul>
+        </li>
+        
+        <!-- Reports -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Reports</a>
+            <ul>
+                <li><a href="{% url 'fees:collection_report' %}"><i class="bx bx-right-arrow-alt"></i>Collection Report</a></li>
+                <li><a href="{% url 'fees:defaulter_list' %}"><i class="bx bx-right-arrow-alt"></i>Defaulter List</a></li>
+            </ul>
+        </li>
+        
+        <!-- Student/Parent Views -->
+        <li><a href="{% url 'fees:my_fees' %}"><i class="bx bx-right-arrow-alt"></i>My Fees</a></li>
+    </ul>
+</li>

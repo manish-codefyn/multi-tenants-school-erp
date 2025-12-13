@@ -1,0 +1,67 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Events{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Events</h5>
+            <a href="{% url 'events:event_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Add New</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="eventTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Start Date</th>
+                        <th>Venue</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td>{{ event.title }}</td>
+                        <td>{{ event.category.name }}</td>
+                        <td>{{ event.get_event_type_display }}</td>
+                        <td>{{ event.start_date|date:"M d, Y" }}</td>
+                        <td>{{ event.venue|truncatewords:5 }}</td>
+                        <td>
+                            {% if event.status == 'ONGOING' %}<span class="badge bg-success">{{ event.get_status_display }}</span>
+                            {% elif event.status == 'SCHEDULED' %}<span class="badge bg-info">{{ event.get_status_display }}</span>
+                            {% elif event.status == 'COMPLETED' %}<span class="badge bg-secondary">{{ event.get_status_display }}</span>
+                            {% else %}<span class="badge bg-warning">{{ event.get_status_display }}</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'events:event_detail' event.pk %}" class="ms-3" title="View"><i class="bx bxs-show"></i></a>
+                                <a href="{% url 'events:event_update' event.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
+                                <a href="{% url 'events:event_delete' event.pk %}" class="ms-3 text-danger" title="Delete"><i class="bx bxs-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#eventTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#eventTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

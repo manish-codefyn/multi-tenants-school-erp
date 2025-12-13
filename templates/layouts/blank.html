@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block body_content %}
+<!-- Minimal layout without sidebar and header -->
+<div class="wrapper">
+    <div class="page-wrapper">
+        <div class="page-content">
+            {% include "partials/alert.html" %}
+            {% block content %}
+            <!-- Main content will be inserted here -->
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tenant Signup</title>
+</head>
+<body>
+    <h2>Create Your Organization</h2>
+    
+    {% if errors %}
+        <div style="color: red;">
+            {% for error in errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label>Organization Name:</label>
+            <input type="text" name="tenant_name" required>
+        </div>
+        <div>
+            <label>Domain (subdomain):</label>
+            <input type="text" name="domain_name" placeholder="your-company" required>
+            <small>.localhost:8000</small>
+        </div>
+        <div>
+            <label>Admin Email:</label>
+            <input type="email" name="admin_email" required>
+        </div>
+        <div>
+            <label>Admin Password:</label>
+            <input type="password" name="admin_password" required>
+        </div>
+        <button type="submit">Create Organization</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,99 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Staff Attendance{% endblock %}
+
+{% block extra_css %}
+{% include \'includes/datatable_styles.html\' %}
+{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Staff Attendance Records</h5>
+        <a href="{% url 'attendance:staff_mark' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Mark Attendance
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" value="{{ request.GET.date }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-secondary">Filter</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table id="staffAttendanceTable" class="table table-hover align-middle" data-datatable data-title="Staff Attendance Records" data-export-columns="[0, 1, 2, 3, 4, 5, 6]">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Staff Member</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Status</th>
+                        <th>Working Hours</th>
+                        <th>Marked By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>
+                            <div class="fw-bold">{{ record.staff.get_full_name }}</div>
+                            <div class="small text-muted">{{ record.staff.get_role_display }}</div>
+                        </td>
+                        <td>{{ record.check_in_time|default:"-" }}</td>
+                        <td>{{ record.check_out_time|default:"-" }}</td>
+                        <td>
+                            <span class="badge bg-{% if record.status == 'present' %}success{% elif record.status == 'absent' %}danger{% elif record.status == 'on_leave' %}warning{% else %}info{% endif %}">
+                                {{ record.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ record.working_hours|default:"-" }} hrs</td>
+                        <td>{{ record.marked_by.get_full_name|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            No attendance records found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if is_paginated %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">Previous</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

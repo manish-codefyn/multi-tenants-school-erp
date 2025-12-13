@@ -1,0 +1,104 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-2">Monthly Attendance Report</h2>
+            <p class="text-muted">Report for {{ month_name }}</p>
+        </div>
+        <form method="get" class="d-flex align-items-center">
+            <select name="month" class="form-select me-2">
+                {% for m in "123456789012"|make_list %}
+                    <option value="{{ forloop.counter }}" {% if forloop.counter == month %}selected{% endif %}>
+                        {{ forloop.counter }}
+                    </option>
+                {% endfor %}
+            </select>
+            <select name="year" class="form-select me-2">
+                {% for y in "2024 2025 2026"|split %}
+                    <option value="{{ y }}" {% if y|add:"0" == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">View</button>
+        </form>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Student Attendance</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Total Students</span>
+                    <span class="fw-bold">{{ total_students }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Average Attendance</span>
+                    <span class="fw-bold text-primary">{{ student_percentage }}%</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ student_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Staff Attendance</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Total Staff</span>
+                    <span class="fw-bold">{{ total_staff }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Average Attendance</span>
+                    <span class="fw-bold text-info">{{ staff_percentage }}%</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ staff_percentage }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Detailed Statistics</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total Days</th>
+                        <th>Present Days</th>
+                        <th>Attendance Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Students</td>
+                        <td>{{ student_total_days }}</td>
+                        <td>{{ student_present_days }}</td>
+                        <td>{{ student_percentage }}%</td>
+                    </tr>
+                    <tr>
+                        <td>Staff</td>
+                        <td>{{ staff_total_days }}</td>
+                        <td>{{ staff_present_days }}</td>
+                        <td>{{ staff_percentage }}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

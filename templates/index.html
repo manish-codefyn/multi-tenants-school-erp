@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextGen Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Color Palettes - Dark Mode First */
+        :root {
+            --primary: #00f080; /* Vibrant Accent Green */
+            --primary-rgb: 0, 240, 128;
+            --secondary: #7209b7;
+            --success: #00f080;
+            --warning: #f72585;
+            --info: #4895ef;
+            
+            --bg-dark: #121212; /* Deep Black Background */
+            --bg-card: #1e1e1e; /* Card background - slightly lighter */
+            --text-light: #f5f5f5;
+            --text-secondary: #9a9a9a;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Light Mode Switch (Optional, but included for completeness) */
+        .light-mode {
+            --bg-dark: #ffffff;
+            --bg-card: #f8f9fa;
+            --text-light: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #e9ecef;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            transition: var(--transition);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            display: flex;
+        }
+
+        /* ---------------------------------
+        1. Sidebar Styles (Navigation/Nav-bar feel)
+        --------------------------------- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-card); /* Floating effect */
+            color: var(--text-light);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 20px 0;
+            z-index: 1000;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+        
+        /* Mobile/Collapsed State */
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(-100%);
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+
+
+        .sidebar-header {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h2 {
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: var(--primary); /* Direct use of primary color */
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .sidebar-menu ul {
+            list-style: none;
+        }
+
+        .sidebar-menu a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 14px 25px;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+            margin: 5px 0;
+            font-weight: 500;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            color: var(--text-light);
+            background-color: rgba(var(--primary-rgb), 0.1); /* Subtle primary tint */
+            border-left: 3px solid var(--primary);
+        }
+        
+        .sidebar-menu a.active {
+             box-shadow: inset 0 0 10px rgba(var(--primary-rgb), 0.1);
+        }
+
+        .sidebar-menu i {
+            margin-right: 15px;
+            font-size: 1.15rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-menu a.active i {
+            color: var(--primary);
+        }
+
+        .sidebar-menu .badge {
+            margin-left: auto;
+            background-color: var(--warning);
+            color: var(--bg-dark);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* ---------------------------------
+        2. Main Content & Header Styles
+        --------------------------------- */
+        .main-content {
+            flex: 1;
+            padding-left: 0; /* No need for margin in this layout style */
+            width: calc(100% - 260px); /* Desktop width calculation */
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                width: 100%;
+            }
+        }
+
+        .header {
+            height: 80px;
+            background-color: var(--bg-dark);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: none; /* Hidden on desktop */
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        @media (max-width: 992px) {
+            .toggle-sidebar {
+                display: flex; /* Shown on mobile */
+            }
+        }
+
+        .search-bar {
+            position: relative;
+            width: 350px;
+            margin-left: 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 15px 10px 45px;
+            border-radius: 25px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-card);
+            color: var(--text-light);
+            transition: var(--transition);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .search-bar input::placeholder { color: var(--text-secondary); }
+
+        .search-bar i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .icon-btn {
+            margin-left: 15px;
+            cursor: pointer;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            font-size: 1.1rem;
+            border: none;
+        }
+
+        .icon-btn:hover {
+            background-color: rgba(var(--primary-rgb), 0.15);
+            color: var(--primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 25px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+        }
+
+        .user-menu img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+
+        .user-menu span {
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        
+        @media (max-width: 768px) {
+            .user-menu span { display: none; }
+            .search-bar { display: none; }
+        }
+
+        /* ---------------------------------
+        3. Content Area & Card Styles
+        --------------------------------- */
+        .content {
+            padding: 30px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            color: var(--text-light);
+        }
+
+        .page-description {
+            color: var(--text-secondary);
+            margin-bottom: 35px;
+            font-size: 1rem;
+        }
+
+        /* Stats Grid - Cleaner, more cinematic presentation */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: var(--accent-color);
+        }
+
+        .stat-card:nth-child(1) { --accent-color: var(--primary); }
+        .stat-card:nth-child(2) { --accent-color: var(--success); }
+        .stat-card:nth-child(3) { --accent-color: var(--warning); }
+        .stat-card:nth-child(4) { --accent-color: var(--info); }
+
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(var(--primary-rgb), 0.2);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .stat-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            background: var(--accent-color);
+            box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.4);
+        }
+        
+        .stat-card:nth-child(1) .stat-icon { background: linear-gradient(135deg, var(--primary), #32cd32); }
+        .stat-card:nth-child(2) .stat-icon { background: linear-gradient(135deg, var(--info), #4895ef); }
+        .stat-card:nth-child(3) .stat-icon { background: linear-gradient(135deg, var(--warning), #ff4d4d); }
+        .stat-card:nth-child(4) .stat-icon { background: linear-gradient(135deg, var(--secondary), #a052ff); }
+
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--warning);
+        }
+        
+        .stat-change i {
+            margin-right: 5px;
+            font-size: 0.8rem;
+        }
+
+        /* Charts and Tables Section */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 992px) {
+             .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .card-actions button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            margin-left: 10px;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .card-actions button:hover {
+            color: var(--primary);
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Activity List - Timeline Style */
+        .activity-item {
+            display: flex;
+            padding: 15px 0;
+            border-left: 2px solid var(--border-color);
+            position: relative;
+        }
+        
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: var(--bg-card);
+            border: 3px solid var(--primary);
+            z-index: 10;
+        }
+        
+        .activity-item:nth-child(2)::before { border-color: var(--info); }
+        .activity-item:nth-child(3)::before { border-color: var(--warning); }
+        .activity-item:nth-child(4)::before { border-color: var(--secondary); }
+
+        .activity-icon {
+            display: none; /* Hide original icon, use ::before dot */
+        }
+        
+        .activity-content {
+            flex: 1;
+            padding-left: 25px;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+            color: var(--text-light);
+        }
+
+        .activity-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .activity-time {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        /* Table - Sleek Dark Table */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 15px 0;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-cell img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 2px solid var(--text-secondary);
+        }
+        
+        .table .status {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .status.completed { background-color: rgba(var(--primary-rgb), 0.15); color: var(--primary); }
+        .status.pending { background-color: rgba(255, 193, 7, 0.15); color: #ffc107; }
+        .status.cancelled { background-color: rgba(247, 37, 133, 0.15); color: var(--warning); }
+
+        /* Mobile Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--bg-card);
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .bottom-nav { display: flex; }
+            .content { padding-bottom: 90px; }
+        }
+        
+        .nav-item {
+            padding: 15px 0;
+            color: var(--text-secondary);
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>NextGen Dash</h2>
+            </div>
+            <div class="sidebar-menu">
+                <ul>
+                    <li><a href="#" class="active"><i class="fas fa-grip-vertical"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-users"></i> Users</a></li>
+                    <li><a href="#"><i class="fas fa-box-open"></i> Products</a></li>
+                    <li><a href="#"><i class="fas fa-shopping-basket"></i> Orders <span class="badge">12</span></a></li>
+                    <li><a href="#"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><a href="#"><i class="fas fa-credit-card"></i> Billing</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="toggle-sidebar open-sidebar icon-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search data, users, and orders...">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="theme-toggle icon-btn" id="theme-toggle">
+                        <i class="fas fa-sun"></i> </button>
+                    <button class="notifications icon-btn">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="user-menu">
+                        <img src="https://i.pravatar.cc/150?img=32" alt="User Avatar">
+                        <span>Jane Doe</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+                <h1 class="page-title">Analytics Overview</h1>
+                <p class="page-description">Quick snapshot of your operations and performance trends.</p>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">$24,580</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> 12.5% vs. Last Month
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">3,248</div>
+                                <div class="stat-label">Active Users</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> 8.2% vs. Last Month
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">1,428</div>
+                                <div class="stat-label">Orders Placed</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> 5.7% vs. Last Month
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">68.2%</div>
+                                <div class="stat-label">Conversion Rate</div>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i> 1.3% vs. Last Month
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <div class="left-column">
+                         <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Sales Performance</h3>
+                                <div class="card-actions"><button><i class="fas fa-chart-area"></i></button></div>
+                            </div>
+                            <div class="card-body">
+                                <p style="height: 300px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+                                    [Placeholder for Dynamic Sales Chart/Graph]
+                                </p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Orders</h3>
+                                <div class="card-actions"><button><i class="fas fa-external-link-alt"></i></button></div>
+                            </div>
+                            <div class="card-body">
+                                <div style="overflow-x: auto;">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Customer</th>
+                                                <th>Date</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="user-cell">
+                                                    <img src="https://i.pravatar.cc/150?img=1" alt="Avatar">
+                                                    <span>John Smith</span>
+                                                </td>
+                                                <td>May 15, 2023</td>
+                                                <td>$120.00</td>
+                                                <td><span class="status completed">Completed</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="user-cell">
+                                                    <img src="https://i.pravatar.cc/150?img=5" alt="Avatar">
+                                                    <span>Sarah Johnson</span>
+                                                </td>
+                                                <td>May 14, 2023</td>
+                                                <td>$85.50</td>
+                                                <td><span class="status pending">Pending</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="user-cell">
+                                                    <img src="https://i.pravatar.cc/150?img=6" alt="Avatar">
+                                                    <span>Michael Brown</span>
+                                                </td>
+                                                <td>May 13, 2023</td>
+                                                <td>$210.75</td>
+                                                <td><span class="status completed">Completed</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="user-cell">
+                                                    <img src="https://i.pravatar.cc/150?img=7" alt="Avatar">
+                                                    <span>Emily Davis</span>
+                                                </td>
+                                                <td>May 12, 2023</td>
+                                                <td>$65.25</td>
+                                                <td><span class="status cancelled">Cancelled</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="user-cell">
+                                                    <img src="https://i.pravatar.cc/150?img=8" alt="Avatar">
+                                                    <span>Robert Wilson</span>
+                                                </td>
+                                                <td>May 11, 2023</td>
+                                                <td>$150.00</td>
+                                                <td><span class="status completed">Completed</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-column">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Live Activity Feed</h3>
+                                <div class="card-actions"><button><i class="fas fa-history"></i></button></div>
+                            </div>
+                            <div class="card-body">
+                                <ul class="activity-list">
+                                    <li class="activity-item">
+                                        <div class="activity-icon" style="background: var(--primary);"></div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">New order received</div>
+                                            <div class="activity-description">Order #ORD-006 from David Miller</div>
+                                            <div class="activity-time">2 minutes ago</div>
+                                        </div>
+                                    </li>
+                                    <li class="activity-item">
+                                        <div class="activity-icon" style="background: var(--info);"></div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">Server Health Alert</div>
+                                            <div class="activity-description">CPU load exceeded 90% threshold.</div>
+                                            <div class="activity-time">1 hour ago</div>
+                                        </div>
+                                    </li>
+                                    <li class="activity-item">
+                                        <div class="activity-icon" style="background: var(--warning);"></div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">New user registered</div>
+                                            <div class="activity-description">Jennifer Lopez created an account</div>
+                                            <div class="activity-time">3 hours ago</div>
+                                        </div>
+                                    </li>
+                                    <li class="activity-item">
+                                        <div class="activity-icon" style="background: var(--secondary);"></div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">Documentation update</div>
+                                            <div class="activity-description">API reference v2.1 published</div>
+                                            <div class="activity-time">5 hours ago</div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Stats</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-shopping-basket"></i>
+                <span>Orders</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarBtn = document.querySelector('.open-sidebar');
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        // Sidebar Toggle for Mobile
+        if (openSidebarBtn) {
+            openSidebarBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+        }
+        
+        // Dark/Light Mode Toggle
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', function() {
+                document.body.classList.toggle('light-mode');
+                const isLightMode = document.body.classList.contains('light-mode');
+                const icon = this.querySelector('i');
+                
+                // Toggle the icon for the opposite mode
+                if (isLightMode) {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                } else {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                }
+            });
+        }
+
+        // Close sidebar when clicking outside on mobile (for fixed sidebar)
+        document.addEventListener('click', function(event) {
+            const isMobile = window.innerWidth <= 992;
+            
+            if (isMobile && sidebar.classList.contains('active') && 
+                !sidebar.contains(event.target) && 
+                !openSidebarBtn.contains(event.target)) {
+                
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // Handle sidebar menu item activation
+        document.querySelectorAll('.sidebar-menu a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                document.querySelectorAll('.sidebar-menu a').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Close sidebar after clicking on mobile
+                 if (window.innerWidth <= 992) {
+                    sidebar.classList.remove('active');
+                 }
+            });
+        });
+
+        // Bottom Nav activation (if applicable)
+        document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.bottom-nav .nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

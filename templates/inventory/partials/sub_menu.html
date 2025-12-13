@@ -1,0 +1,13 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-package"></i></div>
+        <div class="menu-title">Inventory</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'inventory:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'inventory:item_list' %}"><i class="bx bx-radio-circle"></i>Items</a></li>
+        <li><a href="{% url 'inventory:category_list' %}"><i class="bx bx-radio-circle"></i>Categories</a></li>
+        <li><a href="{% url 'inventory:supplier_list' %}"><i class="bx bx-radio-circle"></i>Suppliers</a></li>
+        <li><a href="{% url 'inventory:stock_movement_list' %}"><i class="bx bx-radio-circle"></i>Stock Movements</a></li>
+    </ul>
+</li>

@@ -1,0 +1,150 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Fee Accounts{% endblock %}
+
+{% block content %}
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Fee Management</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{% url 'fees:dashboard' %}">Fees</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Accounts</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="ms-auto">
+        <a href="{% url 'fees:payment_create' %}" class="btn btn-primary">
+            <i class="bx bx-plus"></i> Record Payment
+        </a>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row row-cols-1 row-cols-md-3 mb-3">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="mb-0">Total Accounts</h6>
+                <h4 class="my-1">{{ total_accounts }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="mb-0">Total Amount</h6>
+                <h4 class="my-1">₹{{ total_amount|floatformat:2 }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="mb-0">Pending Amount</h6>
+                <h4 class="my-1 text-warning">₹{{ total_pending|floatformat:2 }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Search student..." value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>Paid</option>
+                    <option value="unpaid" {% if request.GET.status == 'unpaid' %}selected{% endif %}>Unpaid</option>
+                    <option value="overdue" {% if request.GET.status == 'overdue' %}selected{% endif %}>Overdue</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bx bx-search"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Accounts List -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Category</th>
+                        <th>Academic Year</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                    <tr>
+                        <td>{{ account.student.get_full_name }}</td>
+                        <td>{{ account.fee_structure.category.name }}</td>
+                        <td>{{ account.academic_year.name }}</td>
+                        <td>₹{{ account.total_amount }}</td>
+                        <td>₹{{ account.paid_amount }}</td>
+                        <td>₹{{ account.balance_amount }}</td>
+                        <td>
+                            {% if account.is_paid %}
+                                <span class="badge bg-success">Paid</span>
+                            {% elif account.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'fees:account_detail' account.pk %}" class="btn btn-sm btn-primary">
+                                <i class="bx bx-show"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No accounts found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if is_paginated %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

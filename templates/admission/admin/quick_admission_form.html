@@ -1,0 +1,214 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Quick Admission - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.quick-form-card {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+.form-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.form-section h6 {
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+        <div class="breadcrumb-title pe-3">Admission</div>
+        <div class="ps-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 p-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admission:dashboard' %}">Admission</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admission:manual_admission_list' %}">Manual Admissions</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Quick Admission</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm quick-form-card">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex align-items-center">
+                <i class="bx bx-zap fs-4 me-2"></i>
+                <h5 class="mb-0">Quick Admission Form</h5>
+            </div>
+            <p class="mb-0 small mt-1">Fast-track admission for walk-in students</p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Student Information -->
+                <div class="form-section">
+                    <h6><i class="bx bx-user me-2"></i>Student Information</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                            {{ form.date_of_birth }}
+                            {% if form.date_of_birth.errors %}<div class="text-danger small">{{ form.date_of_birth.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gender <span class="text-danger">*</span></label>
+                            {{ form.gender }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="form-section">
+                    <h6><i class="bx bx-phone me-2"></i>Contact Information</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mobile <span class="text-danger">*</span></label>
+                            {{ form.mobile }}
+                            {% if form.mobile.errors %}<div class="text-danger small">{{ form.mobile.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="form-section">
+                    <h6><i class="bx bx-map me-2"></i>Address</h6>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Address <span class="text-danger">*</span></label>
+                            {{ form.permanent_address }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">City <span class="text-danger">*</span></label>
+                            {{ form.permanent_city }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">State <span class="text-danger">*</span></label>
+                            {{ form.permanent_state }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Pincode <span class="text-danger">*</span></label>
+                            {{ form.permanent_pincode }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Details -->
+                <div class="form-section">
+                    <h6><i class="bx bx-book me-2"></i>Academic Details</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Academic Year <span class="text-danger">*</span></label>
+                            {{ form.academic_year }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Applying for Class <span class="text-danger">*</span></label>
+                            {{ form.applying_for_class }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Applying for Course</label>
+                            {{ form.applying_for_course }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parent Information -->
+                <div class="form-section">
+                    <h6><i class="bx bx-group me-2"></i>Parent Information</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Father's Name <span class="text-danger">*</span></label>
+                            {{ form.father_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Father's Mobile <span class="text-danger">*</span></label>
+                            {{ form.father_mobile }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mother's Name <span class="text-danger">*</span></label>
+                            {{ form.mother_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mother's Mobile <span class="text-danger">*</span></label>
+                            {{ form.mother_mobile }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Status -->
+                <div class="form-section">
+                    <h6><i class="bx bx-check-circle me-2"></i>Application Status</h6>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                            <small class="text-muted d-block mt-1">Default: Approved (for quick admissions)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Alert -->
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <i class="bx bx-info-circle fs-4 me-2"></i>
+                    <div>
+                        <strong>Note:</strong> This is a simplified form for quick admissions. 
+                        Additional details can be added later by editing the application.
+                        Default values: Nationality (Indian), Country (India), Fee Paid (Yes)
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'admission:manual_admission_list' %}" class="btn btn-secondary">
+                        <i class="bx bx-x"></i> Cancel
+                    </a>
+                    <div class="btn-group">
+                        <a href="{% url 'admission:manual_admission_create' %}" class="btn btn-outline-primary">
+                            <i class="bx bx-file"></i> Use Full Form
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bx bx-check"></i> Create Quick Admission
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Add form-control classes
+    $('input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea').addClass('form-control');
+});
+</script>
+{% endblock %}

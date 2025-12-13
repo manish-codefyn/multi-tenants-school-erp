@@ -1,0 +1,14 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-bus"></i></div>
+        <div class="menu-title">Transport</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'transport:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>Dashboard</a></li>
+        <li> <a href="{% url 'transport:route_list' %}"><i class="bx bx-right-arrow-alt"></i>Routes</a></li>
+        <li> <a href="{% url 'transport:vehicle_list' %}"><i class="bx bx-right-arrow-alt"></i>Vehicles</a></li>
+        <li> <a href="{% url 'transport:driver_list' %}"><i class="bx bx-right-arrow-alt"></i>Drivers</a></li>
+        <li> <a href="{% url 'transport:student_transport_list' %}"><i class="bx bx-right-arrow-alt"></i>Student Transport</a></li>
+        <li> <a href="{% url 'transport:maintenance_list' %}"><i class="bx bx-right-arrow-alt"></i>Maintenance</a></li>
+    </ul>
+</li>

@@ -1,0 +1,140 @@
+{% extends "layouts/dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+        <!-- Welcome Banner -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-gradient-moonlit text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h4 class="mb-1">Welcome, {{ user.first_name }}!</h4>
+                                <p class="mb-0">Student Portal - {{ tenant.name }}</p>
+                            </div>
+                            <div class="ms-auto">
+                                <i class="bx bx-book-reader font-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h6 class="mb-0 text-uppercase">My Dashboard</h6>
+        <hr/>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+            {% for action in quick_actions %}
+            <div class="col">
+                <a href="{{ action.url }}" class="text-decoration-none">
+                    <div class="card radius-10 hover-shadow">
+                        <div class="card-body text-center">
+                            <div class="widgets-icons rounded-circle mx-auto bg-light-white text-primary mb-3">
+                                <i class='bx bx-{{ action.icon }}'></i>
+                            </div>
+                            <h5 class="my-3 text-dark">{{ action.name }}</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="row">
+            <!-- Academic Progress -->
+            <div class="col-12 col-lg-8">
+                <div class="card radius-10">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Academic Overview</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row row-cols-1 row-cols-md-3 text-center">
+                            <div class="col">
+                                <div class="p-3">
+                                    <h4 class="text-primary">3.8</h4>
+                                    <p class="mb-0">Current GPA</p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-3">
+                                    <h4 class="text-success">95%</h4>
+                                    <p class="mb-0">Attendance</p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="p-3">
+                                    <h4 class="text-warning">2</h4>
+                                    <p class="mb-0">Pending Assignments</p>
+                                </div>
+                            </div>
+                        </div>
+                        <hr/>
+                        <h6 class="mb-3">Recent Grades</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Assessment</th>
+                                        <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Mathematics</td>
+                                        <td>Mid-Term Exam</td>
+                                        <td><span class="badge bg-success">A</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Physics</td>
+                                        <td>Lab Report</td>
+                                        <td><span class="badge bg-primary">B+</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Events -->
+            <div class="col-12 col-lg-4">
+                <div class="card radius-10">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Upcoming Events</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Science Fair</h6>
+                                    <small class="text-muted">Dec 15, 2025</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">Event</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Final Exams Start</h6>
+                                    <small class="text-muted">Jan 10, 2026</small>
+                                </div>
+                                <span class="badge bg-danger rounded-pill">Exam</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+{% endblock %}

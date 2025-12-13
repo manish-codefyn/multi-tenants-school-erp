@@ -1,0 +1,59 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Grading Systems{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Grading Systems</h5>
+            <a href="{% url 'exams:grading_system_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Add New</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="gradingTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Default</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for system in grading_systems %}
+                    <tr>
+                        <td>{{ system.name }}</td>
+                        <td><code>{{ system.code }}</code></td>
+                        <td>{{ system.description|truncatewords:10 }}</td>
+                        <td>{% if system.is_default %}<span class="badge bg-primary">Default</span>{% endif %}</td>
+                        <td>{% if system.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'exams:grading_system_update' system.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
+                                <a href="{% url 'exams:grading_system_delete' system.pk %}" class="ms-3 text-danger" title="Delete"><i class="bx bxs-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#gradingTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#gradingTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

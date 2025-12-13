@@ -1,0 +1,122 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}My Fees{% endblock %}
+
+{% block content %}
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">My Fees</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'fees:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item active" aria-current="page">My Fees</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row row-cols-1 row-cols-md-3">
+    <div class="col">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Total Fees</p>
+                        <h4 class="my-1">₹{{ total_fees|floatformat:2 }}</h4>
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto">
+                        <i class="bx bx-rupee"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Paid</p>
+                        <h4 class="my-1 text-success">₹{{ total_paid|floatformat:2 }}</h4>
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto">
+                        <i class="bx bx-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <p class="mb-0 text-secondary">Pending</p>
+                        <h4 class="my-1 text-warning">₹{{ total_pending|floatformat:2 }}</h4>
+                    </div>
+                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto">
+                        <i class="bx bx-time"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fee Details -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Fee Details</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Academic Year</th>
+                        <th>Total Amount</th>
+                        <th>Discount</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                    <tr>
+                        <td>{{ account.fee_structure.category.name }}</td>
+                        <td>{{ account.academic_year.name }}</td>
+                        <td>₹{{ account.total_amount }}</td>
+                        <td>₹{{ account.discount_amount }}</td>
+                        <td>₹{{ account.paid_amount }}</td>
+                        <td>₹{{ account.balance_amount }}</td>
+                        <td>
+                            {% if account.is_paid %}
+                                <span class="badge bg-success">Paid</span>
+                            {% elif account.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'fees:account_detail' account.pk %}" class="btn btn-sm btn-primary">
+                                <i class="bx bx-show"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No fee records found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

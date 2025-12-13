@@ -1,0 +1,104 @@
+{% extends 'layouts/dashboard.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-2">Attendance Report</h2>
+        <p class="text-muted">View attendance records.</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Date From</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from|default:'' }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Date To</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to|default:'' }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Class</label>
+                <select name="class_id" class="form-select" required>
+                    <option value="">Select Class</option>
+                    {% for c in classes %}
+                        <option value="{{ c.id }}" {% if selected_class == c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Section</label>
+                <select name="section_id" class="form-select" required>
+                    <option value="">Select Section</option>
+                    {% for s in sections %}
+                        <option value="{{ s.id }}" {% if selected_section == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i> Generate Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if report_data %}
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="sticky-start bg-light">Student</th>
+                        {% for d in dates %}
+                        <th class="text-center" style="min-width: 40px;">
+                            <small>{{ d|date:"d M" }}<br>{{ d|date:"D" }}</small>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report_data %}
+                    <tr>
+                        <td class="sticky-start bg-white fw-bold">
+                            {{ row.student.first_name }} {{ row.student.last_name }} 
+                            <small class="d-block text-muted">{{ row.student.reg_no }}</small>
+                        </td>
+                        {% for status in row.statuses %}
+                        <td class="text-center">
+                            {% if status == 'PRESENT' %}
+                                <span class="badge bg-success rounded-pill" title="Present">P</span>
+                            {% elif status == 'ABSENT' %}
+                                <span class="badge bg-danger rounded-pill" title="Absent">A</span>
+                            {% elif status == 'LATE' %}
+                                <span class="badge bg-warning rounded-pill" title="Late">L</span>
+                            {% elif status == 'LEAVE' %}
+                                <span class="badge bg-info rounded-pill" title="Leave">LV</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<style>
+    .sticky-start {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        border-right: 2px solid #dee2e6 !important;
+    }
+</style>
+{% endif %}
+
+{% endblock %}

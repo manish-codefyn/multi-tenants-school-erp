@@ -1,0 +1,71 @@
+    
+ {% load static %}
+    <nav class="navbar navbar-expand-lg fixed-top" id="mainNavbar">
+        <div class="container">
+            <!-- Logo and Brand -->
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <img src="{% static 'public/img/logo.png' %}" alt="EduERP Logo" class="logo-img" onerror="this.style.display='none'">
+                <!-- <i class="bi bi-mortarboard-fill"></i> -->
+                <!-- <span>EduERP</span> -->
+            </a>
+
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <!-- Navigation Menu -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'home' %}">
+                            <i class="bi bi-house-door me-1"></i>Home
+                        </a>
+                </ul>
+
+                <!-- Authentication Section -->
+                <div class="auth-buttons">
+                    {% if user.is_authenticated %}
+                    <!-- User is logged in - Show dropdown -->
+                    <div class="dropdown user-dropdown">
+                        <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                {{ user.email|first|upper }}
+                            </div>
+                            {{ user.email }}
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'tenants:dashboard' %}">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'tenants:dashboard' %}">
+                                <i class="bi bi-person me-2"></i>Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'tenants:dashboard' %}">
+                                <i class="bi bi-gear me-2"></i>Settings
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <!-- User is not logged in - Show login/signup -->
+                    <a href="{% url 'login' %}" class="btn btn-login">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                    <a href="{% url 'signup' %}" class="btn btn-signup">
+                        <i class="bi bi-person-plus me-2"></i>Sign Up
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>

@@ -1,0 +1,403 @@
+
+{% extends 'layouts/applicant.html' %}
+{% load static %}
+
+{% block title %}Enquiry Submitted - {{ tenant.name }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active" aria-current="page">Enquiry Submitted</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Card -->
+            <div class="card admission-card">
+                <div class="card-body text-center py-5">
+                    <!-- Success Icon -->
+                    <div class="mb-4">
+                        <div class="success-animation">
+                            <i class="bx bx-check-circle bx-lg text-success" style="font-size: 80px;"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Success Message -->
+                    <h2 class="text-success mb-3">Enquiry Submitted Successfully!</h2>
+                    <p class="lead mb-4">Thank you for your interest in {{ tenant.name }}. We have received your enquiry and will contact you shortly.</p>
+                    
+                    <!-- Reference Information -->
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-8">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Enquiry Reference</h5>
+                                    <div class="row text-center">
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>Enquiry ID:</strong></p>
+                                            <p class="text-primary fw-bold">ENQ{{ enquiry.id|stringformat:"06d" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>Submitted Date:</strong></p>
+                                            <p class="text-muted">{{ enquiry.enquiry_date|date:"F j, Y g:i A" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- What Happens Next -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="mb-4">What Happens Next?</h5>
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <div class="bg-light rounded p-3 h-100">
+                                        <div class="step-number-circle bg-primary text-white mb-3">1</div>
+                                        <h6>Confirmation</h6>
+                                        <small class="text-muted">You'll receive a confirmation email shortly</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="bg-light rounded p-3 h-100">
+                                        <div class="step-number-circle bg-primary text-white mb-3">2</div>
+                                        <h6>Review</h6>
+                                        <small class="text-muted">Our team will review your enquiry</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="bg-light rounded p-3 h-100">
+                                        <div class="step-number-circle bg-primary text-white mb-3">3</div>
+                                        <h6>Contact</h6>
+                                        <small class="text-muted">We'll contact you within 24 hours</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="bg-light rounded p-3 h-100">
+                                        <div class="step-number-circle bg-primary text-white mb-3">4</div>
+                                        <h6>Application</h6>
+                                        <small class="text-muted">Proceed with full application</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-info-circle bx-lg me-3"></i>
+                            <div>
+                                <h6 class="alert-heading mb-1">Need Immediate Assistance?</h6>
+                                <p class="mb-0">Feel free to contact our admission team directly:</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-center">
+                        <a href="{% url 'admission:enquiry' %}" class="btn btn-outline-primary me-md-2">
+                            <i class="bx bx-plus"></i> Submit Another Enquiry
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-admission-primary">
+                            <i class="bx bx-home"></i> Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information Cards -->
+            <div class="row mt-4">
+                <!-- Contact Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card admission-card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0 text-white"><i class="bx bx-phone"></i> Contact Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="contact-info">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bx bx-phone text-primary me-3"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Phone Number</small>
+                                        <strong>{{ tenant.phone }}</strong>
+                                        {% if tenant.alternate_phone %}
+                                        <br><strong>{{ tenant.alternate_phone }}</strong>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bx bx-envelope text-primary me-3"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Email Address</small>
+                                        <strong>{{ tenant.email }}</strong>
+                                    </div>
+                                </div>
+                                {% if tenant.website %}
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="bx bx-globe text-primary me-3"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Website</small>
+                                        <strong>{{ tenant.website }}</strong>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-map text-primary me-3"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Address</small>
+                                        <strong>{{ tenant.address }}, {{ tenant.city }}, {{ tenant.state }} - {{ tenant.pincode }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Steps Timeline -->
+                <div class="col-md-6 mb-4">
+                    <div class="card admission-card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0 text-white"><i class="bx bx-time"></i> Expected Timeline</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline-mini">
+                                <div class="timeline-item completed">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Enquiry Submitted</h6>
+                                        <small class="text-muted">Just now</small>
+                                    </div>
+                                </div>
+                                <div class="timeline-item active">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Initial Contact</h6>
+                                        <small class="text-muted">Within 24 hours</small>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Detailed Discussion</h6>
+                                        <small class="text-muted">Within 2-3 days</small>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Application Process</h6>
+                                        <small class="text-muted">As per your convenience</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media & Additional Info -->
+            <div class="card admission-card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>Stay Connected</h6>
+                            <p class="text-muted mb-3">Follow us on social media for updates and important announcements.</p>
+                            <div class="social-links">
+                                {% if tenant.facebook_url %}
+                                <a href="{{ tenant.facebook_url }}" class="btn btn-outline-primary btn-sm me-2" target="_blank">
+                                    <i class="bx bxl-facebook"></i> Facebook
+                                </a>
+                                {% endif %}
+                                {% if tenant.twitter_url %}
+                                <a href="{{ tenant.twitter_url }}" class="btn btn-outline-info btn-sm me-2" target="_blank">
+                                    <i class="bx bxl-twitter"></i> Twitter
+                                </a>
+                                {% endif %}
+                                {% if tenant.instagram_url %}
+                                <a href="{{ tenant.instagram_url }}" class="btn btn-outline-danger btn-sm me-2" target="_blank">
+                                    <i class="bx bxl-instagram"></i> Instagram
+                                </a>
+                                {% endif %}
+                                {% if tenant.linkedin_url %}
+                                <a href="{{ tenant.linkedin_url }}" class="btn btn-outline-primary btn-sm me-2" target="_blank">
+                                    <i class="bx bxl-linkedin"></i> LinkedIn
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="bg-light rounded p-3">
+                                <i class="bx bx-download bx-lg text-primary mb-2"></i>
+                                <h6>Download Brochure</h6>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Download PDF</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="text-center mt-4">
+                <p class="text-muted">
+                    Having trouble? <a href="mailto:{{ tenant.email }}" class="text-primary">Email us</a> or 
+                    <a href="tel:{{ tenant.phone }}" class="text-primary">call us directly</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Success Animation */
+    .success-animation {
+        animation: bounceIn 1s ease-in-out;
+    }
+    
+    @keyframes bounceIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.3);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        70% {
+            transform: scale(0.9);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    /* Step Number Circles */
+    .step-number-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin: 0 auto;
+    }
+    
+    /* Mini Timeline */
+    .timeline-mini {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline-mini .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    .timeline-mini .timeline-marker {
+        position: absolute;
+        left: -30px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #dee2e6;
+        border: 2px solid white;
+    }
+    .timeline-mini .timeline-item.completed .timeline-marker {
+        background: #28a745;
+    }
+    .timeline-mini .timeline-item.active .timeline-marker {
+        background: #007bff;
+        animation: pulse 2s infinite;
+    }
+    .timeline-mini .timeline-content h6 {
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    .timeline-mini .timeline-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        left: -25px;
+        top: 17px;
+        bottom: -20px;
+        width: 2px;
+        background: #dee2e6;
+    }
+    .timeline-mini .timeline-item.completed:not(:last-child)::after {
+        background: #28a745;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+        }
+    }
+    
+    /* Contact Info Styling */
+    .contact-info .d-flex {
+        padding: 10px 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    .contact-info .d-flex:last-child {
+        border-bottom: none;
+    }
+    
+    /* Card Hover Effects */
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add some interactive animations
+        const successIcon = document.querySelector('.success-animation');
+        
+        // Add continuous subtle animation to success icon
+        setInterval(() => {
+            successIcon.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                successIcon.style.transform = 'scale(1)';
+            }, 500);
+        }, 3000);
+        
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Add copy to clipboard functionality for enquiry ID
+        const enquiryId = document.querySelector('.text-primary.fw-bold');
+        if (enquiryId) {
+            enquiryId.style.cursor = 'pointer';
+            enquiryId.title = 'Click to copy Enquiry ID';
+            enquiryId.addEventListener('click', function() {
+                const text = this.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    // Show temporary notification
+                    const originalText = this.innerText;
+                    this.innerText = 'Copied!';
+                    setTimeout(() => {
+                        this.innerText = originalText;
+                    }, 2000);
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

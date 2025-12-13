@@ -1,0 +1,112 @@
+<!-- templates/users/admin/bulk_import.html -->
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Bulk Import Users</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.file.id_for_label }}" class="form-label">
+                                {{ form.file.label }}
+                            </label>
+                            {{ form.file }}
+                            {% if form.file.help_text %}
+                                <div class="form-text">{{ form.file.help_text }}</div>
+                            {% endif %}
+                            {% if form.file.errors %}
+                                <div class="text-danger">{{ form.file.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.user_type.id_for_label }}" class="form-label">
+                                User Type
+                            </label>
+                            {{ form.user_type }}
+                            {% if form.user_type.help_text %}
+                                <div class="form-text">{{ form.user_type.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.update_existing }}
+                            <label for="{{ form.update_existing.id_for_label }}" class="form-check-label">
+                                {{ form.update_existing.label }}
+                            </label>
+                            {% if form.update_existing.help_text %}
+                                <div class="form-text">{{ form.update_existing.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.send_welcome_email }}
+                            <label for="{{ form.send_welcome_email.id_for_label }}" class="form-check-label">
+                                {{ form.send_welcome_email.label }}
+                            </label>
+                            {% if form.send_welcome_email.help_text %}
+                                <div class="form-text">{{ form.send_welcome_email.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Import Users</button>
+                            <a href="{% url 'admin_user_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- File Format Guide -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title">File Format Guide</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Required Columns:</h6>
+                    <ul>
+                        <li><strong>email</strong> - User email address</li>
+                        <li><strong>first_name</strong> - User first name</li>
+                        <li><strong>last_name</strong> - User last name</li>
+                    </ul>
+                    
+                    <h6>Optional Columns:</h6>
+                    <ul>
+                        <li><strong>username</strong> - Username (defaults to email prefix)</li>
+                        <li><strong>phone</strong> - Phone number</li>
+                        <li><strong>gender</strong> - male/female/other</li>
+                        <li><strong>date_of_birth</strong> - YYYY-MM-DD format</li>
+                        <li><strong>address</strong> - Full address</li>
+                        <li><strong>emergency_contact</strong> - Emergency phone</li>
+                        <li><strong>blood_group</strong> - Blood group</li>
+                        <li><strong>employee_id</strong> - Employee ID (for staff)</li>
+                        <li><strong>roll_number</strong> - Roll number (for students)</li>
+                        <li><strong>department</strong> - Department name</li>
+                        <li><strong>qualification</strong> - Educational qualification</li>
+                        <li><strong>specialization</strong> - Field of specialization</li>
+                        <li><strong>experience</strong> - Years of experience</li>
+                        <li><strong>aadhar_number</strong> - Aadhar number</li>
+                        <li><strong>pan_number</strong> - PAN number</li>
+                    </ul>
+                    
+                    <p class="text-muted">
+                        <strong>Note:</strong> Missing optional fields will be automatically filled with 'na' or default values.
+                    </p>
+                    
+                    <a href="{% url 'admin_export_users' %}" class="btn btn-outline-primary btn-sm">
+                        Download Template CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

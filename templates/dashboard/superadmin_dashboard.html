@@ -1,0 +1,164 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Super Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="welcome-text">
+            <h1>Super Admin Dashboard 🚀</h1>
+            <p>Manage all institutions and system-wide settings.</p>
+        </div>
+        <div class="welcome-actions">
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Add New Tenant
+            </button>
+        </div>
+    </div>
+
+    <!-- System Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <div class="stat-icon">
+                <i class="fas fa-school"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_tenants }}</h3>
+                <p>Total Institutions</p>
+            </div>
+        </div>
+
+        <div class="stat-card success">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ active_tenants }}</h3>
+                <p>Active Institutions</p>
+            </div>
+        </div>
+
+        <div class="stat-card info">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ total_users }}</h3>
+                <p>Total Users</p>
+            </div>
+        </div>
+
+        <div class="stat-card warning">
+            <div class="stat-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="stat-info">
+                <h3>{{ tenant_stats|length }}</h3>
+                <p>Schemas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Tenants Table -->
+    <div class="section">
+        <div class="section-header">
+            <h2>Recent Institutions</h2>
+            <a href="#" class="view-all">View All</a>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Institution Name</th>
+                        <th>Schema</th>
+                        <th>Users</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in tenant_stats|slice:":5" %}
+                    <tr>
+                        <td>
+                            <div class="table-cell-with-icon">
+                                <i class="fas fa-school"></i>
+                                {{ stat.name }}
+                            </div>
+                        </td>
+                        <td>{{ stat.schema }}</td>
+                        <td>{{ stat.user_count }}</td>
+                        <td>
+                            <span class="status-badge {% if stat.is_active %}active{% else %}inactive{% endif %}">
+                                {% if stat.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                        <td>{{ stat.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn-icon" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- System Health -->
+    <div class="grid-2col">
+        <div class="section">
+            <div class="section-header">
+                <h2>System Health</h2>
+            </div>
+            <div class="health-metrics">
+                <div class="health-metric">
+                    <div class="metric-label">Database</div>
+                    <div class="metric-value excellent">Healthy</div>
+                </div>
+                <div class="health-metric">
+                    <div class="metric-label">Storage</div>
+                    <div class="metric-value good">78% Used</div>
+                </div>
+                <div class="health-metric">
+                    <div class="metric-label">Performance</div>
+                    <div class="metric-value excellent">Optimal</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Quick Links</h2>
+            </div>
+            <div class="quick-links">
+                <a href="#" class="quick-link">
+                    <i class="fas fa-cogs"></i>
+                    System Settings
+                </a>
+                <a href="#" class="quick-link">
+                    <i class="fas fa-shield-alt"></i>
+                    Security
+                </a>
+                <a href="#" class="quick-link">
+                    <i class="fas fa-chart-bar"></i>
+                    Analytics
+                </a>
+                <a href="#" class="quick-link">
+                    <i class="fas fa-life-ring"></i>
+                    Support
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

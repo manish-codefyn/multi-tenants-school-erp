@@ -1,0 +1,95 @@
+{% comment %}
+TODO: This template has no corresponding view or URL in apps/academics/views.py and urls.py
+Needs: AttendanceReportView and 'attendance_report' URL pattern
+Referenced in: templates/transport/partials copy/sub_menu.html:94, templates/dashboard/partials copy/sub_menu.html:94
+{% endcomment %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Report{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-content">
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Academics</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'academics:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Attendance Report</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Attendance Report</h5>
+                <hr>
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="course" class="form-label">Course</label>
+                        <select name="course" id="course" class="form-select">
+                            <option value="">All Courses</option>
+                            <!-- Courses will be populated -->
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="batch" class="form-label">Batch</label>
+                        <select name="batch" id="batch" class="form-select">
+                            <option value="">All Batches</option>
+                            <!-- Batches will be populated -->
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100"><i class="bx bx-search"></i> Generate</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Report -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Attendance Summary</h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                        <i class="bx bx-printer"></i> Print
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Roll Number</th>
+                                <th>Total Classes</th>
+                                <th>Present</th>
+                                <th>Absent</th>
+                                <th>Attendance %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be populated from view -->
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Please select filters and generate report</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

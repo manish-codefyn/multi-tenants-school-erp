@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Login</title>
+</head>
+<body>
+    <h1>Debug Login - Tenant: {{ request.tenant.name }}</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label>Email:</label>
+            <input type="email" name="email" required value="abc@gmail.com">
+        </div>
+        <div>
+            <label>Password:</label>
+            <input type="password" name="password" required>
+        </div>
+        <button type="submit">Debug Login</button>
+    </form>
+    
+    <h2>Password Check</h2>
+    <form id="passwordCheckForm">
+        {% csrf_token %}
+        <input type="email" name="email" value="abc@gmail.com" required>
+        <input type="password" name="password" required>
+        <button type="button" onclick="checkPassword()">Check Password</button>
+    </form>
+    <div id="passwordResult"></div>
+    
+    <script>
+    function checkPassword() {
+        const form = document.getElementById('passwordCheckForm');
+        const formData = new FormData(form);
+        
+        fetch('/debug/check-password/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('passwordResult').innerHTML = `
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        });
+    }
+    </script>
+</body>
+</html>

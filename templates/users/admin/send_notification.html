@@ -1,0 +1,435 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Send Notification - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.recipient-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.notification-preview {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+.channel-card {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.channel-card:hover {
+    border-color: #6c63ff;
+    background: #f8f9ff;
+}
+.channel-card.active {
+    border-color: #6c63ff;
+    background: #e8e8ff;
+}
+.channel-icon {
+    font-size: 2rem;
+    color: #6c63ff;
+}
+.recipient-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    background: #e7f3ff;
+    border-radius: 4px;
+    margin: 3px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+        <div class="breadcrumb-title pe-3">User Management</div>
+        <div class="ps-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0 p-0">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_user_list' %}">Users</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Send Notification</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Main Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bx bx-bell me-2"></i>
+                        Send Notification
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="notificationForm">
+                        {% csrf_token %}
+
+                        <!-- Notification Channels -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Notification Channel <span class="text-danger">*</span></label>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="channel-card active" data-channel="email">
+                                        <div class="text-center">
+                                            <i class="bx bx-envelope channel-icon"></i>
+                                            <h6 class="mt-2 mb-0">Email</h6>
+                                            <small class="text-muted">Send via email</small>
+                                        </div>
+                                        <input type="checkbox" name="channels" value="email" class="d-none" checked>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="channel-card" data-channel="sms">
+                                        <div class="text-center">
+                                            <i class="bx bx-message-dots channel-icon"></i>
+                                            <h6 class="mt-2 mb-0">SMS</h6>
+                                            <small class="text-muted">Send via SMS</small>
+                                        </div>
+                                        <input type="checkbox" name="channels" value="sms" class="d-none">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="channel-card" data-channel="push">
+                                        <div class="text-center">
+                                            <i class="bx bx-bell channel-icon"></i>
+                                            <h6 class="mt-2 mb-0">Push</h6>
+                                            <small class="text-muted">In-app notification</small>
+                                        </div>
+                                        <input type="checkbox" name="channels" value="push" class="d-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recipients Selection -->
+                        <div class="recipient-section">
+                            <h6 class="mb-3"><i class="bx bx-user-check me-2"></i>Select Recipients</h6>
+                            
+                            <div class="row g-3">
+                                <!-- Recipient Type -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Recipient Type <span class="text-danger">*</span></label>
+                                    <select name="recipient_type" id="recipientType" class="form-select" required>
+                                        <option value="">Choose...</option>
+                                        <option value="all">All Users</option>
+                                        <option value="role">By Role</option>
+                                        <option value="department">By Department</option>
+                                        <option value="specific">Specific Users</option>
+                                    </select>
+                                </div>
+
+                                <!-- Role Selection (shown when role is selected) -->
+                                <div class="col-md-6 d-none" id="roleSelection">
+                                    <label class="form-label">Select Role</label>
+                                    <select name="role" class="form-select">
+                                        <option value="">Choose role...</option>
+                                        <option value="teacher">Teachers</option>
+                                        <option value="student">Students</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="admin">Administrators</option>
+                                    </select>
+                                </div>
+
+                                <!-- Department Selection (shown when department is selected) -->
+                                <div class="col-md-6 d-none" id="departmentSelection">
+                                    <label class="form-label">Select Department</label>
+                                    <select name="department" class="form-select">
+                                        <option value="">Choose department...</option>
+                                        <!-- Departments will be loaded dynamically -->
+                                    </select>
+                                </div>
+
+                                <!-- Specific Users (shown when specific is selected) -->
+                                <div class="col-md-12 d-none" id="specificUsers">
+                                    <label class="form-label">Select Users</label>
+                                    <select name="users" class="form-select select2" multiple>
+                                        <!-- Users will be loaded dynamically -->
+                                    </select>
+                                    <small class="text-muted">You can select multiple users</small>
+                                </div>
+                            </div>
+
+                            <!-- Recipient Count -->
+                            <div class="mt-3">
+                                <div class="alert alert-info mb-0">
+                                    <i class="bx bx-info-circle me-2"></i>
+                                    <strong>Recipients:</strong> <span id="recipientCount">0</span> user(s) will receive this notification
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Content -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bx bx-edit me-2"></i>Notification Content</h6>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">Subject/Title <span class="text-danger">*</span></label>
+                                    <input type="text" name="subject" class="form-control" placeholder="Enter notification subject" required>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label">Message <span class="text-danger">*</span></label>
+                                    <textarea name="message" class="form-control" rows="6" placeholder="Enter your message here..." required></textarea>
+                                    <small class="text-muted">You can use basic formatting and variables like {first_name}, {last_name}</small>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Priority</label>
+                                    <select name="priority" class="form-select">
+                                        <option value="normal">Normal</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Category</label>
+                                    <select name="category" class="form-select">
+                                        <option value="general">General</option>
+                                        <option value="announcement">Announcement</option>
+                                        <option value="reminder">Reminder</option>
+                                        <option value="alert">Alert</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scheduling Options -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bx bx-time me-2"></i>Scheduling</h6>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="schedule_type" id="sendNow" value="now" checked>
+                                        <label class="form-check-label" for="sendNow">
+                                            Send Immediately
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="schedule_type" id="scheduleLater" value="later">
+                                        <label class="form-check-label" for="scheduleLater">
+                                            Schedule for Later
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 d-none" id="scheduleDatetime">
+                                    <label class="form-label">Schedule Date & Time</label>
+                                    <input type="datetime-local" name="scheduled_time" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Options -->
+                        <div class="mb-4">
+                            <h6 class="mb-3"><i class="bx bx-cog me-2"></i>Additional Options</h6>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="save_draft" id="saveDraft">
+                                <label class="form-check-label" for="saveDraft">
+                                    Save as draft (don't send)
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="track_delivery" id="trackDelivery" checked>
+                                <label class="form-check-label" for="trackDelivery">
+                                    Track delivery status
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="allow_reply" id="allowReply">
+                                <label class="form-check-label" for="allowReply">
+                                    Allow recipients to reply
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'admin_user_list' %}" class="btn btn-secondary">
+                                <i class="bx bx-x"></i> Cancel
+                            </a>
+                            <button type="button" class="btn btn-outline-primary" onclick="previewNotification()">
+                                <i class="bx bx-show"></i> Preview
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-send"></i> Send Notification
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview & Tips Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Tips -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h6 class="mb-0">
+                        <i class="bx bx-bulb me-2"></i>
+                        Quick Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-2"><i class="bx bx-check text-success me-2"></i>Keep messages clear and concise</li>
+                        <li class="mb-2"><i class="bx bx-check text-success me-2"></i>Use personalization variables</li>
+                        <li class="mb-2"><i class="bx bx-check text-success me-2"></i>Test with a small group first</li>
+                        <li class="mb-2"><i class="bx bx-check text-success me-2"></i>Check recipient count before sending</li>
+                        <li class="mb-2"><i class="bx bx-check text-success me-2"></i>Schedule important messages carefully</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Available Variables -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h6 class="mb-0">
+                        <i class="bx bx-code me-2"></i>
+                        Available Variables
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">Use these in your message:</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="recipient-badge">{first_name}</span>
+                        <span class="recipient-badge">{last_name}</span>
+                        <span class="recipient-badge">{email}</span>
+                        <span class="recipient-badge">{role}</span>
+                        <span class="recipient-badge">{department}</span>
+                    </div>
+                    <hr>
+                    <p class="small mb-0">
+                        <strong>Example:</strong><br>
+                        "Hello {first_name}, this is an important message..."
+                    </p>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h6 class="mb-0">
+                        <i class="bx bx-show me-2"></i>
+                        Preview
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="notificationPreview" class="notification-preview">
+                        <div class="text-center text-muted">
+                            <i class="bx bx-bell fs-1"></i>
+                            <p class="small mb-0 mt-2">Fill in the form to see preview</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Channel selection
+    $('.channel-card').click(function() {
+        $(this).toggleClass('active');
+        const checkbox = $(this).find('input[type="checkbox"]');
+        checkbox.prop('checked', !checkbox.prop('checked'));
+    });
+
+    // Recipient type change
+    $('#recipientType').change(function() {
+        const type = $(this).val();
+        
+        // Hide all conditional fields
+        $('#roleSelection, #departmentSelection, #specificUsers').addClass('d-none');
+        
+        // Show relevant field
+        if (type === 'role') {
+            $('#roleSelection').removeClass('d-none');
+        } else if (type === 'department') {
+            $('#departmentSelection').removeClass('d-none');
+        } else if (type === 'specific') {
+            $('#specificUsers').removeClass('d-none');
+        }
+        
+        updateRecipientCount();
+    });
+
+    // Schedule type change
+    $('input[name="schedule_type"]').change(function() {
+        if ($(this).val() === 'later') {
+            $('#scheduleDatetime').removeClass('d-none');
+        } else {
+            $('#scheduleDatetime').addClass('d-none');
+        }
+    });
+
+    // Initialize Select2 if available
+    if ($.fn.select2) {
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Select users...'
+        });
+    }
+
+    // Real-time preview update
+    $('input[name="subject"], textarea[name="message"]').on('input', updatePreview);
+});
+
+function updateRecipientCount() {
+    const type = $('#recipientType').val();
+    let count = 0;
+    
+    // This would be replaced with actual AJAX call to get count
+    if (type === 'all') count = 150;
+    else if (type === 'role') count = 45;
+    else if (type === 'department') count = 30;
+    else if (type === 'specific') count = $('#specificUsers select').val()?.length || 0;
+    
+    $('#recipientCount').text(count);
+}
+
+function updatePreview() {
+    const subject = $('input[name="subject"]').val();
+    const message = $('textarea[name="message"]').val();
+    
+    if (subject || message) {
+        const preview = `
+            <div class="border-bottom pb-2 mb-2">
+                <strong>${subject || 'No subject'}</strong>
+            </div>
+            <div class="small">
+                ${message || 'No message'}
+            </div>
+        `;
+        $('#notificationPreview').html(preview);
+    }
+}
+
+function previewNotification() {
+    updatePreview();
+    // Could open a modal with full preview
+}
+</script>
+{% endblock %}

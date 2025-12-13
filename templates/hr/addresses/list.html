@@ -1,0 +1,89 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Staff Addresses{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Staff Addresses</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item active">Addresses</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Address Records</h5>
+                    {% if perms.hr.add_staffaddress %}
+                    <a href="{% url 'hr:address_create' %}" class="btn btn-primary btn-sm">
+                        <i class="bx bx-plus me-1"></i> Add Address
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Staff</th>
+                                    <th>Type</th>
+                                    <th>Address Line 1</th>
+                                    <th>City</th>
+                                    <th>State</th>
+                                    <th>Country</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for address in addresses %}
+                                <tr>
+                                    <td>{{ address.staff.full_name }}</td>
+                                    <td>{{ address.get_address_type_display }}</td>
+                                    <td>{{ address.address_line1|truncatechars:30 }}</td>
+                                    <td>{{ address.city }}</td>
+                                    <td>{{ address.state }}</td>
+                                    <td>{{ address.country }}</td>
+                                    <td>
+                                        <div class="dropdown d-inline-block">
+                                            <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="ri-more-fill align-middle"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                {% if perms.hr.change_staffaddress %}
+                                                <li><a class="dropdown-item" href="{% url 'hr:address_update' address.pk %}"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
+                                                {% endif %}
+                                                {% if perms.hr.delete_staffaddress %}
+                                                <li>
+                                                    <a class="dropdown-item remove-item-btn" href="{% url 'hr:address_delete' address.pk %}">
+                                                        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
+                                                    </a>
+                                                </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No address records found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

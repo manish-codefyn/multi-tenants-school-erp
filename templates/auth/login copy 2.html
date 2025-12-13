@@ -1,0 +1,170 @@
+{% extends 'layouts/auth.html' %}
+{% load static %}
+
+{% block title %}Login - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* 📚 Custom Book Cover Style CSS for Login Page */
+
+/* The main container for the book effect */
+.auth-container {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+/* The card representing the book cover */
+.auth-card {
+    background: #fdfaf0; /* Light page color */
+    border-radius: 8px;
+    box-shadow: 
+        0 4px 10px rgba(0, 0, 0, 0.1), /* Standard shadow */
+        -5px 0 10px -5px rgba(0, 0, 0, 0.2), /* Spine shadow/effect */
+        5px 5px 15px rgba(0, 0, 0, 0.1); /* Subtle 3D effect */
+    padding: 30px;
+    position: relative; /* For the page turn effect */
+    z-index: 1;
+    overflow: hidden; /* Important for clean look */
+}
+
+/* Page corner/Fold effect (optional but adds to the book feel) */
+.auth-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-width: 0 20px 20px 0;
+    border-style: solid;
+    border-color: #d8d3c7 #d8d3c7 #fdfaf0 #fdfaf0;
+    background: #fdfaf0; /* Background color of the corner fold */
+    display: block;
+    width: 0;
+    z-index: 5;
+    box-shadow: -1px 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Subtle background texture or overall background color */
+body {
+    background-color: #e9e5d7; /* A warmer, paper-like background */
+}
+
+/* Enhancing form elements to match the aesthetic */
+.form-control {
+    border: 1px solid #ccc5b9;
+    background-color: #ffffff;
+    border-radius: 4px;
+}
+
+.auth-title {
+    color: #4a4a4a; /* Darker text for header */
+    font-family: serif; /* Classic, book-like font */
+}
+
+.text-muted, .form-label {
+    color: #6c757d !important;
+}
+
+.btn-primary {
+    background-color: #964B00; /* Book cover brown or deep color */
+    border-color: #964B00;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #a0522d;
+    border-color: #a0522d;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="row justify-content-center">
+        <div class="">
+            <div class="auth-card">
+                <div class="text-center mb-4">
+                    <h2 class="auth-title">Welcome Back</h2>
+                    <p class="text-muted">Sign in to your account</p>
+                </div>
+
+                <form method="post" id="login-form" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            Email or Username
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">
+                            Password
+                        </label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
+                        <label class="form-check-label" for="remember_me">Remember me</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3" id="login-btn">
+                        Sign In
+                    </button>
+
+                    <div class="text-center">
+                        <a href="{% url 'password_reset' %}" class="text-decoration-none">
+                            Forgot your password?
+                        </a>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p class="mb-0">Don't have an account? 
+                        <a href="{% url 'register' %}" class="text-decoration-none">
+                            Sign up here
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('login-form').addEventListener('submit', function(e) {
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing in...';
+});
+</script>
+{% endblock %}

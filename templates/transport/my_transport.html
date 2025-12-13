@@ -1,0 +1,148 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}My Transport - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="h3 mb-1">My Transport Details</h1>
+        <p class="text-muted">View your transport route and schedule information</p>
+    </div>
+
+    {% if transport %}
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Route Information -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-map"></i> Route Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Route</label>
+                            <p class="mb-0 fw-semibold">{{ transport.route.code }} - {{ transport.route.name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Distance</label>
+                            <p class="mb-0">{{ transport.route.total_distance }} KM</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Pickup Point</label>
+                            <p class="mb-0"><i class="bi bi-geo-alt-fill text-success"></i> {{ transport.pickup_point }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Drop Point</label>
+                            <p class="mb-0"><i class="bi bi-geo-alt-fill text-danger"></i> {{ transport.drop_point }}</p>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="text-muted small">Estimated Travel Time</label>
+                            <p class="mb-0">{{ transport.route.estimated_time }} minutes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Information -->
+            {% if vehicle %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-truck"></i> Vehicle Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Vehicle Number</label>
+                            <p class="mb-0 fw-semibold">{{ vehicle.vehicle_number }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Vehicle Type</label>
+                            <p class="mb-0">{{ vehicle.get_vehicle_type_display }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Make & Model</label>
+                            <p class="mb-0">{{ vehicle.make }} {{ vehicle.model }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Capacity</label>
+                            <p class="mb-0">{{ vehicle.capacity }} seats</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <!-- Status Card -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">Status</h5>
+                </div>
+                <div class="card-body">
+                    {% if transport.status == 'active' %}
+                        <span class="badge bg-success fs-6">Active</span>
+                    {% elif transport.status == 'suspended' %}
+                        <span class="badge bg-warning fs-6">Suspended</span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6">Inactive</span>
+                    {% endif %}
+                    <p class="text-muted small mt-2 mb-0">
+                        Active since {{ transport.start_date|date:"M d, Y" }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Driver Information -->
+            {% if assignment %}
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> Driver</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2 fw-semibold">{{ assignment.driver.user.get_full_name }}</p>
+                    <p class="mb-1">
+                        <small class="text-muted">Employee ID:</small><br>
+                        {{ assignment.driver.employee_id }}
+                    </p>
+                    <p class="mb-0">
+                        <small class="text-muted">Contact:</small><br>
+                        <a href="tel:{{ assignment.driver.phone }}">{{ assignment.driver.phone }}</a>
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Important Notice -->
+            <div class="card border-0 shadow-sm border-start border-info border-4">
+                <div class="card-body">
+                    <h6 class="text-info"><i class="bi bi-info-circle"></i> Important</h6>
+                    <ul class="small mb-0">
+                        <li>Be at the pickup point 5 minutes early</li>
+                        <li>Carry your student ID card</li>
+                        <li>Follow bus safety rules</li>
+                        <li>Inform in advance if not using transport</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- No Transport Allocated -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-bus-front display-1 text-muted mb-3"></i>
+                    <h4>No Transport Allocated</h4>
+                    <p class="text-muted">You are not currently allocated to any transport route.</p>
+                    <p class="text-muted">Please contact the administration office if you need transport services.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

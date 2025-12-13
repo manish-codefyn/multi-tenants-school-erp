@@ -1,0 +1,40 @@
+<!-- Add this in your base template where you want alerts to appear -->
+{% if messages %}
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 9999; margin-top: 5rem;">
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} border-0 alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="me-3">
+                    <i class='bx 
+                        {% if message.tags == 'primary' %}bx-bookmark-heart
+                        {% elif message.tags == 'secondary' %}bx-tag-alt
+                        {% elif message.tags == 'success' %}bxs-check-circle
+                        {% elif message.tags == 'danger' %}bxs-message-square-x
+                        {% elif message.tags == 'warning' %}bx-info-circle
+                        {% elif message.tags == 'info' %}bx-info-square
+                        {% elif message.tags == 'dark' %}bx-bell
+                        {% else %}bx-info-circle{% endif %}
+                        fs-4
+                    '></i>
+                </div>
+                <div class="flex-grow-1">
+                    <strong class="me-auto">
+                        {% if message.tags == 'primary' %}Primary Alert
+                        {% elif message.tags == 'secondary' %}Secondary Alert
+                        {% elif message.tags == 'success' %}Success!
+                        {% elif message.tags == 'danger' %}Error!
+                        {% elif message.tags == 'warning' %}Warning!
+                        {% elif message.tags == 'info' %}Information
+                        {% elif message.tags == 'dark' %}Notification
+                        {% else %}Alert{% endif %}
+                    </strong>
+                    <div class="mb-0">{{ message }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

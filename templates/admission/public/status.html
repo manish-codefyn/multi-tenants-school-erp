@@ -1,0 +1,70 @@
+{% extends "layouts/admission.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h4 class="mb-0 text-center">{% trans "Check Application Status" %}</h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if status_checked %}
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                {% if application.status == 'ADMITTED' %}
+                                    <i class="fas fa-check-circle fa-4x text-success"></i>
+                                {% elif application.status == 'REJECTED' %}
+                                    <i class="fas fa-times-circle fa-4x text-danger"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle fa-4x text-info"></i>
+                                {% endif %}
+                            </div>
+                            <h5>{{ application.full_name }}</h5>
+                            <p class="text-muted">{{ application.application_number }}</p>
+                            
+                            <div class="alert {% if application.status == 'ADMITTED' %}alert-success{% elif application.status == 'REJECTED' %}alert-danger{% else %}alert-info{% endif %}">
+                                <strong>{% trans "Current Status" %}:</strong> {{ application.get_status_display }}
+                            </div>
+                            
+                            {% if application.status == 'DRAFT' %}
+                                <a href="{% url 'admission:apply_step1' %}?cycle={{ application.admission_cycle.id }}" class="btn btn-primary">
+                                    {% trans "Continue Application" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="border-top pt-3">
+                            <a href="{% url 'admission:status' %}" class="btn btn-outline-secondary btn-sm">
+                                {% trans "Check Another Application" %}
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center mb-4">
+                            {% trans "Enter your application number and date of birth to check your admission status." %}
+                        </p>
+                        
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    {% trans "Check Status" %}
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'admission:landing' %}" class="text-decoration-none">
+                    <i class="fas fa-arrow-left me-1"></i> {% trans "Back to Admission Portal" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Fee Discounts{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Fee Discounts</h5>
+            <a href="{% url 'finance:fee_discount_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Add New</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="discountTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Valid From</th>
+                        <th>Valid Until</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for discount in discounts %}
+                    <tr>
+                        <td>{{ discount.name }}</td>
+                        <td><code>{{ discount.code }}</code></td>
+                        <td>{{ discount.get_discount_type_display }}</td>
+                        <td>{% if discount.discount_type == 'PERCENTAGE' %}{{ discount.value }}%{% else %}₹{{ discount.value|floatformat:2 }}{% endif %}</td>
+                        <td>{{ discount.valid_from|date:"M d, Y" }}</td>
+                        <td>{{ discount.valid_until|date:"M d, Y" }}</td>
+                        <td>{% if discount.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'finance:fee_discount_update' discount.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
+                                <a href="{% url 'finance:fee_discount_delete' discount.pk %}" class="ms-3 text-danger" title="Delete"><i class="bx bxs-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#discountTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#discountTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

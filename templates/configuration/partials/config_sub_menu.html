@@ -1,0 +1,14 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-cog"></i></div>
+        <div class="menu-title">Configuration</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'configuration:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'configuration:setting_list' %}"><i class="bx bx-radio-circle"></i>System Settings</a></li>
+        <li><a href="{% url 'configuration:financial_config' %}"><i class="bx bx-radio-circle"></i>Financial</a></li>
+        <li><a href="{% url 'configuration:security_config' %}"><i class="bx bx-radio-circle"></i>Security</a></li>
+        <li><a href="{% url 'configuration:notification_config' %}"><i class="bx bx-radio-circle"></i>Notifications</a></li>
+        <li><a href="{% url 'configuration:appearance_config' %}"><i class="bx bx-radio-circle"></i>Appearance</a></li>
+    </ul>
+</li>

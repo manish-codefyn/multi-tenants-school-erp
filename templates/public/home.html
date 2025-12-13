@@ -1,0 +1,303 @@
+{% extends 'public/base.html' %}
+
+{% block title %}Home - EduERP by Codefyn{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+{% include "public/partials/hero.html" %}
+<!-- Stats Section -->
+<!-- Modules Section -->
+<section id="modules" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-5 mb-3">Comprehensive Module Ecosystem</h2>
+            <p class="lead text-muted">Powerful, integrated modules designed for modern educational institutions</p>
+        </div>
+
+        <!-- Academic Modules -->
+        <div class="module-category mb-5">
+            <h3 class="category-title text-center mb-4">
+                <i class="bi bi-mortarboard-fill me-2"></i>Academic Management
+            </h3>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-journal-check module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Academic Planning</h5>
+                        <p class="text-muted">Curriculum design, course management, and academic calendar with automated scheduling.</p>
+                        <div class="module-features">
+                            <span class="badge bg-primary">Course Management</span>
+                            <span class="badge bg-primary">Timetable</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-clipboard-check module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Attendance System</h5>
+                        <p class="text-muted">Automated attendance tracking with biometric integration and real-time notifications.</p>
+                        <div class="module-features">
+                            <span class="badge bg-primary">Biometric</span>
+                            <span class="badge bg-primary">Reports</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-graph-up module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Examination & Grading</h5>
+                        <p class="text-muted">Comprehensive exam management with automated grading and performance analytics.</p>
+                        <div class="module-features">
+                            <span class="badge bg-primary">Result Processing</span>
+                            <span class="badge bg-primary">Analytics</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Administrative Modules -->
+        <div class="module-category mb-5">
+            <h3 class="category-title text-center mb-4">
+                <i class="bi bi-person-badge me-2"></i>Administrative Management
+            </h3>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-people module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">User Management</h5>
+                        <p class="text-muted">Role-based access control for students, teachers, staff, and administrators.</p>
+                        <div class="module-features">
+                            <span class="badge bg-success">RBAC</span>
+                            <span class="badge bg-success">Multi-role</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-wallet module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Fee Management</h5>
+                        <p class="text-muted">Automated fee collection, receipt generation, and financial reporting system.</p>
+                        <div class="module-features">
+                            <span class="badge bg-success">Online Payments</span>
+                            <span class="badge bg-success">Receipts</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-calendar-event module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Event Management</h5>
+                        <p class="text-muted">Plan and manage institutional events, holidays, and academic activities.</p>
+                        <div class="module-features">
+                            <span class="badge bg-success">Calendar</span>
+                            <span class="badge bg-success">Notifications</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Communication Modules -->
+        <div class="module-category mb-5">
+            <h3 class="category-title text-center mb-4">
+                <i class="bi bi-chat-dots me-2"></i>Communication & Collaboration
+            </h3>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-bell module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Notification System</h5>
+                        <p class="text-muted">Multi-channel notifications via SMS, email, and push notifications.</p>
+                        <div class="module-features">
+                            <span class="badge bg-warning">SMS</span>
+                            <span class="badge bg-warning">Email</span>
+                            <span class="badge bg-warning">Push</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-chat-square-text module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Messaging Platform</h5>
+                        <p class="text-muted">Real-time messaging between students, teachers, and parents.</p>
+                        <div class="module-features">
+                            <span class="badge bg-warning">Real-time</span>
+                            <span class="badge bg-warning">Groups</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-megaphone module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Announcements</h5>
+                        <p class="text-muted">Broadcast important announcements and notices to specific user groups.</p>
+                        <div class="module-features">
+                            <span class="badge bg-warning">Broadcast</span>
+                            <span class="badge bg-warning">Targeted</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Modules -->
+        <div class="module-category mb-5">
+            <h3 class="category-title text-center mb-4">
+                <i class="bi bi-cash-coin me-2"></i>Financial Management
+            </h3>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-credit-card module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Online Payments</h5>
+                        <p class="text-muted">Secure online payment gateway integration for fee and other payments.</p>
+                        <div class="module-features">
+                            <span class="badge bg-danger">Secure</span>
+                            <span class="badge bg-danger">Multi-gateway</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-graph-up-arrow module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Financial Reports</h5>
+                        <p class="text-muted">Comprehensive financial reporting and analytics with visual dashboards.</p>
+                        <div class="module-features">
+                            <span class="badge bg-danger">Analytics</span>
+                            <span class="badge bg-danger">Dashboard</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="module-card card-stylish text-center h-100">
+                        <div class="module-icon-wrapper">
+                            <i class="bi bi-cash-stack module-icon"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3">Payroll Management</h5>
+                        <p class="text-muted">Automated salary processing, deductions, and staff payment management.</p>
+                        <div class="module-features">
+                            <span class="badge bg-danger">Automated</span>
+                            <span class="badge bg-danger">Compliance</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Tenants -->
+<!-- Featured Tenants -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-5 mb-3">Featured Institutions</h2>
+            <p class="lead text-muted">Leading educational institutions powered by our platform</p>
+        </div>
+        <div class="row">
+            {% for tenant in featured_tenants %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card tenant-card card-stylish h-100">
+                    {% if tenant.logo %}
+                    <img src="{{ tenant.logo.url }}" class="card-img-top tenant-logo" alt="{{ tenant.name }}">
+                    {% else %}
+                    <div class="card-img-top tenant-logo-placeholder">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">{{ tenant.name }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="bi bi-globe me-1"></i>{{ tenant.domains.first.domain|default:"No Domain" }}
+                        </p>
+                        <p class="card-text small">
+                            <span class="badge {% if tenant.plan == 'enterprise' %}bg-warning{% elif tenant.plan == 'professional' %}bg-dark{% else %}bg-info{% endif %}">
+                                {{ tenant.get_plan_display }}
+                            </span>
+                        </p>
+                        <div class="tenant-modules mb-3">
+                            {% for module in tenant.enabled_modules.all|slice:":3" %}
+                            <span class="badge bg-light text-dark me-1">{{ module }}</span>
+                            {% endfor %}  <!-- ADDED THIS LINE -->
+                        </div>
+                        <a href="{{ tenant.domains.first.domain|default:"#" }}" class="btn btn-primary">Visit Website</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+ {% block extra_js %}
+<!-- Smooth Scrolling and Animation -->
+<script>
+    // Smooth scrolling for anchor links
+    document.addEventListener('DOMContentLoaded', function() {
+        const anchorLinks = document.querySelectorAll('a[href^="#"]');
+        
+        anchorLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe module cards and tenant cards
+        const cards = document.querySelectorAll('.module-card, .tenant-card');
+        cards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}

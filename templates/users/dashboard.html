@@ -1,0 +1,84 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}User Management Dashboard - EduERP{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-4">User Management</h4>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+    <div class="col">
+        <div class="card radius-10 bg-gradient-cosmic">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Total Users</p>
+                        <h4 class="my-1 text-white">{{ total_users|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-user"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ibiza">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Active Users</p>
+                        <h4 class="my-1 text-white">{{ active_users|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-user-check"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ohhappiness">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Verified Users</p>
+                        <h4 class="my-1 text-white">{{ verified_users|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-check-shield"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-kyoto">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-dark">Staff Users</p>
+                        <h4 class="my-1 text-dark">{{ staff_users|default:"0" }}</h4>
+                    </div>
+                    <div class="text-dark fs-1"><i class="bx bx-id-card"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 col-lg-6">
+        <div class="card radius-10">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'users:user_create' %}" class="btn btn-primary"><i class="bx bx-plus-circle me-2"></i>Add New User</a>
+                    <a href="{% url 'users:user_list' %}" class="btn btn-outline-primary"><i class="bx bx-list-ul me-2"></i>View All Users</a>
+                    <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary"><i class="bx bx-user-circle me-2"></i>My Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

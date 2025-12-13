@@ -1,0 +1,129 @@
+{% comment %}
+TODO: This template has no corresponding view or URL in apps/academics/views.py and urls.py
+Needs: ProgressReportView and 'progress_report' URL pattern
+Referenced in: templates/transport/partials copy/sub_menu.html:95, templates/dashboard/partials copy/sub_menu.html:95
+{% endcomment %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Progress Report{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-content">
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Academics</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'academics:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Progress Report</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Student Progress Report</h5>
+                <hr>
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="student" class="form-label">Student</label>
+                        <select name="student" id="student" class="form-select" required>
+                            <option value="">Select Student</option>
+                            <!-- Students will be populated -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="semester" class="form-label">Semester</label>
+                        <select name="semester" id="semester" class="form-select">
+                            <option value="">All Semesters</option>
+                            <!-- Semesters will be populated -->
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100"><i class="bx bx-search"></i> Generate</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Report -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Academic Performance</h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                        <i class="bx bx-printer"></i> Print
+                    </button>
+                </div>
+
+                <!-- Student Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Student Name:</strong> <span id="student-name">-</span></p>
+                        <p><strong>Roll Number:</strong> <span id="roll-number">-</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Course:</strong> <span id="course-name">-</span></p>
+                        <p><strong>Semester:</strong> <span id="semester-name">-</span></p>
+                    </div>
+                </div>
+
+                <!-- Grades Table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Assessment Type</th>
+                                <th>Marks Obtained</th>
+                                <th>Total Marks</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be populated from view -->
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Please select student and generate report</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Overall Performance -->
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6>Overall Percentage</h6>
+                                <h3 class="text-primary" id="overall-percentage">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6>Overall Grade</h6>
+                                <h3 class="text-success" id="overall-grade">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6>Attendance</h6>
+                                <h3 class="text-info" id="attendance-percentage">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

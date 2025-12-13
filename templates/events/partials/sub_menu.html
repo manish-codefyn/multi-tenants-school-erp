@@ -1,0 +1,11 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-calendar-event"></i></div>
+        <div class="menu-title">Events</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'events:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'events:event_list' %}"><i class="bx bx-radio-circle"></i>All Events</a></li>
+        <li><a href="{% url 'events:category_list' %}"><i class="bx bx-radio-circle"></i>Categories</a></li>
+    </ul>
+</li>

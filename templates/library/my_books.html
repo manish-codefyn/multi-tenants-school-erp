@@ -1,0 +1,103 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}My Books{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Library</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">My Books</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Currently Issued Books -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Currently Issued Books</h5>
+                <hr>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Author</th>
+                                <th>Issue Date</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in current_issues %}
+                            <tr>
+                                <td><a href="{% url 'library:book_detail' issue.book.pk %}">{{ issue.book.title }}</a></td>
+                                <td>{{ issue.book.author }}</td>
+                                <td>{{ issue.issue_date }}</td>
+                                <td>{{ issue.due_date }}</td>
+                                <td>
+                                    {% if issue.is_overdue %}
+                                    <span class="badge bg-danger">Overdue ({{ issue.days_overdue }} days)</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">You don't have any books issued</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue History -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Issue History</h5>
+                <hr>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Issue Date</th>
+                                <th>Return Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in issue_history %}
+                            <tr>
+                                <td>{{ issue.book.title }}</td>
+                                <td>{{ issue.issue_date }}</td>
+                                <td>{{ issue.return_date|default:"-" }}</td>
+                                <td>
+                                    {% if issue.is_returned %}
+                                    <span class="badge bg-success">Returned</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Issued</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No history available</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Leave History - {{ staff.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Leave History: {{ staff.full_name }}</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:staff_list' %}">Staff</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:staff_detail' staff.pk %}">{{ staff.full_name }}</a></li>
+                        <li class="breadcrumb-item active">Leaves</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Leave Balances (Current Year)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Leave Type</th>
+                                    <th>Entitled</th>
+                                    <th>Used</th>
+                                    <th>Available</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for balance in leave_balances %}
+                                <tr>
+                                    <td>{{ balance.leave_type.name }}</td>
+                                    <td>{{ balance.total_entitled }}</td>
+                                    <td>{{ balance.used_days }}</td>
+                                    <td>
+                                        <span class="badge {% if balance.available_days > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ balance.available_days }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No leave balances found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Leave Applications</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Leave Type</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Days</th>
+                                    <th>Status</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in leave_applications %}
+                                <tr>
+                                    <td>{{ application.leave_type.name }}</td>
+                                    <td>{{ application.start_date }}</td>
+                                    <td>{{ application.end_date }}</td>
+                                    <td>{{ application.total_days }}</td>
+                                    <td>
+                                        {% if application.status == 'APPROVED' %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% elif application.status == 'PENDING' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif application.status == 'REJECTED' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% elif application.status == 'CANCELLED' %}
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ application.reason|truncatechars:30 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No leave applications found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

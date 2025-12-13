@@ -1,0 +1,60 @@
+{% extends "layouts/admission.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">{% trans "Admission Portal" %}</h1>
+        <p class="lead text-muted">{% trans "Apply for admission to our programs online" %}</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {% if open_cycles %}
+                {% for cycle in open_cycles %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h3 class="h5 card-title">{{ cycle.name }}</h3>
+                            <p class="text-muted mb-2">
+                                <i class="far fa-calendar-alt me-2"></i>
+                                {{ cycle.start_date|date:"d M Y" }} - {{ cycle.end_date|date:"d M Y" }}
+                            </p>
+                            
+                            {% if cycle.instructions %}
+                                <div class="alert alert-light border small mb-3">
+                                    {{ cycle.instructions|linebreaks }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="badge bg-success rounded-pill">{% trans "Open" %}</span>
+                                <a href="{% url 'admission:apply_step1' %}?cycle={{ cycle.id }}" class="btn btn-primary">
+                                    {% trans "Apply Now" %} <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-school fa-3x text-muted"></i>
+                    </div>
+                    <h4>{% trans "No Admission Cycles Open" %}</h4>
+                    <p class="text-muted">{% trans "There are currently no admission cycles open for application. Please check back later." %}</p>
+                    <a href="{% url 'admission:status' %}" class="btn btn-outline-primary mt-3">
+                        {% trans "Check Application Status" %}
+                    </a>
+                </div>
+            {% endif %}
+            
+            <div class="text-center mt-5">
+                <p class="mb-2">{% trans "Already applied?" %}</p>
+                <a href="{% url 'admission:status' %}" class="btn btn-link">
+                    {% trans "Check your application status" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

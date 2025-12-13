@@ -1,0 +1,134 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-2">Attendance Analytics</h2>
+        <p class="text-muted">Detailed analysis of student and staff attendance</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Daily Trends (Last 30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Class-wise Attendance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Attendance %</th>
+                                <th>Present/Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in class_attendance %}
+                            <tr>
+                                <td>{{ item.class }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2">{{ item.rate }}%</span>
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar {% if item.rate > 90 %}bg-success{% elif item.rate > 75 %}bg-info{% else %}bg-warning{% endif %}" role="progressbar" style="width: {{ item.rate }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.present }}/{{ item.total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Department-wise Staff Attendance</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Attendance %</th>
+                                <th>Present/Total Staff</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in department_attendance %}
+                            <tr>
+                                <td>{{ item.department }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2">{{ item.rate }}%</span>
+                                        <div class="progress flex-grow-1" style="height: 6px;">
+                                            <div class="progress-bar {% if item.rate > 90 %}bg-success{% elif item.rate > 75 %}bg-info{% else %}bg-warning{% endif %}" role="progressbar" style="width: {{ item.rate }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.present }}/{{ item.total_staff }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('dailyTrendChart').getContext('2d');
+        const data = {
+            labels: [{% for item in daily_trends %}"{{ item.date|date:'d M' }}",{% endfor %}],
+            datasets: [
+                {
+                    label: 'Student Attendance %',
+                    data: [{% for item in daily_trends %}{{ item.student_percent }},{% endfor %}],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                },
+                {
+                    label: 'Staff Attendance %',
+                    data: [{% for item in daily_trends %}{{ item.staff_percent }},{% endfor %}],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }
+            ]
+        };
+        new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}User Management{% endblock %}
+
+{% block extra_css %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<style>
+.dt-buttons {
+    margin-bottom: 15px;
+}
+.dt-button {
+    margin-right: 5px !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">User Management</h5>
+        <div>
+            <a href="{% url 'admin_bulk_import' %}" class="btn btn-outline-primary me-2">
+                <i class="bx bx-upload me-2"></i>Bulk Import
+            </a>
+            <a href="{% url 'admin_user_create' %}" class="btn btn-primary">
+                <i class="bi bi-person-plus me-2"></i>Add New User
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Filters -->
+        <form method="get" class="row g-3 mb-4" id="filterForm">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Search by name, email..." value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-3">
+                <select name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    {% for role_code, role_name in roles %}
+                    <option value="{{ role_code }}" {% if request.GET.role == role_code %}selected{% endif %}>{{ role_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">Filter</button>
+            </div>
+            <div class="col-md-3">
+                <button type="button" class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                    <i class="bx bx-reset me-2"></i>Reset
+                </button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="usersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-2 bg-light rounded-circle d-flex align-items-center justify-content-center">
+                                    {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" alt="" class="rounded-circle" width="32" height="32">
+                                    {% else %}
+                                    {{ user.first_name|first }}
+                                    {% endif %}
+                                </div>
+                                <div class="fw-bold">{{ user.get_full_name }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small text-muted">{{ user.email }}</div>
+                        </td>
+                        <td>
+                            {% for rel in user.institute_relationships.all %}
+                                {% if rel.tenant == request.tenant %}
+                                    <span class="badge bg-info text-dark">{{ rel.get_role_display }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for rel in user.institute_relationships.all %}
+                                {% if rel.tenant == request.tenant %}
+                                    {{ rel.department.name|default:"-" }}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'admin_user_edit' user.pk %}">
+                                            <i class="bx bx-edit me-2"></i>Edit
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form action="{% url 'admin_user_status' user.pk %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            {% if user.is_active %}
+                                            <button type="submit" name="action" value="deactivate" class="dropdown-item text-warning">
+                                                <i class="bx bx-pause-circle me-2"></i>Deactivate
+                                            </button>
+                                            <button type="submit" name="action" value="block" class="dropdown-item text-danger">
+                                                <i class="bx bx-slash-circle me-2"></i>Block
+                                            </button>
+                                            {% else %}
+                                            <button type="submit" name="action" value="activate" class="dropdown-item text-success">
+                                                <i class="bx bx-check-circle me-2"></i>Activate
+                                            </button>
+                                            {% endif %}
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            No users found matching criteria
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- DataTables Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<!-- JSZip for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- pdfmake for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+<script>
+// Wait for jQuery to be available
+(function() {
+    function initDataTable() {
+        if (typeof jQuery === 'undefined') {
+            console.error('jQuery is not loaded!');
+            return;
+        }
+        
+        if (typeof $.fn.dataTable === 'undefined') {
+            console.error('DataTables is not loaded!');
+            return;
+        }
+
+        console.log('Initializing DataTable...');
+        
+        // Initialize DataTable
+        var table = $('#usersTable').DataTable({
+            dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                 "<'row'<'col-sm-12 col-md-12'B>>" +
+                 "<'row'<'col-sm-12'tr>>" +
+                 "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-sm btn-primary',
+                    text: '<i class="bx bx-copy me-1"></i> Copy',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5]
+                    }
+                },
+                {
+                    extend: 'excel',
+                    className: 'btn btn-sm btn-success',
+                    text: '<i class="bx bx-file me-1"></i> Excel',
+                    title: 'User List - {{ request.tenant.name }}',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5]
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    className: 'btn btn-sm btn-danger',
+                    text: '<i class="bx bxs-file-pdf me-1"></i> PDF',
+                    title: 'User List - {{ request.tenant.name }}',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5]
+                    },
+                    customize: function(doc) {
+                        doc.content[1].table.widths = ['20%', '20%', '15%', '15%', '10%', '20%'];
+                        doc.styles.tableHeader.fillColor = '#6c63ff';
+                        doc.styles.tableHeader.color = 'white';
+                    }
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-sm btn-info',
+                    text: '<i class="bx bx-printer me-1"></i> Print',
+                    title: 'User List - {{ request.tenant.name }}',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5]
+                    },
+                    customize: function(win) {
+                        $(win.document.body)
+                            .css('font-size', '10pt')
+                            .prepend(
+                                '<div style="text-align:center; margin-bottom:20px;">' +
+                                '<h2>{{ request.tenant.name }}</h2>' +
+                                '<p>User List Report</p>' +
+                                '<p>Generated on: ' + new Date().toLocaleDateString() + '</p>' +
+                                '</div>'
+                            );
+                        
+                        $(win.document.body).find('table')
+                            .addClass('compact')
+                            .css('font-size', 'inherit');
+                    }
+                }
+            ],
+            pageLength: 25,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+            order: [[5, 'desc']], // Sort by joined date descending
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search users...",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ users",
+                infoEmpty: "No users available",
+                infoFiltered: "(filtered from _MAX_ total users)",
+                zeroRecords: "No matching users found",
+                emptyTable: "No users available in table"
+            },
+            columnDefs: [
+                {
+                    targets: 6, // Actions column
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+            responsive: true,
+            stateSave: true, // Remember user's settings
+            stateDuration: 60 * 60 * 24 // 24 hours
+        });
+
+        console.log('DataTable initialized successfully!');
+
+        // Custom search from filter form
+        $('input[name="search"]').on('keyup', function() {
+            table.search(this.value).draw();
+        });
+    }
+
+    // Try to initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initDataTable, 100);
+        });
+    } else {
+        setTimeout(initDataTable, 100);
+    }
+})();
+
+function resetFilters() {
+    window.location.href = window.location.pathname;
+}
+</script>
+{% endblock %}

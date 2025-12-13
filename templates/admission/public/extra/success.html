@@ -1,0 +1,39 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Application Submitted" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card shadow border-success">
+                <div class="card-body p-5">
+                    <div class="display-1 text-success mb-4">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h1 class="h2 mb-3">{% trans "Application Submitted Successfully!" %}</h1>
+                    <p class="lead text-muted mb-4">
+                        {% trans "Thank you for applying. Your application has been received and is under review." %}
+                    </p>
+                    
+                    <div class="alert alert-light border mb-4">
+                        <p class="mb-1 text-muted">{% trans "Your Application Number is:" %}</p>
+                        <h3 class="display-6 text-primary">{{ application.application_number }}</h3>
+                        <small class="text-danger">{% trans "* Please save this number for future reference and status tracking." %}</small>
+                    </div>
+
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                        <a href="{% url 'admission:status' %}" class="btn btn-primary btn-lg px-4">
+                            {% trans "Track Status" %}
+                        </a>
+                        <a href="{% url 'admission:landing' %}" class="btn btn-outline-secondary btn-lg px-4">
+                            {% trans "Back to Home" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

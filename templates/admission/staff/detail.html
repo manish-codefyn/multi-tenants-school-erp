@@ -1,0 +1,175 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Application Details" %}{% endblock %}
+
+{% block content %}
+{% include "partials/breadcrumb.html" with page_title="Application Details" parent_text="Applications" parent_url=request.resolver_match.app_name|add:":staff_list" current_text=application.application_number %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-end mb-4">
+        <div>
+            <a href="{% url 'admission:staff_update' application.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> {% trans "Update Status" %}
+            </a>
+            <a href="{% url 'admission:staff_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {% trans "Back to List" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                {% trans "Current Status" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ application.get_status_display }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-info-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                {% trans "Program" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ application.program }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Personal Information" %}</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="30%">{% trans "Full Name" %}</th>
+                            <td>{{ application.full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Date of Birth" %}</th>
+                            <td>{{ application.date_of_birth }} ({{ application.age }} years)</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Gender" %}</th>
+                            <td>{{ application.get_gender_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Category" %}</th>
+                            <td>{{ application.get_category_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Nationality" %}</th>
+                            <td>{{ application.nationality }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Religion" %}</th>
+                            <td>{{ application.religion }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Contact & Address" %}</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="30%">{% trans "Email" %}</th>
+                            <td>{{ application.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Phone" %}</th>
+                            <td>{{ application.phone }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Address" %}</th>
+                            <td>{{ application.formatted_address }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Academic Details" %}</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">{% trans "Previous School" %}</th>
+                            <td>{{ application.previous_school }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Previous Class" %}</th>
+                            <td>{{ application.previous_qualification }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Board" %}</th>
+                            <td>{{ application.previous_board }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Percentage" %}</th>
+                            <td>{{ application.previous_percentage }}%</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Passing Year" %}</th>
+                            <td>{{ application.passing_year }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Other Information" %}</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">{% trans "Medical Conditions" %}</th>
+                            <td>{{ application.medical_conditions|default:"None" }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Allergies" %}</th>
+                            <td>{{ application.allergies|default:"None" }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Transport Required" %}</th>
+                            <td>{{ application.transport_required|yesno:"Yes,No" }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Hostel Required" %}</th>
+                            <td>{{ application.hostel_required|yesno:"Yes,No" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

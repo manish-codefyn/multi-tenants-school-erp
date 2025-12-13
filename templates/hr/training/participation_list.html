@@ -1,0 +1,80 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}My Training History{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Training History</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item active">Training History</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">My Participations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Program</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Score</th>
+                                    <th>Certificate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in participations %}
+                                <tr>
+                                    <td>{{ p.program.title }}</td>
+                                    <td>{{ p.program.start_date }} to {{ p.program.end_date }}</td>
+                                    <td>
+                                        {% if p.status == 'REGISTERED' %}
+                                            <span class="badge bg-info">Registered</span>
+                                        {% elif p.status == 'COMPLETED' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif p.status == 'FAILED' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% elif p.status == 'DROPPED' %}
+                                            <span class="badge bg-warning">Dropped</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ p.score|default:"-" }}</td>
+                                    <td>
+                                        {% if p.status == 'COMPLETED' %}
+                                        <a href="{% url 'hr:training_certificate' p.pk %}" target="_blank" class="btn btn-sm btn-soft-primary">
+                                            <i class="bx bx-download me-1"></i> Download
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No training history found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

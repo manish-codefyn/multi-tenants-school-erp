@@ -1,0 +1,160 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}My Profile - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">User Profile</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">User Profile</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container">
+    <div class="main-body">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex flex-column align-items-center text-center">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="110">
+                            {% else %}
+                                <img src="{% static 'assets/images/avatars/avatar-1.png' %}" alt="Admin" class="rounded-circle p-1 bg-primary" width="110">
+                            {% endif %}
+                            <div class="mt-3">
+                                <h4>{{ user.get_full_name }}</h4>
+                                <p class="text-secondary mb-1">{{ user.get_role_display }}</p>
+                                <p class="text-muted font-size-sm">{{ user.email }}</p>
+                                <a href="{% url 'password_change' %}" class="btn btn-primary">Change Password</a>
+                            </div>
+                        </div>
+                        <hr class="my-4" />
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0">Organization</h6>
+                                <span class="text-secondary">{{ user.tenant.name }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0">Role</h6>
+                                <span class="text-secondary">{{ user.get_role_display }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0">Joined</h6>
+                                <span class="text-secondary">{{ user.date_joined|date:"M d, Y" }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="d-flex align-items-center mb-3">Edit Profile</h5>
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">First Name</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger">{{ form.first_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">Last Name</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger">{{ form.last_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">Email</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    <input type="text" class="form-control" value="{{ user.email }}" disabled>
+                                    <div class="form-text">Email cannot be changed.</div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">Phone</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div class="text-danger">{{ form.phone_number.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">Avatar</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    {{ form.avatar }}
+                                    {% if form.avatar.errors %}
+                                        <div class="text-danger">{{ form.avatar.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <!-- <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">Language</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    {{ form.language }}
+                                    {% if form.language.errors %}
+                                        <div class="text-danger">{{ form.language.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <h6 class="mb-0">Timezone</h6>
+                                </div>
+                                <div class="col-sm-9 text-secondary">
+                                    {{ form.timezone }}
+                                    {% if form.timezone.errors %}
+                                        <div class="text-danger">{{ form.timezone.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div> -->
+                            <div class="row">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-9 text-secondary">
+                                    <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

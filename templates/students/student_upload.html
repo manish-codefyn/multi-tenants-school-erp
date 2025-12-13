@@ -1,0 +1,336 @@
+
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Bulk Upload Students{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>Bulk Upload Students
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Messages -->
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Upload Form -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Upload File</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" enctype="multipart/form-data" id="uploadForm">
+                                        {% csrf_token %}
+                                        
+                                        <div class="mb-3">
+                                            <label for="academic_year" class="form-label">Academic Year *</label>
+                                            <select name="academic_year" id="academic_year" class="form-select" required>
+                                                <option value="">Select Academic Year</option>
+                                                {% for year in academic_years %}
+                                                <option value="{{ year.id }}" {% if year.is_current %}selected{% endif %}>
+                                                    {{ year.name }} {% if year.is_current %}(Current){% endif %}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="form-text">Students will be associated with this academic year</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="file" class="form-label">Upload File *</label>
+                                            <input type="file" name="file" id="file" class="form-control" 
+                                                   accept=".csv,.xlsx,.xls" required>
+                                            <div class="form-text">
+                                                Supported formats: CSV, Excel (XLSX, XLS). Max size: 10MB
+                                            </div>
+                                            <div id="fileValidation" class="mt-2"></div>
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input type="checkbox" name="update_existing" 
+                                                           id="update_existing" class="form-check-input">
+                                                    <label for="update_existing" class="form-check-label">
+                                                        Update existing students
+                                                    </label>
+                                                    <div class="form-text">
+                                                        If checked, will update students with matching email or admission number
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check">
+                                                    <input type="checkbox" name="skip_errors" 
+                                                           id="skip_errors" class="form-check-input">
+                                                    <label for="skip_errors" class="form-check-label">
+                                                        Skip rows with errors
+                                                    </label>
+                                                    <div class="form-text">
+                                                        Continue processing even if some rows have errors
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary" id="uploadBtn">
+                                                <i class="fas fa-upload me-1"></i> Upload & Process
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" 
+                                                    onclick="validateFile()" id="validateBtn">
+                                                <i class="fas fa-check me-1"></i> Validate File
+                                            </button>
+                                            <a href="{% url 'students:student_list' %}" class="btn btn-outline-danger">
+                                                <i class="fas fa-times me-1"></i> Cancel
+                                            </a>
+                                        </div>
+                                        
+                                        <div id="processing" class="mt-3 d-none">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                            <span>Processing file... This may take a moment.</span>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <!-- Sample Templates -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Download Templates</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">Download sample templates to ensure correct format:</p>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'students:student_bulk_upload_sample' %}?type=simple" 
+                                           class="btn btn-outline-primary">
+                                            <i class="fas fa-file-csv me-1"></i> Simple CSV Template
+                                        </a>
+                                        
+                                        <a href="{% url 'students:student_bulk_upload_sample' %}?type=detailed" 
+                                           class="btn btn-outline-primary">
+                                            <i class="fas fa-file-excel me-1"></i> Detailed Excel Template
+                                        </a>
+                                        
+                                        <a href="{% url 'students:student_bulk_upload_sample' %}?format=excel&type=simple" 
+                                           class="btn btn-outline-success">
+                                            <i class="fas fa-file-excel me-1"></i> Simple Excel Template
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- System Information -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Available in System</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6>Classes ({{ available_classes|length }}):</h6>
+                                        <div class="badges">
+                                            {% for class in available_classes %}
+                                            <span class="badge bg-info me-1 mb-1">{{ class.name }}</span>
+                                            {% empty %}
+                                            <span class="text-muted">No classes found</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6>Streams ({{ available_streams|length }}):</h6>
+                                        <div class="badges">
+                                            {% for stream in available_streams %}
+                                            <span class="badge bg-success me-1 mb-1">{{ stream.name }}</span>
+                                            {% empty %}
+                                            <span class="text-muted">No streams found</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h6>Sections by Class:</h6>
+                                        <div class="accordion" id="sectionsAccordion">
+                                            {% for class in available_classes %}
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button collapsed" type="button" 
+                                                            data-bs-toggle="collapse" 
+                                                            data-bs-target="#collapse{{ forloop.counter }}">
+                                                        {{ class.name }}
+                                                    </button>
+                                                </h2>
+                                                <div id="collapse{{ forloop.counter }}" 
+                                                     class="accordion-collapse collapse" 
+                                                     data-bs-parent="#sectionsAccordion">
+                                                    <div class="accordion-body">
+                                                        {% for section in class.sections.all %}
+                                                        <span class="badge bg-light text-dark me-1 mb-1">
+                                                            {{ section.name }}
+                                                        </span>
+                                                        {% empty %}
+                                                        <span class="text-muted">No sections</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Uploads -->
+                    {% if recent_uploads %}
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Recent Uploads</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>File</th>
+                                            <th>Status</th>
+                                            <th>Records</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for upload in recent_uploads %}
+                                        <tr>
+                                            <td>{{ upload.created_at|date:"Y-m-d H:i" }}</td>
+                                            <td>{{ upload.filename }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ upload.status_color }}">
+                                                    {{ upload.status }}
+                                                </span>
+                                            </td>
+                                            <td>{{ upload.processed }}/{{ upload.total }}</td>
+                                            <td>
+                                                <a href="#" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function validateFile() {
+    const fileInput = document.getElementById('file');
+    const validationDiv = document.getElementById('fileValidation');
+    const validateBtn = document.getElementById('validateBtn');
+    
+    if (!fileInput.files.length) {
+        showAlert('Please select a file first.', 'danger');
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    // Show loading state
+    validateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Validating...';
+    validateBtn.disabled = true;
+    
+    fetch('{% url "students:bulk_upload_validate" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.valid) {
+            showAlert(`✓ ${data.message}`, 'success');
+        } else {
+            showAlert(`✗ ${data.error}`, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Validation failed. Please try again.', 'danger');
+        console.error('Validation error:', error);
+    })
+    .finally(() => {
+        validateBtn.innerHTML = '<i class="fas fa-check me-1"></i> Validate File';
+        validateBtn.disabled = false;
+    });
+}
+
+function showAlert(message, type) {
+    const validationDiv = document.getElementById('fileValidation');
+    validationDiv.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+}
+
+// Form submission handling
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    const uploadBtn = document.getElementById('uploadBtn');
+    const processingDiv = document.getElementById('processing');
+    
+    // Show processing state
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+    processingDiv.classList.remove('d-none');
+});
+
+// File input change handler
+document.getElementById('file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const validationDiv = document.getElementById('fileValidation');
+    
+    if (file) {
+        // Clear previous validation
+        validationDiv.innerHTML = '';
+        
+        // Check file size
+        if (file.size > 10 * 1024 * 1024) {
+            showAlert('File size exceeds 10MB limit.', 'warning');
+            e.target.value = '';
+        } else {
+            showAlert(`Selected: ${file.name} (${(file.size/1024).toFixed(1)} KB)`, 'info');
+        }
+    }
+});
+</script>
+{% endblock %}

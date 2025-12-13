@@ -1,0 +1,166 @@
+# Append to apps/core/models.py
+
+# Import at the top with other imports
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+import json
+
+
+# Add this near the end of the file, before any final closing code
+
+class AuditLog(models.Model):
+    """
+    Enhanced AuditLog model with UUID, cryptographic features, and tenant awareness
+    """
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        verbose_name='Audit ID'
+    )
+    
+    # Timestamps
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
+    event_time = models.DateTimeField(default=timezone.now, db_index=True)
+    
+    # User Information
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_logs',
+        db_index=True
+    )
+    user_email = models.EmailField(null=True, blank=True, db_index=True)
+    user_role = models.CharField(max_length=100, null=True, blank=True)
+    user_department = models.CharField(max_length=200, null=True, blank=True)
+    
+    # Session and Request Info
+    session_id = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    request_id = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    user_ip = models.GenericIPAddressField(null=True, blank=True, db_index=True)
+    user_agent = models.TextField(null=True, blank=True)
+    request_method = models.CharField(max_length=10, null=True, blank=True)
+    request_path = models.CharField(max_length=500, null=True, blank=True)
+    request_query = models.JSONField(null=True, blank=True)
+    
+    # Action Details
+    action = models.CharField(max_length=50, db_index=True)
+    severity = models.CharField(max_length=20, default='INFO', db_index=True)
+    
+    # Resource Information (Generic Foreign Key for flexibility)
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    object_id = models.UUIDField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    resource_type = models.CharField(max_length=100, db_index=True)
+    resource_id = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    resource_name = models.CharField(max_length=500, null=True, blank=True)
+    
+    # Changes and State
+    changes = models.JSONField(null=True, blank=True)
+    previous_state = models.JSONField(null=True, blank=True)
+    new_state = models.JSONField(null=True, blank=True)
+    diff_summary = models.TextField(null=True, blank=True)
+    
+    # Additional Context
+    details = models.JSONField(null=True, blank=True)
+    metadata = models.JSONField(null=True, blank=True)
+    tags = models.JSONField(null=True, blank=True)  # For categorization
+    
+    # Performance Metrics
+    duration_ms = models.FloatField(null=True, blank=True)
+    memory_usage_mb = models.FloatField(null=True, blank=True)
+    query_count = models.IntegerField(null=True, blank=True)
+    
+    # Status and Compliance
+    status = models.CharField(max_length=50, default='SUCCESS')
+    error_code = models.CharField(max_length=50, null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    stack_trace = models.TextField(null=True, blank=True)
+    
+    # Cryptographic Integrity
+    data_hash = models.CharField(max_length=64, editable=False, default='')
+    is_tampered = models.BooleanField(default=False, editable=False)
+    
+    # Tenant Information (for multi-tenant systems)
+    tenant_id = models.UUIDField(null=True, blank=True, db_index=True)
+    tenant_name = models.CharField(max_length=200, null=True, blank=True)
+    
+    # Source and Channel
+    source = models.CharField(max_length=100, default='WEB', db_index=True)
+    channel = models.CharField(max_length=50, null=True, blank=True)
+    
+    # Compliance Fields
+    retention_days = models.IntegerField(default=365)
+    is_archived = models.BooleanField(default=False, db_index=True)
+    archive_date = models.DateTimeField(null=True, blank=True)
+    
+    # Audit Trail for Audit Log itself
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'core_audit_log'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['timestamp', 'action']),
+            models.Index(fields=['user_id', 'timestamp']),
+            models.Index(fields=['tenant_id', 'timestamp']),
+            models.Index(fields=['resource_type', 'resource_id']),
+            models.Index(fields=['severity', 'timestamp']),
+            models.Index(fields=['session_id', 'timestamp']),
+            models.Index(fields=['source', 'timestamp']),
+        ]
+        verbose_name = "Audit Log"
+        verbose_name_plural = "Audit Logs"
+        permissions = [
+            ('view_audit_log', 'Can view audit logs'),
+            ('export_audit_log', 'Can export audit logs'),
+            ('purge_audit_log', 'Can purge old audit logs'),
+        ]
+    
+    def __str__(self):
+        return f"{self.timestamp} - {self.user_email or 'System'} - {self.action} - {self.resource_type}"
+    
+    def save(self, *args, **kwargs):
+        """Calculate data hash before saving"""
+        if not self.data_hash:
+            self.data_hash = self.calculate_hash()
+        super().save(*args, **kwargs)
+    
+    def calculate_hash(self):
+        """Calculate SHA-256 hash of critical fields for integrity"""
+        data_string = f"{self.timestamp}{self.user_id}{self.action}{self.resource_type}{self.resource_id}"
+        if self.changes:
+            data_string += json.dumps(self.changes, sort_keys=True)
+        if self.details:
+            data_string += json.dumps(self.details, sort_keys=True)
+        return hashlib.sha256(data_string.encode()).hexdigest()
+    
+    def verify_integrity(self):
+        """Verify audit log hasn't been tampered with"""
+        return self.data_hash == self.calculate_hash()
+    
+    def to_secure_dict(self, include_sensitive=False):
+        """Safe serialization"""
+        from django.forms.models import model_to_dict
+        
+        data = model_to_dict(self, fields=[field.name for field in self._meta.fields])
+        
+        if not include_sensitive:
+            sensitive = ['stack_trace', 'user_ip', 'user_agent', 'request_query']
+            for field in sensitive:
+                data.pop(field, None)
+        
+        data['id'] = str(self.id)
+        data['integrity_verified'] = self.verify_integrity()
+        
+        return data

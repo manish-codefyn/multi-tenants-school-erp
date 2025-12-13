@@ -1,0 +1,134 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Monthly Payroll Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Monthly Payroll Report</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:payroll_list' %}">Payroll</a></li>
+                        <li class="breadcrumb-item active">Monthly Report</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <form method="get" class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label for="month" class="col-form-label">Select Month:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="month" class="form-control" id="month" name="month" value="{{ selected_month }}">
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">View Report</button>
+                        </div>
+                        <div class="col-auto ms-auto">
+                            <button type="button" class="btn btn-success" onclick="window.print()">
+                                <i class="bx bx-printer me-1"></i> Print
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h4>Payroll Summary: {{ selected_month|date:"F Y" }}</h4>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Total Employees</h6>
+                                    <h3>{{ total_employees }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Total Earnings</h6>
+                                    <h3>{{ total_earnings }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Total Deductions</h6>
+                                    <h3>{{ total_deductions }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Net Payable</h6>
+                                    <h3 class="text-primary">{{ total_net_salary }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Basic</th>
+                                    <th>Allowances</th>
+                                    <th>Gross</th>
+                                    <th>Deductions</th>
+                                    <th>Net Salary</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in payroll_data %}
+                                <tr>
+                                    <td>{{ item.staff.full_name }}</td>
+                                    <td>{{ item.staff.department.name }}</td>
+                                    <td>{{ item.basic_salary }}</td>
+                                    <td>{{ item.total_allowances }}</td>
+                                    <td>{{ item.gross_salary }}</td>
+                                    <td>{{ item.total_deductions }}</td>
+                                    <td class="fw-bold">{{ item.net_salary }}</td>
+                                    <td>{{ item.get_status_display }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No payroll data found for this month.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light fw-bold">
+                                <tr>
+                                    <td colspan="2">Total</td>
+                                    <td>{{ total_basic }}</td>
+                                    <td>{{ total_allowances }}</td>
+                                    <td>{{ total_earnings }}</td>
+                                    <td>{{ total_deductions }}</td>
+                                    <td>{{ total_net_salary }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

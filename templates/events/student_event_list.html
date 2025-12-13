@@ -1,0 +1,76 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Browse Events{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Events</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Browse Events</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for event in events %}
+            <div class="col">
+                <div class="card h-100">
+                    {% if event.banner %}
+                    <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">{{ event.category.name }}</span>
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        <p class="card-text">{{ event.description|truncatewords:20 }}</p>
+                        <div class="mb-2">
+                            <small class="text-muted"><i class="bx bx-calendar"></i> {{ event.start_date }}</small><br>
+                            <small class="text-muted"><i class="bx bx-map"></i> {{ event.venue }}</small>
+                        </div>
+                        {% if event.max_participants %}
+                        <div class="progress mb-2" style="height: 5px;">
+                            <div class="progress-bar" role="progressbar" style="width: {{ event.registration_percentage }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ event.registrations.count }}/{{ event.max_participants }} registered</small>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'events:student_event_detail' event.pk %}" class="btn btn-primary btn-sm w-100">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bx bx-calendar-x" style="font-size: 48px; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No events available at the moment</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+{% endblock %}

@@ -1,0 +1,53 @@
+
+{% load static %}
+
+<div class="sidebar-wrapper" data-simplebar="true">
+    <div class="d-flex flex-column h-100">
+        
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <!-- Logo Section -->
+            <div>
+                {% if tenant_logo %}
+                    <img src="{{ tenant_logo.url }}" class="logo-icon user-img" alt="{{ tenant_name }}">
+                {% else %}
+                    <img src="{% static 'images/logo_sq.svg' %}" class="logo-icon" alt="Default Logo">
+                {% endif %}
+            </div>
+
+            <!-- Tenant/Default Name -->
+            <div class="tenant-name-container">
+                    <h4 class="logo-text text-truncate">
+                        {% if tenant_name %}
+                            {{ tenant_name }}
+                        {% else %}
+                            codefyn
+                        {% endif %}
+                    </h4>
+                </div>
+
+            <div class="toggle-icon ms-auto">
+                <i class="bx bx-arrow-back"></i>
+            </div>
+        </div>
+        <!-- End Sidebar Header -->
+        
+        <!-- Main Menu Content -->
+        <div class="flex-grow-1">
+            {% include 'admission/partials/sub_menu.html' %}
+        </div>
+        
+        <!-- Version Section - Fixed at Bottom -->
+        <div class="mt-auto">
+            <ul class="metismenu">
+                <li class="menu-label">Version</li>
+                <li>
+                    <a href="javascript:void(0);" class="disabled">
+                        <div class="parent-icon"><i class="bx bx-info-circle"></i></div>
+                        <div class="menu-title">{{ version }}</div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

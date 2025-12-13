@@ -1,0 +1,124 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Notices{% endblock %}
+
+{% block content %}
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Communication</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'communication:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Notices</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="ms-auto">
+                {% if perms.communication.add_notice %}
+                <a href="{% url 'communication:notice_create' %}" class="btn btn-primary"><i class="bx bx-plus"></i> Create Notice</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="Search notices..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.pk }}" {% if request.GET.category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="priority" class="form-select">
+                            <option value="">All Priorities</option>
+                            <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>Low</option>
+                            <option value="medium" {% if request.GET.priority == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>High</option>
+                            <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100"><i class="bx bx-search"></i> Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notices List -->
+        <div class="row">
+            {% for notice in notices %}
+            <div class="col-12 col-lg-6">
+                <div class="card radius-10">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-0">
+                                    <a href="{% url 'communication:notice_detail' notice.pk %}">{{ notice.title }}</a>
+                                </h5>
+                                <small class="text-muted">
+                                    {% if notice.category %}
+                                        <i class="{{ notice.category.icon }}" style="color: {{ notice.category.color }}"></i> {{ notice.category.name }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div>
+                                {% if notice.priority == 'urgent' %}
+                                    <span class="badge bg-danger">Urgent</span>
+                                {% elif notice.priority == 'high' %}
+                                    <span class="badge bg-warning text-dark">High</span>
+                                {% elif notice.priority == 'medium' %}
+                                    <span class="badge bg-info text-dark">Medium</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Low</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="mb-3">{{ notice.content|truncatewords:30 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bx bx-calendar"></i> {{ notice.published_date|date:"M d, Y" }}
+                                <i class="bx bx-user ms-2"></i> {{ notice.published_by.get_full_name }}
+                            </small>
+                            <a href="{% url 'communication:notice_detail' notice.pk %}" class="btn btn-sm btn-outline-primary">Read More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bx bx-info-circle"></i> No notices found.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                
+                <li class="page-item active"><a class="page-link" href="#">{{ page_obj.number }}</a></li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+{% endblock %}

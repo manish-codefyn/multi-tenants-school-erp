@@ -1,0 +1,375 @@
+<!-- templates/users/admin/bulk_import.html -->
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-xxl-8 col-lg-10">
+            <!-- Header Card -->
+            <div class="card card-gradient mb-4">
+                <div class="card-body p-4 text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                            <i class="fas fa-users fa-2x text-white"></i>
+                        </div>
+                        <div class="text-start">
+                            <h1 class="h3 mb-0 text-white">Bulk Import Users</h1>
+                            <p class="text-white-50 mb-0">Quickly add multiple users to the system</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Import Form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-file-import me-2"></i>Import Settings
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="importForm">
+                        {% csrf_token %}
+                        
+                        <!-- File Upload Section -->
+                        <div class="mb-4">
+                            <label for="{{ form.file.id_for_label }}" class="form-label fw-semibold">
+                                <i class="fas fa-file-csv me-2 text-primary"></i>{{ form.file.label }}
+                            </label>
+                            <div class="file-upload-area border rounded p-4 text-center">
+                                <div class="file-upload-icon mb-3">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
+                                </div>
+                                <h5 class="mb-2">Drag & drop your CSV file here</h5>
+                                <p class="text-muted mb-3">or click to browse files</p>
+                                {{ form.file }}
+                                <div class="form-text mt-2">
+                                    <i class="fas fa-info-circle me-1 text-info"></i>
+                                    {{ form.file.help_text }}
+                                </div>
+                                {% if form.file.errors %}
+                                    <div class="alert alert-danger mt-2">{{ form.file.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- User Type Selection -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.user_type.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-user-tag me-2 text-primary"></i>User Type
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-users text-muted"></i>
+                                    </span>
+                                    {{ form.user_type }}
+                                </div>
+                                {% if form.user_type.help_text %}
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1 text-info"></i>
+                                        {{ form.user_type.help_text }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Options Section -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mb-3">
+                                    {{ form.update_existing }}
+                                    <label for="{{ form.update_existing.id_for_label }}" class="form-check-label fw-semibold">
+                                        Update Existing Users
+                                    </label>
+                                    {% if form.update_existing.help_text %}
+                                        <div class="form-text small">
+                                            <i class="fas fa-info-circle me-1 text-info"></i>
+                                            {{ form.update_existing.help_text }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mb-3">
+                                    {{ form.send_welcome_email }}
+                                    <label for="{{ form.send_welcome_email.id_for_label }}" class="form-check-label fw-semibold">
+                                        Send Welcome Email
+                                    </label>
+                                    {% if form.send_welcome_email.help_text %}
+                                        <div class="form-text small">
+                                            <i class="fas fa-info-circle me-1 text-info"></i>
+                                            {{ form.send_welcome_email.help_text }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2 mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-upload me-2"></i>Import Users
+                            </button>
+                            <a href="{% url 'admin_user_list' %}" class="btn btn-outline-secondary px-4">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- File Format Guide -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-file-alt me-2"></i>File Format Guide
+                    </h5>
+                    <a href="{% url 'admin_export_users' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-download me-1"></i>Download Template
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="border-bottom pb-2 mb-3 text-success">
+                                    <i class="fas fa-check-circle me-2"></i>Required Columns
+                                </h6>
+                                <div class="row">
+                                    <div class="col-sm-6 mb-2">
+                                        <span class="badge bg-primary me-1">email</span>
+                                        <small>User email address</small>
+                                    </div>
+                                    <div class="col-sm-6 mb-2">
+                                        <span class="badge bg-primary me-1">first_name</span>
+                                        <small>User first name</small>
+                                    </div>
+                                    <div class="col-sm-6 mb-2">
+                                        <span class="badge bg-primary me-1">last_name</span>
+                                        <small>User last name</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="border-bottom pb-2 mb-3 text-info">
+                                    <i class="fas fa-info-circle me-2"></i>Optional Columns
+                                </h6>
+                                <div class="optional-columns">
+                                    <div class="row">
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">username</span>
+                                            <small>Username</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">phone</span>
+                                            <small>Phone number</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">gender</span>
+                                            <small>male/female/other</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">date_of_birth</span>
+                                            <small>YYYY-MM-DD</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">address</span>
+                                            <small>Full address</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">emergency_contact</span>
+                                            <small>Emergency phone</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">blood_group</span>
+                                            <small>Blood group</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">employee_id</span>
+                                            <small>Employee ID</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">roll_number</span>
+                                            <small>Roll number</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">department</span>
+                                            <small>Department name</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">qualification</span>
+                                            <small>Educational qualification</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">specialization</span>
+                                            <small>Field of specialization</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">experience</span>
+                                            <small>Years of experience</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">aadhar_number</span>
+                                            <small>Aadhar number</small>
+                                        </div>
+                                        <div class="col-sm-6 mb-2">
+                                            <span class="badge bg-secondary me-1">pan_number</span>
+                                            <small>PAN number</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-lightbulb fa-2x text-info"></i>
+                            </div>
+                            <div>
+                                <strong>Note:</strong> Missing optional fields will be automatically filled with 'na' or default values.
+                                Username defaults to email prefix if not provided.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-gradient {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        border: none;
+    }
+    
+    .file-upload-area {
+        background-color: #f8f9fa;
+        border: 2px dashed #dee2e6 !important;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .file-upload-area:hover {
+        background-color: #e9ecef;
+        border-color: #4e73df !important;
+    }
+    
+    .file-upload-area input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+    
+    .form-check-input:checked {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+    
+    .optional-columns {
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    
+    .optional-columns::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .optional-columns::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .optional-columns::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+    
+    .optional-columns::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File upload area interaction
+        const fileUploadArea = document.querySelector('.file-upload-area');
+        const fileInput = document.querySelector('#{{ form.file.id_for_label }}');
+        
+        if (fileUploadArea && fileInput) {
+            fileUploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const fileName = this.files[0].name;
+                    const fileSize = (this.files[0].size / 1024 / 1024).toFixed(2); // MB
+                    
+                    fileUploadArea.innerHTML = `
+                        <div class="file-upload-success">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h5 class="mb-1">${fileName}</h5>
+                            <p class="text-muted mb-0">${fileSize} MB</p>
+                        </div>
+                    `;
+                }
+            });
+            
+            // Drag and drop functionality
+            fileUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#4e73df';
+                this.style.backgroundColor = '#e9ecef';
+            });
+            
+            fileUploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#dee2e6';
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            
+            fileUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#dee2e6';
+                this.style.backgroundColor = '#f8f9fa';
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    const event = new Event('change', { bubbles: true });
+                    fileInput.dispatchEvent(event);
+                }
+            });
+        }
+        
+        // Form submission feedback
+        const form = document.getElementById('importForm');
+        if (form) {
+            form.addEventListener('submit', function() {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Importing...';
+                    submitBtn.disabled = true;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

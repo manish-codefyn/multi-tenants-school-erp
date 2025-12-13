@@ -1,0 +1,73 @@
+{% extends "layouts/home.html" %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        .typing-container { min-height: 60px; }
+        .cursor { animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% include "tenant/partials/hero.html" %}
+    {% include "tenant/partials/about.html" %}
+    {% include "tenant/partials/features.html" %}
+    {% include "tenant/partials/stats.html" %}
+    {% include "tenant/partials/admission.html" %}
+    {% include "tenant/partials/cta.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Typing Animation Logic (moved from hero.html for better structure)
+            const txtElement = document.querySelector('.typed-text');
+            if (txtElement) {
+                const tenantType = "{{ tenant.get_type_display|lower|default:'school' }}";
+                let words = ['Quality Education', 'Student Success', 'Academic Excellence'];
+                
+                if (tenantType.includes('school')) words = ['Quality Education', 'Student Development', 'Future Leaders'];
+                else if (tenantType.includes('college')) words = ['Higher Education', 'Career Development', 'Professional Skills'];
+                else if (tenantType.includes('university')) words = ['Research Excellence', 'Global Education', 'Innovation Hub'];
+                
+                let txt = '';
+                let wordIndex = 0;
+                let isDeleting = false;
+                
+                function type() {
+                    const current = wordIndex % words.length;
+                    const fullTxt = words[current];
+                    
+                    if (isDeleting) txt = fullTxt.substring(0, txt.length - 1);
+                    else txt = fullTxt.substring(0, txt.length + 1);
+                    
+                    txtElement.innerHTML = txt;
+                    
+                    let typeSpeed = 100;
+                    if (isDeleting) typeSpeed /= 2;
+                    
+                    if (!isDeleting && txt === fullTxt) {
+                        typeSpeed = 2000;
+                        isDeleting = true;
+                    } else if (isDeleting && txt === '') {
+                        isDeleting = false;
+                        wordIndex++;
+                        typeSpeed = 500;
+                    }
+                    
+                    setTimeout(type, typeSpeed);
+                }
+                
+                type();
+            }
+        });
+    </script>
+{% endblock %}

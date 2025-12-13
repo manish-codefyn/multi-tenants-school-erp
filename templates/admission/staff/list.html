@@ -1,0 +1,71 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Manage Applications" %}{% endblock %}
+
+{% block extra_css %}
+    {% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+{% include "partials/breadcrumb.html" with page_title="Admission Applications" parent_text="Admission" parent_url="#" current_text="Applications" %}
+<div class="container-fluid py-4">
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Applications List" %}</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="applicationsTable" width="100%" cellspacing="0" 
+                       data-datatable="true" 
+                       data-title="{% trans 'Applications List' %}"
+                       data-export-columns="[0, 1, 2, 3, 4]">
+                    <thead>
+                        <tr>
+                            <th>{% trans "App No" %}</th>
+                            <th>{% trans "Applicant Name" %}</th>
+                            <th>{% trans "Program" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Submission Date" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'admission:staff_detail' app.pk %}">
+                                        {{ app.application_number }}
+                                    </a>
+                                </td>
+                                <td>{{ app.full_name }}</td>
+                                <td>{{ app.program }}</td>
+                                <td>
+                                    <span class="badge badge-{% if app.status == 'ADMITTED' %}success{% elif app.status == 'REJECTED' %}danger{% elif app.status == 'WAITLISTED' %}warning{% else %}info{% endif %}">
+                                        {{ app.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ app.submission_date|date:"d M Y" }}</td>
+                                <td>
+                                    <a href="{% url 'admission:staff_detail' app.pk %}" class="btn btn-info btn-sm" title="View">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{% url 'admission:staff_update' app.pk %}" class="btn btn-primary btn-sm" title="Update Status">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                   
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {% include "includes/datatable_scripts.html" %}
+{% endblock %}

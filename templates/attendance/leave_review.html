@@ -1,0 +1,58 @@
+{% extends 'layouts/dashboard.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Review Leave Application{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0">Application Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Applicant</dt>
+                    <dd class="col-sm-8">{{ object.applicant.get_full_name }} ({{ object.applicant.get_role_display }})</dd>
+
+                    <dt class="col-sm-4">Leave Type</dt>
+                    <dd class="col-sm-8">{{ object.leave_type.name }}</dd>
+
+                    <dt class="col-sm-4">Duration</dt>
+                    <dd class="col-sm-8">
+                        {{ object.from_date }} to {{ object.to_date }}
+                        <span class="text-muted">({{ object.total_days }} days)</span>
+                    </dd>
+
+                    <dt class="col-sm-4">Reason</dt>
+                    <dd class="col-sm-8">{{ object.reason }}</dd>
+                    
+                    {% if object.supporting_document %}
+                    <dt class="col-sm-4">Document</dt>
+                    <dd class="col-sm-8">
+                        <a href="{{ object.supporting_document.url }}" target="_blank">View Document</a>
+                    </dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0">Review Action</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                        <a href="{% url 'attendance:leave_list' %}" class="btn btn-light">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

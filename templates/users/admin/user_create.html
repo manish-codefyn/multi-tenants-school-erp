@@ -1,0 +1,277 @@
+{% extends 'layouts/dashboard.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create User{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">User Management</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item"><a href="{% url 'admin_user_list' %}">Users</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Create User</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- User Type Selection Cards -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">Select User Type</h5>
+        <div class="row row-cols-1 row-cols-md-3 row-cols-lg-6 g-3">
+            <div class="col">
+                <div class="card text-center user-type-card" data-type="teacher">
+                    <div class="card-body">
+                        <i class="bx bx-user-plus text-primary" style="font-size: 32px;"></i>
+                        <p class="mb-0 mt-2"><strong>Teacher</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center user-type-card" data-type="student">
+                    <div class="card-body">
+                        <i class="bx bx-user text-success" style="font-size: 32px;"></i>
+                        <p class="mb-0 mt-2"><strong>Student</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center user-type-card" data-type="parent">
+                    <div class="card-body">
+                        <i class="bx bx-user-voice text-info" style="font-size: 32px;"></i>
+                        <p class="mb-0 mt-2"><strong>Parent</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center user-type-card" data-type="staff">
+                    <div class="card-body">
+                        <i class="bx bx-user-pin text-warning" style="font-size: 32px;"></i>
+                        <p class="mb-0 mt-2"><strong>Staff</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center user-type-card" data-type="accountant">
+                    <div class="card-body">
+                        <i class="bx bx-calculator text-danger" style="font-size: 32px;"></i>
+                        <p class="mb-0 mt-2"><strong>Accountant</strong></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center user-type-card" data-type="librarian">
+                    <div class="card-body">
+                        <i class="bx bx-book text-secondary" style="font-size: 32px;"></i>
+                        <p class="mb-0 mt-2"><strong>Librarian</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Creation Form -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">User Information</h5>
+        <hr>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="bx bx-user-circle me-2"></i>Basic Information</h6>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.first_name|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.last_name|as_crispy_field }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.email|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.username|as_crispy_field }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.user_type|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.employee_id|as_crispy_field }}
+                </div>
+            </div>
+            
+            <!-- Personal Information -->
+            <div class="row mb-3 mt-4">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="bx bx-id-card me-2"></i>Personal Information</h6>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    {{ form.date_of_birth|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.gender|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.blood_group|as_crispy_field }}
+                </div>
+            </div>
+            
+            <!-- Contact Information -->
+            <div class="row mb-3 mt-4">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="bx bx-phone me-2"></i>Contact Information</h6>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.phone|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.emergency_contact|as_crispy_field }}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12">
+                    {{ form.address|as_crispy_field }}
+                </div>
+            </div>
+            
+            <!-- Password -->
+            <div class="row mb-3 mt-4">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="bx bx-lock me-2"></i>Security</h6>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.password1|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.password2|as_crispy_field }}
+                </div>
+            </div>
+            
+            <!-- Profile Picture -->
+            {% if form.profile_picture %}
+            <div class="row mb-3 mt-4">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="bx bx-image me-2"></i>Profile Picture</h6>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form.profile_picture|as_crispy_field }}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Status -->
+            <div class="row mb-3 mt-4">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="bx bx-check-circle me-2"></i>Status</h6>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            Active Status
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-save me-2"></i>Create User
+                    </button>
+                    <a href="{% url 'admin_user_list' %}" class="btn btn-secondary">
+                        <i class="bx bx-x me-2"></i>Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.user-type-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.user-type-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.user-type-card.active {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeCards = document.querySelectorAll('.user-type-card');
+    const userTypeSelect = document.querySelector('select[name="user_type"]');
+    
+    // Handle card clicks
+    userTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const userType = this.dataset.type;
+            
+            // Remove active class from all cards
+            userTypeCards.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked card
+            this.classList.add('active');
+            
+            // Update select value
+            if (userTypeSelect) {
+                userTypeSelect.value = userType;
+            }
+        });
+    });
+    
+    // Set initial active card based on select value
+    if (userTypeSelect && userTypeSelect.value) {
+        const activeCard = document.querySelector(`.user-type-card[data-type="${userTypeSelect.value}"]`);
+        if (activeCard) {
+            activeCard.classList.add('active');
+        }
+    }
+});
+</script>
+
+{% endblock %}

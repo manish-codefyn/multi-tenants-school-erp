@@ -1,0 +1,141 @@
+<!-- jQuery FIRST -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<!-- Then DataTables -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Then Buttons -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+
+<!-- Then other dependencies -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<!-- JSZip for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- pdfmake for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+<script>
+// Initialize DataTable with export buttons
+function initDataTable(tableId, config) {
+    // Default configuration
+    const defaultConfig = {
+        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+             "<'row'<'col-sm-12 col-md-12'B>>" +
+             "<'row'<'col-sm-12'tr>>" +
+             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+        buttons: [
+            {
+                extend: 'copy',
+                className: 'btn btn-sm btn-primary',
+                text: '<i class="bx bx-copy me-1"></i> Copy',
+                exportOptions: config.exportColumns ? { columns: config.exportColumns } : {}
+            },
+            {
+                extend: 'excel',
+                className: 'btn btn-sm btn-success',
+                text: '<i class="bx bx-file me-1"></i> Excel',
+                title: config.title || 'Export',
+                exportOptions: config.exportColumns ? { columns: config.exportColumns } : {}
+            },
+            {
+                extend: 'pdf',
+                className: 'btn btn-sm btn-danger',
+                text: '<i class="bx bxs-file-pdf me-1"></i> PDF',
+                title: config.title || 'Export',
+                exportOptions: config.exportColumns ? { columns: config.exportColumns } : {},
+                customize: function(doc) {
+                    doc.styles.tableHeader.fillColor = '#6c63ff';
+                    doc.styles.tableHeader.color = 'white';
+                }
+            },
+            {
+                extend: 'print',
+                className: 'btn btn-sm btn-info',
+                text: '<i class="bx bx-printer me-1"></i> Print',
+                title: config.title || 'Export',
+                exportOptions: config.exportColumns ? { columns: config.exportColumns } : {},
+                customize: function(win) {
+                    $(win.document.body)
+                        .css('font-size', '10pt')
+                        .prepend(
+                            '<div style="text-align:center; margin-bottom:20px;">' +
+                            '<h2>' + (config.title || 'Report') + '</h2>' +
+                            '<p>Generated on: ' + new Date().toLocaleDateString() + '</p>' +
+                            '</div>'
+                        );
+                    
+                    $(win.document.body).find('table')
+                        .addClass('compact')
+                        .css('font-size', 'inherit');
+                }
+            }
+        ],
+        pageLength: config.pageLength || 25,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        order: config.order || [[0, 'asc']],
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search...",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "No entries available",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            zeroRecords: "No matching records found",
+            emptyTable: "No data available in table"
+        },
+        responsive: true,
+        stateSave: true,
+        stateDuration: 60 * 60 * 24 // 24 hours
+    };
+
+    // Merge custom config with defaults
+    const finalConfig = Object.assign({}, defaultConfig, config);
+    
+    // Initialize DataTable
+    const table = $('#' + tableId).DataTable(finalConfig);
+    
+    return table;
+}
+
+// Initialize DataTable when document is ready
+$(document).ready(function() {
+    console.log('Document ready, initializing DataTables...');
+    
+    // Check if DataTables is loaded
+    if (typeof $.fn.dataTable === 'undefined') {
+        console.error('DataTables is not loaded!');
+        return;
+    }
+    
+    // Find all tables with data-datatable attribute
+    $('[data-datatable]').each(function() {
+        const tableId = $(this).attr('id');
+        const title = $(this).data('title') || 'Export';
+        const exportColumns = $(this).data('export-columns');
+        
+        console.log('Initializing table:', tableId);
+        
+        // Parse exportColumns if it exists
+        let exportCols = null;
+        if (exportColumns) {
+            try {
+                exportCols = JSON.parse(exportColumns);
+            } catch (e) {
+                console.error('Error parsing exportColumns:', e);
+                exportCols = null;
+            }
+        }
+        
+        initDataTable(tableId, {
+            title: title,
+            exportColumns: exportCols
+        });
+    });
+});
+</script>

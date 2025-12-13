@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Block Title Content -->
+    <title>{{ tenant.name }} — Modern School Management Portal</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (Already included in the original request) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- AOS Animation (Already included in the original request) -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Google Fonts (Poppins, already included in the original request) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* tenant/includes/css/styles.css and extra_css Block Content Consolidated */
+        :root {
+            --primary-color: #0d6efd; /* Bootstrap Primary Blue */
+            --secondary-color: #1a73e8; /* Slightly darker shade */
+            --light-bg: #f8f9fa;
+            --dark-bg: #2c3e50;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-bg);
+            overflow-x: hidden; /* Prevent horizontal scroll from AOS */
+        }
+
+        /* Navbar Style */
+        .navbar {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        .navbar-brand {
+            font-weight: 700;
+        }
+        .nav-link {
+            font-weight: 500;
+        }
+
+        /* Hero Section Style */
+        .hero-section {
+            height: 85vh;
+            background: linear-gradient(rgba(13, 110, 253, 0.9), rgba(26, 115, 232, 0.8)), 
+                        url('https://placehold.co/1500x850/0d6efd/ffffff?text=Education') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 3rem 0;
+        }
+        .hero-section h1 {
+            font-weight: 800;
+        }
+
+        /* Features/Content Section Style */
+        .content-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 250px;
+        }
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+        .icon-large {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        /* Footer Style */
+        footer {
+            background-color: var(--dark-bg);
+            border-top: 5px solid var(--primary-color);
+        }
+    </style>
+
+    <!-- {% block extra_css %}{% endblock %} is now included in the consolidated style block -->
+</head>
+
+<body>
+    <!-- tenant/includes/navbar.html Content -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+        <div class="container">
+            <a class="navbar-brand fs-4" href="/">
+                <i class="bi bi-mortarboard-fill text-primary me-2"></i>
+                {{ tenant.name }}
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About Us</a>
+                    </li>
+
+                    <!-- Auth Logic -->
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard/">Dashboard</a>
+                        </li>
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn btn-danger" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right me-1"></i> Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn btn-primary" href="{% url 'login' %}">
+                                <i class="bi bi-person-fill me-1"></i> Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- End Navbar Content -->
+
+    <main>
+        <!--  Content -->
+        
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="container" data-aos="fade-up" data-aos-duration="1000">
+                <h1 class="display-3 mb-4">Empowering Education with {{ tenant.name }}</h1>
+                <p class="lead fs-5 mb-5" data-aos="fade-up" data-aos-delay="200">
+                    The next generation of school management systems—intuitive, powerful, and modern.
+                </p>
+
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-warning btn-lg px-5 py-3 fw-bold shadow-sm" data-aos="zoom-in" data-aos-delay="400">
+                        <i class="bi bi-lock-fill me-2"></i> Access Portal
+                    </a>
+                {% else %}
+                    <a href="/dashboard/" class="btn btn-success btn-lg px-5 py-3 fw-bold shadow-sm" data-aos="zoom-in" data-aos-delay="400">
+                        <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="py-5 bg-white">
+            <div class="container py-4">
+                <h2 class="text-center mb-5 fw-bold" data-aos="fade-down">Key Modules</h2>
+                
+                <div class="row g-4">
+                    <!-- Feature 1 -->
+                    <div class="col-md-4">
+                        <div class="content-card text-center" data-aos="fade-right" data-aos-delay="100">
+                            <i class="icon-large bi bi-person-video3"></i>
+                            <h4 class="fw-bold">Student Life</h4>
+                            <p class="text-muted">Enrollment, attendance tracking, and student information management, all in one place.</p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="col-md-4">
+                        <div class="content-card text-center" data-aos="fade-up" data-aos-delay="200">
+                            <i class="icon-large bi bi-chat-left-text"></i>
+                            <h4 class="fw-bold">Parent Communication</h4>
+                            <p class="text-muted">Real-time alerts, grades, and direct messaging channels to keep parents informed and engaged.</p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="col-md-4">
+                        <div class="content-card text-center" data-aos="fade-left" data-aos-delay="300">
+                            <i class="icon-large bi bi-wallet2"></i>
+                            <h4 class="fw-bold">Financials & Fees</h4>
+                            <p class="text-muted">Automated fee collection, transparent payment records, and comprehensive financial reports.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- End Block Content -->
+    </main>
+
+    <!-- tenant/includes/footer.html Content -->
+    <footer class="text-white text-center py-4">
+        <div class="container">
+            <p class="mb-2">
+                &copy; {{ tenant.name }} | All Rights Reserved.
+            </p>
+            <p class="mb-0 text-muted small">
+                The future of school administration.
+            </p>
+        </div>
+    </footer>
+    <!-- End Footer Content -->
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        // tenant/includes/js/main.js and extra_js Block Content Consolidated
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize AOS
+            AOS.init({
+                duration: 900,
+                once: true, 
+                easing: 'ease-in-out',
+            });
+        });
+    </script>
+
+    <!-- {% block extra_js %}{% endblock %} is now included in the consolidated script block -->
+</body>
+</html>

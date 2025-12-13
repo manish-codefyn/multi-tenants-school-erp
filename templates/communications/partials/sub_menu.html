@@ -1,0 +1,26 @@
+<!-- If you add notice and notification URLs later -->
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-message-square-dots"></i></div>
+        <div class="menu-title">Communication</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'communications:dashboard' %}"><i class='bx bx-radio-circle'></i>Dashboard</a></li>
+        
+        <!-- Messages -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Messages</a>
+            <ul>
+                <li><a href="{% url 'communications:messages' %}">All Messages</a></li>
+                <li><a href="{% url 'communications:message_compose' %}">Compose Message</a></li>
+                <li><a href="{% url 'communications:parent_messages' %}">Parent Messages</a></li>
+            </ul>
+        </li>
+        
+        <!-- Notices (if added) -->
+        <li><a href=""><i class='bx bx-radio-circle'></i>Notices</a></li>
+        
+        <!-- Notifications (if added) -->
+        <li><a href=""><i class='bx bx-radio-circle'></i>Notifications</a></li>
+    </ul>
+</li>

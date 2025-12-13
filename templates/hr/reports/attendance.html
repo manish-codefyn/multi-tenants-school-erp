@@ -1,0 +1,137 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Attendance Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Attendance Report</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:report_staff' %}">Reports</a></li>
+                        <li class="breadcrumb-item active">Attendance</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <form method="get" class="row g-3 align-items-center">
+                        <div class="col-auto">
+                            <label for="date" class="col-form-label">Date:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="date" class="form-control" id="date" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-auto">
+                            <label for="department" class="col-form-label">Department:</label>
+                        </div>
+                        <div class="col-auto">
+                            <select class="form-select" id="department" name="department">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.pk }}" {% if dept.pk|stringformat:"s" == selected_department %}selected{% endif %}>{{ dept.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">View Report</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h4>Daily Attendance Report: {{ selected_date|date:"F j, Y" }}</h4>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Total Staff</h6>
+                                    <h3>{{ total_staff }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Present</h6>
+                                    <h3 class="text-success">{{ present_count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">Absent</h6>
+                                    <h3 class="text-danger">{{ absent_count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted">On Leave</h6>
+                                    <h3 class="text-warning">{{ leave_count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Staff Name</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Work Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in attendance_records %}
+                                <tr>
+                                    <td>{{ record.staff.full_name }}</td>
+                                    <td>{{ record.staff.department.name }}</td>
+                                    <td>
+                                        {% if record.status == 'PRESENT' %}
+                                            <span class="badge bg-success">Present</span>
+                                        {% elif record.status == 'ABSENT' %}
+                                            <span class="badge bg-danger">Absent</span>
+                                        {% elif record.status == 'LATE' %}
+                                            <span class="badge bg-warning">Late</span>
+                                        {% elif record.status == 'HALF_DAY' %}
+                                            <span class="badge bg-info">Half Day</span>
+                                        {% elif record.status == 'ON_LEAVE' %}
+                                            <span class="badge bg-secondary">On Leave</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ record.check_in|default:"-" }}</td>
+                                    <td>{{ record.check_out|default:"-" }}</td>
+                                    <td>{{ record.work_hours|default:"-" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No attendance records found for this date.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

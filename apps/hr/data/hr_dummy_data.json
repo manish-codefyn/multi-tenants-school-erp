@@ -1,0 +1,233 @@
+{
+    "departments": [
+        {
+            "name": "Science Department",
+            "code": "SCIENCE",
+            "description": "Department of Science",
+            "email": "science@school.com",
+            "phone": "+919876543210",
+            "location": "Building A, Room 101",
+            "head_of_department": "john_doe"
+        },
+        {
+            "name": "Mathematics Department",
+            "code": "MATH",
+            "description": "Department of Mathematics",
+            "email": "math@school.com",
+            "phone": "+919876543211",
+            "location": "Building A, Room 102",
+            "head_of_department": "jane_smith"
+        }
+    ],
+    "designations": [
+        {
+            "title": "Principal",
+            "code": "PRINCIPAL",
+            "category": "ADMINISTRATIVE",
+            "description": "Head of the school",
+            "grade": "A1",
+            "min_salary": 100000.00,
+            "max_salary": 200000.00,
+            "qualifications": "Ph.D. in Education or relevant field",
+            "experience_required": 15,
+            "reports_to": null
+        },
+        {
+            "title": "Head of Department - Science",
+            "code": "HOD_SCIENCE",
+            "category": "TEACHING",
+            "description": "Head of Science Department",
+            "grade": "B1",
+            "min_salary": 60000.00,
+            "max_salary": 120000.00,
+            "qualifications": "Master's degree in Science with teaching experience",
+            "experience_required": 10,
+            "reports_to": "PRINCIPAL"
+        },
+        {
+            "title": "Teacher",
+            "code": "TEACHER",
+            "category": "TEACHING",
+            "description": "Teaching staff",
+            "grade": "C1",
+            "min_salary": 30000.00,
+            "max_salary": 60000.00,
+            "qualifications": "Bachelor's degree in Education",
+            "experience_required": 3,
+            "reports_to": "HOD_SCIENCE"
+        }
+    ],
+    "users": [
+        {
+            "username": "admin",
+            "email": "admin@school.com",
+            "first_name": "Admin",
+            "last_name": "User",
+            "role": "admin",
+            "is_active": true,
+            "password": "admin123"
+        },
+        {
+            "username": "john_doe",
+            "email": "john.doe@school.com",
+            "first_name": "John",
+            "last_name": "Doe",
+            "role": "teacher",
+            "is_active": true,
+            "password": "password123"
+        },
+        {
+            "username": "jane_smith",
+            "email": "jane.smith@school.com",
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "role": "teacher",
+            "is_active": true,
+            "password": "password123"
+        }
+    ],
+    "staff": [
+        {
+            "user": "john_doe",
+            "employee_id": "EMP001",
+            "date_of_birth": "1985-05-15",
+            "gender": "M",
+            "blood_group": "O+",
+            "marital_status": "MARRIED",
+            "nationality": "Indian",
+            "personal_email": "john.doe.personal@email.com",
+            "personal_phone": "+919876543212",
+            "emergency_contact_name": "Jane Doe",
+            "emergency_contact_relation": "Wife",
+            "emergency_contact_phone": "+919876543213",
+            "department": "SCIENCE",
+            "designation": "TEACHER",
+            "employment_type": "PERMANENT",
+            "employment_status": "ACTIVE",
+            "joining_date": "2015-06-01",
+            "confirmation_date": "2015-12-01",
+            "contract_end_date": null,
+            "retirement_date": "2045-05-15",
+            "qualifications": [
+                {
+                    "degree": "M.Sc. Physics",
+                    "university": "University of Delhi",
+                    "year": 2007,
+                    "percentage": 78.5
+                },
+                {
+                    "degree": "B.Ed.",
+                    "university": "University of Delhi",
+                    "year": 2008,
+                    "percentage": 82.0
+                }
+            ],
+            "specialization": "Physics",
+            "teaching_experience": 10,
+            "total_experience": 15,
+            "basic_salary": 45000.00,
+            "bank_account_number": "123456789012",
+            "bank_name": "State Bank of India",
+            "ifsc_code": "SBIN0001234",
+            "pan_number": "ABCDE1234F",
+            "aadhaar_number": "123456789012",
+            "pf_number": "PF123456789",
+            "esi_number": "ESI123456789",
+            "work_location": "Main Campus",
+            "work_phone": "+911234567890",
+            "work_email": "john.doe@school.com",
+            "created_by": "admin"
+        }
+    ],
+    "staff_addresses": [
+        {
+            "staff": "EMP001",
+            "address_type": "PERMANENT",
+            "address_line1": "123 Main Street",
+            "address_line2": "Civil Lines",
+            "city": "Delhi",
+            "state": "Delhi",
+            "pincode": "110001",
+            "country": "India",
+            "is_current": true
+        },
+        {
+            "staff": "EMP001",
+            "address_type": "CORRESPONDENCE",
+            "address_line1": "456 School Quarters",
+            "address_line2": "Near School Campus",
+            "city": "Delhi",
+            "state": "Delhi",
+            "pincode": "110002",
+            "country": "India",
+            "is_current": false
+        }
+    ],
+    "attendance": [
+        {
+            "staff": "EMP001",
+            "date": "2024-01-15",
+            "status": "PRESENT",
+            "check_in": "09:00:00",
+            "check_out": "17:00:00",
+            "total_hours": 8.0,
+            "late_minutes": 0,
+            "overtime_hours": 0.0,
+            "remarks": "Regular day",
+            "marked_by": "admin"
+        }
+    ],
+    "leave_types": [
+        {
+            "name": "Casual Leave",
+            "code": "CL",
+            "description": "Casual leave for personal work",
+            "max_days_per_year": 12,
+            "can_carry_forward": false,
+            "max_carry_forward_days": 0,
+            "requires_approval": true,
+            "approval_authority": "HOD_SCIENCE",
+            "eligibility_after_months": 3,
+            "is_active": true
+        },
+        {
+            "name": "Sick Leave",
+            "code": "SL",
+            "description": "Leave for medical reasons",
+            "max_days_per_year": 15,
+            "can_carry_forward": true,
+            "max_carry_forward_days": 30,
+            "requires_approval": true,
+            "approval_authority": "HOD_SCIENCE",
+            "eligibility_after_months": 0,
+            "is_active": true
+        }
+    ],
+    "leave_applications": [
+        {
+            "staff": "EMP001",
+            "leave_type": "CL",
+            "start_date": "2024-01-20",
+            "end_date": "2024-01-21",
+            "reason": "Personal work",
+            "contact_address": "123 Main Street, Delhi",
+            "contact_number": "+919876543212",
+            "work_handover_to": null,
+            "handover_notes": "Lesson plans shared with substitute teacher",
+            "status": "APPROVED",
+            "approved_by": "admin",
+            "approval_remarks": "Approved as per policy"
+        }
+    ],
+    "leave_balances": [
+        {
+            "staff": "EMP001",
+            "leave_type": "CL",
+            "year": 2024,
+            "total_entitled": 12,
+            "used_days": 2,
+            "carried_forward": 0,
+            "adjusted_days": 0
+        }
+    ]
+}

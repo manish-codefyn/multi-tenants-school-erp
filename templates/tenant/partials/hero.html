@@ -1,0 +1,228 @@
+<!-- Hero Section -->
+<section class="hero-section" style="background: linear-gradient(rgba(13, 110, 253, 0.5), rgba(13, 110, 253, 0.2)), url('static/public/img/1.png') center/cover;">
+    <div class="container">
+        <div class="row align-items-center min-vh-80">
+            <div class="col-lg-8 mx-auto text-center text-white">
+                <!-- Badge -->
+                <div class="mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <span class="badge bg-white text-primary fs-6 px-4 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-star-fill me-2"></i>{{ tenant.get_type_display }}
+                    </span>
+                </div>
+                
+                <!-- Main Heading -->
+                <h1 class="display-4 fw-bold mb-3" data-aos="fade-up" data-aos-delay="300">
+                    Welcome to 
+                    <span class="text-warning">{{ tenant.name }}</span>
+                </h1>
+                
+                <!-- Typing Animation -->
+                <div class="typing-container mb-4" data-aos="fade-up" data-aos-delay="400">
+                    <h2 class="lead fs-2 mb-2 opacity-90">
+                        {% if tenant.motto %}{{ tenant.motto }}{% else %}We Provide {% endif %}
+                    </h2>
+                    <div class="typing-text">
+                        <span class="typed-text text-warning fw-bold"></span>
+                        <span class="cursor">&nbsp;</span>
+                    </div>
+                </div>
+                
+                <!-- Features List -->
+                <div class="row justify-content-center mb-5" data-aos="fade-up" data-aos-delay="500">
+                    <div class="col-md-10">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3 feature-card">
+                                    <i class="bi bi-people-fill fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">{{ tenant.max_students }}+</div>
+                                        <small class="opacity-90">Students</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3 feature-card">
+                                    <i class="bi bi-person-badge fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">{{ tenant.max_teachers }}+</div>
+                                        <small class="opacity-90">Teachers</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center justify-content-center p-3 bg-white bg-opacity-10 rounded-3 feature-card">
+                                    <i class="bi bi-grid-3x3-gap fs-2 text-warning me-3"></i>
+                                    <div class="text-start">
+                                        <div class="fw-semibold">{{ tenant.enabled_modules.count }}+</div>
+                                        <small class="opacity-90">Modules</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CTA Buttons -->
+                <div class="hero-buttons" data-aos="fade-up" data-aos-delay="600">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'login' %}" class="btn btn-light btn-lg me-3 px-4 py-3 fw-semibold">
+                            <i class="bi bi-arrow-right-circle me-2"></i>Login to Your Account
+                        </a>
+                    {% else %}
+                        <a href="" class="btn btn-light btn-lg me-3 px-4 py-3 fw-semibold">
+                            <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                        </a>
+                    {% endif %}
+                    <a href="" class="btn btn-outline-light btn-lg px-4 py-3 fw-semibold">
+                        <i class="bi bi-pencil-square me-2"></i>Apply Now
+                    </a>
+                </div>
+                
+                <!-- Stats -->
+                <div class="row mt-5 pt-4 border-top border-white border-opacity-25" data-aos="fade-up" data-aos-delay="700">
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">{{ tenant.max_students }}+</h3>
+                            <small class="opacity-90">Student Capacity</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">{{ tenant.max_teachers }}+</h3>
+                            <small class="opacity-90">Qualified Staff</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">{{ tenant.enabled_modules.count }}+</h3>
+                            <small class="opacity-90">Active Modules</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="text-center">
+                            <h3 class="fw-bold text-warning mb-1">99%</h3>
+                            <small class="opacity-90">Success Rate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Elements -->
+    <div class="floating-elements">
+        <div class="floating-element element-1">
+            <i class="bi bi-book-half text-white opacity-25"></i>
+        </div>
+        <div class="floating-element element-2">
+            <i class="bi bi-award text-white opacity-25"></i>
+        </div>
+        <div class="floating-element element-3">
+            <i class="bi bi-graph-up-arrow text-white opacity-25"></i>
+        </div>
+        <div class="floating-element element-4">
+            <i class="bi bi-mortarboard text-white opacity-25"></i>
+        </div>
+    </div>
+    
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <a href="#about" class="text-white">
+            <i class="bi bi-chevron-down fs-4"></i>
+        </a>
+    </div>
+</section>
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Typing Animation
+    class TypeWriter {
+        constructor(txtElement, words, wait = 3000) {
+            this.txtElement = txtElement;
+            this.words = words;
+            this.txt = '';
+            this.wordIndex = 0;
+            this.wait = parseInt(wait, 10);
+            this.type();
+            this.isDeleting = false;
+        }
+
+        type() {
+            // Current index of word
+            const current = this.wordIndex % this.words.length;
+            // Get full text of current word
+            const fullTxt = this.words[current];
+
+            // Check if deleting
+            if (this.isDeleting) {
+                // Remove char
+                this.txt = fullTxt.substring(0, this.txt.length - 1);
+            } else {
+                // Add char
+                this.txt = fullTxt.substring(0, this.txt.length + 1);
+            }
+
+            // Insert txt into element
+            this.txtElement.innerHTML = `<span class="typed-text">${this.txt}</span>`;
+
+            // Initial Type Speed
+            let typeSpeed = 100;
+
+            if (this.isDeleting) {
+                typeSpeed /= 2;
+            }
+
+            // If word is complete
+            if (!this.isDeleting && this.txt === fullTxt) {
+                // Make pause at end
+                typeSpeed = this.wait;
+                // Set delete to true
+                this.isDeleting = true;
+            } else if (this.isDeleting && this.txt === '') {
+                this.isDeleting = false;
+                // Move to next word
+                this.wordIndex++;
+                // Pause before start typing
+                typeSpeed = 500;
+            }
+
+            setTimeout(() => this.type(), typeSpeed);
+        }
+    }
+
+    // Get tenant type and set appropriate words
+    const tenantType = "{{ tenant.get_type_display|lower }}";
+    let words = [];
+    
+    // Set words based on tenant type
+    switch(tenantType) {
+        case 'school':
+            words = ['Quality Education', 'Student Development', 'Academic Excellence', 'Future Leaders'];
+            break;
+        case 'college':
+            words = ['Higher Education', 'Career Development', 'Professional Skills', 'Academic Excellence'];
+            break;
+        case 'university':
+            words = ['Research Excellence', 'Higher Learning', 'Global Education', 'Innovation Hub'];
+            break;
+        case 'coaching institute':
+            words = ['Exam Preparation', 'Skill Development', 'Career Guidance', 'Success Coaching'];
+            break;
+        default:
+            words = ['Quality Education', 'Student Success', 'Academic Excellence', 'Future Ready'];
+    }
+
+    // Init TypeWriter
+    const txtElement = document.querySelector('.typed-text');
+    if (txtElement) {
+        new TypeWriter(txtElement, words, 2000);
+    }
+
+    // Floating elements animation
+    const floatingElements = document.querySelectorAll('.floating-element');
+    floatingElements.forEach((element, index) => {
+        element.style.animationDelay = `${index * 1.5}s`;
+    });
+});
+</script>
+{% endblock %}

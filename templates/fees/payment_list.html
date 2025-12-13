@@ -1,0 +1,111 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Fee Payments{% endblock %}
+
+{% block extra_css %}
+{% include \'includes/datatable_styles.html\' %}
+{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Fee Management</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'fees:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Payments</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="ms-auto">
+                <a href="{% url 'fees:payment_create' %}" class="btn btn-primary">
+                    <i class="bx bx-plus"></i> Record Payment
+                </a>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <h5 class="mb-0">Fee Payments</h5>
+                </div>
+
+                {% if payments %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Receipt No</th>
+                                <th>Student</th>
+                                <th>Amount</th>
+                                <th>Payment Mode</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                <td><code>{{ payment.receipt_number }}</code></td>
+                                <td>{{ payment.student_account.student.get_full_name }}</td>
+                                <td><strong class="text-success">₹{{ payment.amount|floatformat:2 }}</strong></td>
+                                <td>{{ payment.get_payment_mode_display }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ payment.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'fees:payment_detail' payment.pk %}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="View">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="bx bx-info-circle"></i> No payments found.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

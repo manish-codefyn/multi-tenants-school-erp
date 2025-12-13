@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Two-Factor Authentication | {{ block.super }}{% endblock %}
+
+{% block body_content %}
+<div class="wrapper">
+    <div class="authentication-header"></div>
+    <div class="section-authentication-signin d-flex align-items-center justify-content-center my-5 my-lg-0">
+        <div class="container-fluid">
+            <div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3">
+                <div class="col mx-auto">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="border p-4 rounded">
+                                <div class="text-center">
+                                    <h3 class="">Two-Factor Authentication</h3>
+                                    <p>Please enter the verification code from your authenticator app.</p>
+                                </div>
+                                <div class="form-body">
+                                    <form class="row g-3" method="post">
+                                        {% csrf_token %}
+                                        <div class="col-12">
+                                            <label for="code" class="form-label">Verification Code</label>
+                                            <input type="text" class="form-control" id="code" name="code" placeholder="Enter 6-digit code" required autofocus autocomplete="off" pattern="[0-9]*" inputmode="numeric">
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="d-grid">
+                                                <button type="submit" class="btn btn-primary"><i class="bx bx-check-shield"></i>Verify</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

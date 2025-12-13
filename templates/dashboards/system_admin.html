@@ -1,0 +1,347 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} | {{ block.super }}{% endblock %}
+
+{% block content %}
+
+
+        <!-- Welcome Banner -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h4 class="mb-1">Welcome back, {{ user.get_full_name }}!</h4>
+                                <p class="mb-0">System Administration Dashboard</p>
+                            </div>
+                            <div class="ms-auto">
+                                <i class="bx bx-server font-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Stats Cards -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+            <div class="col">
+                <div class="card radius-10 border-start border-0 border-3 border-info">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Total Users</p>
+                                <h4 class="my-1 text-info">{{ total_users }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto">
+                                <i class='bx bxs-group'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card radius-10 border-start border-0 border-3 border-danger">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Total Tenants</p>
+                                <h4 class="my-1 text-danger">{{ total_tenants }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto">
+                                <i class='bx bxs-buildings'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card radius-10 border-start border-0 border-3 border-success">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Active Tenants</p>
+                                <h4 class="my-1 text-success">{{ active_tenants }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto">
+                                <i class='bx bxs-check-circle'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card radius-10 border-start border-0 border-3 border-warning">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">System Load</p>
+                                <h4 class="my-1 text-warning">{{ system_stats.cpu_usage }}%</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto">
+                                <i class='bx bxs-bar-chart-alt-2'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row">
+            <div class="col-12 col-lg-8">
+                <div class="card radius-10">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Tenant Growth (Last 12 Months)</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container-1">
+                            <canvas id="tenantGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="card radius-10">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">User Distribution</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container-2">
+                            <canvas id="userRoleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Data Tables -->
+        <div class="row">
+            <div class="col-12 col-lg-6">
+                <div class="card radius-10">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Recent Tenants</h6>
+                            </div>
+                            <div class="dropdown ms-auto">
+                                <a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class='bx bx-dots-horizontal-rounded font-22 text-option'></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'tenants:tenant_list' %}">View All</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'tenants:tenant_create' %}">Add New</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Tenant</th>
+                                        <th>Status</th>
+                                        <th>Plan</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tenant in recent_tenants %}
+                                    <tr>
+                                        <td>{{ tenant.name }}</td>
+                                        <td>
+                                            {% if tenant.status == 'active' %}
+                                                <span class="badge bg-light-success text-success w-100">Active</span>
+                                            {% elif tenant.status == 'suspended' %}
+                                                <span class="badge bg-light-danger text-danger w-100">Suspended</span>
+                                            {% else %}
+                                                <span class="badge bg-light-warning text-warning w-100">{{ tenant.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ tenant.plan|title }}</td>
+                                        <td>{{ tenant.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">No tenants found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="card radius-10">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Recent Users</h6>
+                            </div>
+                            <div class="dropdown ms-auto">
+                                <a class="dropdown-toggle dropdown-toggle-nocaret" href="#" data-bs-toggle="dropdown"><i class='bx bx-dots-horizontal-rounded font-22 text-option'></i>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'users:user_list' %}">View All</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Joined</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in recent_users %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="recent-product-img">
+                                                    <img src="{% if user.avatar %}{{ user.avatar.url }}{% else %}{% static 'assets/images/avatars/avatar-1.png' %}{% endif %}" alt="user">
+                                                </div>
+                                                <div class="ms-2">
+                                                    <h6 class="mb-1 font-14">{{ user.get_full_name|default:user.email }}</h6>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user.role|default:"User"|title }}</td>
+                                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center">No users found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h6 class="mb-0 text-uppercase">Quick Actions</h6>
+        <hr/>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+            {% for action in quick_actions %}
+            <div class="col">
+                <a href="" class="text-decoration-none">
+                    <div class="card radius-10">
+                        <div class="card-body text-center">
+                            <div class="widgets-icons rounded-circle mx-auto bg-light-primary text-primary mb-3">
+                                <i class='bx bx-{{ action.icon }}'></i>
+                            </div>
+                            <h5 class="my-3">{{ action.name }}</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+ 
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'assets/plugins/chartjs/js/Chart.min.js' %}"></script>
+<script>
+    // Tenant Growth Chart
+    var ctx1 = document.getElementById("tenantGrowthChart").getContext('2d');
+    var gradientStroke1 = ctx1.createLinearGradient(0, 0, 0, 300);
+    gradientStroke1.addColorStop(0, '#6078ea');
+    gradientStroke1.addColorStop(1, '#17c5ea');
+
+    var tenantGrowthChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: {{ tenant_growth_labels|safe }},
+            datasets: [{
+                label: 'New Tenants',
+                data: {{ tenant_growth_data|safe }},
+                borderColor: gradientStroke1,
+                backgroundColor: gradientStroke1,
+                hoverBackgroundColor: gradientStroke1,
+                pointRadius: 0,
+                fill: false,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            legend: {
+                position: 'bottom',
+                display: false,
+                labels: {
+                    boxWidth: 8
+                }
+            },
+            tooltips: {
+                displayColors: false,
+            },
+            scales: {
+                xAxes: [{
+                    barPercentage: .5
+                }]
+            }
+        }
+    });
+
+    // User Role Distribution Chart
+    var ctx2 = document.getElementById("userRoleChart").getContext('2d');
+    var gradientStroke2 = ctx2.createLinearGradient(0, 0, 0, 300);
+    gradientStroke2.addColorStop(0, '#ff6a00');
+    gradientStroke2.addColorStop(1, '#ee0979');
+
+    var userRoleChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: {{ user_role_labels|safe }},
+            datasets: [{
+                data: {{ user_role_data|safe }},
+                backgroundColor: [
+                    '#ff6a00',
+                    '#ee0979',
+                    '#17c5ea',
+                    '#6078ea',
+                    '#4caf50',
+                    '#ffc107',
+                    '#795548'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            cutoutPercentage: 85,
+            legend: {
+                position: 'bottom',
+                display: true,
+                labels: {
+                    boxWidth: 8
+                }
+            },
+            tooltips: {
+                displayColors: false,
+            }
+        }
+    });
+</script>
+{% endblock %}

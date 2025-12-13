@@ -1,0 +1,129 @@
+{% load static compress tenant_tags %}
+
+<!DOCTYPE html>
+<html lang="en" data-tenant="{{ tenant.code }}" data-tenant-type="{{ tenant.type }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Dynamic Title -->
+    <title>{% block title %}{{ site_title|default:tenant.name }} — Modern School Management Portal{% endblock %}</title>
+
+    <!-- Dynamic Meta Tags -->
+    <meta name="description" content="{{ site_description }}">
+    <meta name="keywords" content="{{ site_keywords }}">
+    <meta name="author" content="{{ meta_author }}">
+    
+    <!-- Dynamic Favicon -->
+    {% if tenant.favicon %}
+        <link rel="icon" href="{{ tenant.favicon.url }}" type="image/x-icon">
+        <link rel="apple-touch-icon" href="{{ tenant.favicon.url }}">
+    {% else %}
+        <link rel="icon" href="{% static 'img/default-favicon.ico' %}" type="image/x-icon">
+    {% endif %}
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Dynamic Tenant Styles -->
+
+    <!-- Project CSS -->
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'css/styles.min.css' %}">
+    
+    <!-- Tenant-specific CSS -->
+
+    {% block extra_css %}{% endblock %}
+    {% endcompress %}
+</head>
+
+<body class="tenant-{{ tenant.type }} {% if tenant.enable_dark_mode %}dark-mode{% endif %}" style="{% if tenant.theme_color %}--bs-primary: {{ tenant.theme_color }}; --bs-primary-rgb: {{ tenant.theme_color|hex_to_rgb }};{% endif %}">
+    <!-- Dynamic Navbar -->
+    {% include "tenant/partials/navbar.html" %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Dynamic Footer -->
+    {% include "tenant/partials/footer.html" %}
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Google Analytics -->
+    {% if tenant.google_analytics_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ tenant.google_analytics_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ tenant.google_analytics_id }}', {
+            'custom_map': {
+                'dimension1': 'tenant_id',
+                'dimension2': 'tenant_type',
+                'dimension3': 'tenant_plan'
+            }
+        });
+        gtag('set', {
+            'tenant_id': '{{ tenant.code }}',
+            'tenant_type': '{{ tenant.type }}',
+            'tenant_plan': '{{ tenant.subscription_plan }}'
+        });
+    </script>
+    {% endif %}
+
+    <!-- Project JS -->
+    {% compress js %}
+    <script src="{% static 'js/main.min.js' %}"></script>
+    
+    <!-- Tenant-specific JavaScript -->
+    {% if tenant.custom_js %}
+    <script>
+        {{ tenant.custom_js }}
+    </script>
+    {% endif %}
+
+    <!-- Initialize AOS with tenant context -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize AOS
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 800,
+                    once: true,
+                    offset: 100
+                });
+            }
+            
+            // Tenant-specific initialization
+            const tenantConfig = {
+                code: '{{ tenant.code }}',
+                type: '{{ tenant.type }}',
+                themeColor: '{{ tenant.theme_color|default:"#3B82F6" }}',
+                features: {
+                    darkMode: {% if tenant.enable_dark_mode %}true{% else %}false{% endif %},
+                    onlineClasses: {% if tenant.enable_online_classes %}true{% else %}false{% endif %},
+                    onlinePayments: {% if tenant.enable_online_payments %}true{% else %}false{% endif %}
+                }
+            };
+            
+            // Make tenant config available globally
+            window.tenantConfig = tenantConfig;
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+    {% endcompress %}
+</body>
+</html>
