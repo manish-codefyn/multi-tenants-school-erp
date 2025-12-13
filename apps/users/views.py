@@ -24,7 +24,7 @@ from .forms import (
 )
 from django.core.exceptions import ValidationError
 from apps.core.permissions.mixins import PermissionRequiredMixin
-from apps.core.utils.tenant import get_current_tenant
+from apps.core.utils.tenant import get_current_tenant 
 
 
 class UserDashboardView(BaseTemplateView):

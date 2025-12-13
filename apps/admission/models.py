@@ -380,6 +380,16 @@ class OnlineApplication(BaseModel):
         ("AB+", "AB+"),
         ("AB-", "AB-"),
     )
+    RELIGION_CHOICES = [
+        ('hindu', _('Hindu')),
+        ('muslim', _('Muslim')),
+        ('christian', _('Christian')),
+        ('sikh', _('Sikh')),
+        ('buddhist', _('Buddhist')),
+        ('jain', _('Jain')),
+        ('other', _('Other')),
+    ]
+
 
     # Application Identification
     application_number = models.CharField(
@@ -415,8 +425,12 @@ class OnlineApplication(BaseModel):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name=_("Category"))
     blood_group = models.CharField(max_length=3, choices=BLOOD_GROUPS, blank=True, verbose_name=_("Blood Group"))
     nationality = models.CharField(max_length=50, default="Indian", verbose_name=_("Nationality"))
-    religion = models.CharField(max_length=50, blank=True, verbose_name=_("Religion"))
-    
+    religion = models.CharField(
+        max_length=20,
+        choices=RELIGION_CHOICES,
+        blank=True,
+        verbose_name=_("Religion")
+    )
     # Student Medical Information
     has_medical_conditions = models.BooleanField(default=False, verbose_name=_("Has Medical Conditions"))
     medical_conditions = models.TextField(blank=True, verbose_name=_("Medical Conditions"))
@@ -466,13 +480,11 @@ class OnlineApplication(BaseModel):
         verbose_name=_("Previous Percentage/CGPA")
     )
     previous_board = models.CharField(max_length=100, blank=True, verbose_name=_("Board/University"))
-    passing_year = models.PositiveIntegerField(
-        validators=[MinValueValidator(1900), MaxValueValidator(2100)],
+    passing_year = models.DateField(
         null=True,
         blank=True,
         verbose_name=_("Year of Passing")
     )
-    
     # School Specific Information
     house_choice = models.CharField(max_length=50, blank=True, verbose_name=_("House Preference"))
     transport_required = models.BooleanField(default=False, verbose_name=_("School Transport Required"))

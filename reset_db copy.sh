@@ -64,25 +64,6 @@ echo "4. Applying Django migrations..."
 run_cmd "python manage.py makemigrations"
 run_cmd "python manage.py migrate_schemas"
 
-# 5. Tenant setup & dummy data
-echo ""
-echo "5. Loading tenants and initial data..."
-
-run_cmd "python manage.py load_tenants"
-
-run_cmd "python manage.py create_custom_superuser \
-    --target-schema dps_kolkata \
-    --user-email admin@dps.edu \
-    --user-password admin@123"
-
-run_cmd "python manage.py create_staff_user \
-    --target-schema dps_kolkata \
-    --user-email staff@example.com \
-    --user-password password123"
-
-run_cmd "python manage.py load_admission_dummy --tenant dps_kolkata"
-run_cmd "python manage.py load_students_dummy --tenant dps_kolkata --count 50"
-
 echo ""
 echo "============================================================"
 echo "ALL OPERATIONS COMPLETED SUCCESSFULLY!"

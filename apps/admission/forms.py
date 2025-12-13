@@ -218,12 +218,14 @@ class AdmissionApplicationForm(BaseForm):
                 'class': 'form-control',
                 'placeholder': _('e.g., CBSE, ICSE, State Board')
             }),
-            'passing_year': forms.NumberInput(attrs={
+           'passing_year': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'placeholder': _('YYYY'),
                 'min': '1900',
-                'max': str(timezone.now().year)
+                'max': str(timezone.now().year),
+                'step': '1'
             }),
+
             'has_medical_conditions': forms.CheckboxInput(attrs={
                 'class': 'form-check-input',
                 'data-action': 'change->admissions#toggleMedicalDetails'
@@ -590,14 +592,73 @@ class ApplicationStep2Form(forms.ModelForm):
         ]
 
 
+from django import forms
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from .models import OnlineApplication
+
+
 class ApplicationStep3Form(forms.ModelForm):
-    """Step 3: Academic Information"""
+    """
+    Step 3: Academic Information
+    """
+
     class Meta:
         model = OnlineApplication
         fields = [
-            'previous_school', 'previous_qualification',
-            'previous_percentage', 'previous_board', 'passing_year'
+            'previous_school',
+            'previous_qualification',
+            'previous_percentage',
+            'previous_board',
+            'passing_year',
         ]
+
+        widgets = {
+            'previous_school': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Name of Previous School'),
+            }),
+
+            'previous_qualification': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Previous Qualification'),
+            }),
+
+            'previous_percentage': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Percentage (%)'),
+                'min': '0',
+                'max': '100',
+                'step': '0.01',
+            }),
+
+            'previous_board': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': _('Education Board (CBSE / ICSE / State Board)'),
+            }),
+
+            # YEAR FIELD (frontend)
+         'passing_year': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'placeholder': _('YYYY'),
+                'max': str(timezone.now().year),
+                'step': '1',
+            }),
+        }
+
+        labels = {
+            'previous_school': _('Previous School'),
+            'previous_qualification': _('Qualification'),
+            'previous_percentage': _('Percentage'),
+            'previous_board': _('Board'),
+            'passing_year': _('Year of Passing'),
+        }
+
+        help_texts = {
+            'previous_percentage': _('Enter percentage obtained (e.g. 85.50)'),
+            'passing_year': _('Enter year of passing (YYYY)'),
+        }
 
 
 class AdmissionStatusCheckForm(forms.Form):
