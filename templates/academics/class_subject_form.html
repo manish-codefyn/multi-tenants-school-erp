@@ -1,0 +1,71 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static crispy_forms_tags %}
+{% load i18n %}
+
+{% block page_title %}
+    {% if object %}{% trans "Edit Subject Allocation" %}{% else %}{% trans "Assign Subject" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    {% if object %}{% trans "Edit Allocation" %}{% else %}{% trans "New Subject Allocation" %}{% endif %}
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.class_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.academic_year|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.subject|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.teacher|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.periods_per_week|as_crispy_field }}
+                        </div>
+                         <div class="col-md-6 mb-3 d-flex align-items-center">
+                             <div class="form-check form-switch mt-3">
+                                {{ form.is_compulsory }}
+                                <label class="form-check-label" for="{{ form.is_compulsory.id_for_label }}">
+                                    {{ form.is_compulsory.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        {% if object %}
+                             <a href="{% url 'academics:class_detail' object.class_name.pk %}" class="btn btn-secondary">
+                        {% else %}
+                             <a href="{% url 'academics:class_subject_list' %}" class="btn btn-secondary">
+                        {% endif %}
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save"></i> {% trans "Save" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

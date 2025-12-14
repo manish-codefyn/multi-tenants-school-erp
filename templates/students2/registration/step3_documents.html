@@ -23,7 +23,7 @@
                     </div>
                 </div>
 
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
                     
                     <div class="row g-4">
@@ -39,12 +39,17 @@
                     </div>
                     
                     <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                        <a href="{% url 'students:student_detail' student.id %}" class="btn btn-light btn-lg px-4 text-muted">
-                            {% trans "Skip & Finish" %}
+                        <a href="{% url 'students:registration_step2' student.id %}" class="btn btn-outline-secondary btn-lg px-4">
+                            <i class="fas fa-arrow-left ms-2"></i> {% trans "Back" %}
                         </a>
-                        <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm">
-                            {% trans "Complete Registration" %} <i class="fas fa-check-circle ms-2"></i>
-                        </button>
+                        <div>
+                             <button type="submit" name="skip" class="btn btn-light btn-lg me-2 px-4">
+                                {% trans "Skip & Finish" %}
+                            </button>
+                            <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm">
+                                <i class="fas fa-check-circle me-2"></i>{% trans "Complete Registration" %}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

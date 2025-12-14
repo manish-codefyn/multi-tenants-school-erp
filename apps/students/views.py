@@ -12,13 +12,14 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction, IntegrityError
+from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponse, FileResponse, Http404, JsonResponse
 from django.urls import reverse_lazy
 
 # Core imports
-from apps.core.views import BaseView, BaseListView, BaseCreateView, BaseUpdateView, BaseDeleteView,BaseDetailView
+from apps.core.views import BaseView, BaseListView, BaseCreateView, BaseUpdateView, BaseDeleteView,BaseDetailView, BaseTemplateView
 from apps.core.services.audit_service import AuditService
 from apps.core.middleware.tenant import get_dynamic_tenant
 from apps.core.permissions.mixins import ( PermissionRequiredMixin, RoleRequiredMixin, 
@@ -27,16 +28,162 @@ RoleBasedViewMixin,TenantRequiredMixin )
 
 # Model imports
 from apps.academics.models import AcademicYear, SchoolClass, Section, Stream
-from .models import Student, Guardian, StudentAddress, StudentDocument
-from .forms import StudentForm, GuardianForm, StudentDocumentForm, StudentFilterForm
+from .models import Student, Guardian, StudentAddress, StudentDocument, StudentMedicalInfo
+from .forms import (
+    StudentBasicForm, GuardianForm, StudentAddressForm, 
+    StudentMedicalInfoForm, StudentDocumentForm, StudentIdentificationForm,
+    StudentTransportForm, StudentHostelForm, StudentHistoryForm,
+    StudentFilterForm, StudentStatusForm, StudentClassForm
+)
 from .idcard import StudentIDCardGenerator
+
+# Import models for new sections
+from apps.transportation.models import TransportAllocation
+from apps.hostel.models import HostelAllocation
+from apps.students.models import StudentAcademicHistory, StudentIdentification
 
 
 # ============================================================================
 # DASHBOARD VIEWS
 # ============================================================================
 
-class StudentDashboardView(BaseView):
+# ============================================================================
+# ONBOARDING & REGISTRATION VIEWS
+# ============================================================================
+
+class StudentOnboardingView(BaseDetailView):
+    """
+    Central hub for student registration progress.
+    Displays completion status of all steps and links to edit/add them.
+    """
+    model = Student
+    template_name = 'students/onboarding.html'
+    permission_required = 'students.view_student'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        student = self.object
+        
+        # Calculate completion status for each step
+        steps = [
+            {
+                'id': 'basic',
+                'title': _('Basic Information'),
+                'is_completed': True, # Always true if we exist
+                'url': reverse_lazy('students:student_update_basic', kwargs={'pk': student.pk}),
+                'icon': 'bx bx-user'
+            },
+            {
+                'id': 'guardian',
+                'title': _('Guardian Details'),
+                'is_completed': student.guardians.exists(),
+                'url': reverse_lazy('students:guardian_create', kwargs={'student_id': student.pk}) if not student.guardians.exists() else reverse_lazy('students:guardian_update', kwargs={'student_id': student.pk, 'guardian_id': student.guardians.first().id}),
+                'icon': 'bx bx-user-shield'
+            },
+            {
+                'id': 'address',
+                'title': _('Address Details'),
+                'is_completed': student.addresses.exists(),
+                'url': reverse_lazy('students:address_create', kwargs={'student_id': student.pk}), # Address management usually handled via list in create view
+                'icon': 'bx bx-map-marker'
+            },
+            {
+                'id': 'medical',
+                'title': _('Medical Information'),
+                'is_completed': hasattr(student, 'medical_info'),
+                'url': reverse_lazy('students:medical_create', kwargs={'student_id': student.pk}) if not hasattr(student, 'medical_info') else reverse_lazy('students:medical_update', kwargs={'student_id': student.pk, 'pk': student.medical_info.id}),
+                'icon': 'bx bx-heartbeat'
+            },
+            {
+                'id': 'documents',
+                'title': _('Documents'),
+                'is_completed': student.documents.exists(),
+                'url': reverse_lazy('students:document_upload', kwargs={'student_id': student.pk}),
+                'icon': 'bx bx-file-upload'
+            },
+            {
+                'id': 'identification',
+                'title': _('Identification'),
+                'is_completed': hasattr(student, 'identification') and student.identification.has_complete_identification,
+                'url': reverse_lazy('students:identity_create', kwargs={'student_id': student.pk}) if not hasattr(student, 'identification') else reverse_lazy('students:identity_update', kwargs={'student_id': student.pk, 'pk': student.identification.id}),
+                'icon': 'bx bx-id-card'
+            },
+            {
+                'id': 'transport',
+                'title': _('Transport'),
+                'is_completed': hasattr(student, 'transport_allocation') and student.transport_allocation.is_active,
+                'url': reverse_lazy('students:transport_create', kwargs={'student_id': student.pk}) if not hasattr(student, 'transport_allocation') else reverse_lazy('students:transport_update', kwargs={'student_id': student.pk, 'pk': student.transport_allocation.id}),
+                'icon': 'bx bx-bus',
+                'optional': True
+            },
+            {
+                'id': 'hostel',
+                'title': _('Hostel'),
+                'is_completed': hasattr(student, 'hostel_allocation') and student.hostel_allocation.is_active,
+                'url': reverse_lazy('students:hostel_create', kwargs={'student_id': student.pk}) if not hasattr(student, 'hostel_allocation') else reverse_lazy('students:hostel_update', kwargs={'student_id': student.pk, 'pk': student.hostel_allocation.id}),
+                'icon': 'bx bx-bed',
+                'optional': True
+            },
+             {
+                'id': 'history',
+                'title': _('Academic History'),
+                'is_completed': student.academic_history.exists(),
+                'url': reverse_lazy('students:history_create', kwargs={'student_id': student.pk}),
+                'icon': 'bx bx-history',
+                'optional': True
+            }
+        ]
+        
+        # Calculate progress
+        required_steps = [s for s in steps if not s.get('optional')]
+        completed_required = len([s for s in required_steps if s['is_completed']])
+        progress = (completed_required / len(required_steps) * 100) if required_steps else 0
+        
+        context['steps'] = steps
+        context['progress'] = progress
+        context['is_ready_for_review'] = progress == 100
+        
+        return context
+
+class StudentBasicCreateView(BaseCreateView):
+    """Step 1: Create Basic Student Information"""
+    model = Student
+    form_class = StudentBasicForm
+    template_name = 'students/forms/basic_info.html'
+    permission_required = 'students.add_student'
+
+    def form_valid(self, form):
+        form.instance.tenant = self.request.tenant
+        self.object = form.save()
+        
+        # Log creation
+        AuditService.log_creation(
+            user=self.request.user,
+            instance=self.object,
+            request=self.request,
+            extra_data={'created_via': 'onboarding_v2'}
+        )
+        
+        messages.success(self.request, _("Student basic information saved. Please continue with onboarding."))
+        return redirect('students:student_onboarding', pk=self.object.pk)
+
+class StudentBasicUpdateView(BaseUpdateView):
+    """Edit Basic Student Information"""
+    model = Student
+    form_class = StudentBasicForm
+    template_name = 'students/forms/basic_info.html'
+    permission_required = 'students.change_student'
+
+    def get_queryset(self):
+        return Student.get_secure_queryset(self.request.user)
+
+    def get_success_url(self):
+        messages.success(self.request, _("Basic information updated."))
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.object.pk})
+
+
+
+class StudentDashboardView(BaseTemplateView):
     """Comprehensive student dashboard with analytics"""
     template_name = 'students/dashboard.html'
     permission_required = 'students.view_student_dashboard'
@@ -239,104 +386,6 @@ class StudentDetailView(BaseDetailView):
             return []
 
 
-class StudentCreateView(BaseCreateView):
-    """Secure student creation with tenant and audit integration"""
-    form_class = StudentForm
-    model = Student 
-    template_name = 'students/student_form.html'
-    permission_required = 'students.add_student'
-    success_url = reverse_lazy('students:student_list')
-    
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['tenant'] = self.request.tenant
-        kwargs['user'] = self.request.user
-        return kwargs
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('Add New Student')
-        context['is_create'] = True
-        return context
-    
-    def form_valid(self, form):
-        # Save but don't commit yet
-        student = form.save(commit=False)
-
-        # IMPORTANT: Assign tenant BEFORE clean() or save() runs
-        student.tenant = self.request.tenant
-
-        # Save to DB
-        student.save()
-
-        # Now save M2M fields if any
-        form.save_m2m()
-
-        # Log creation
-        AuditService.log_creation(
-            user=self.request.user,
-            instance=student,
-            request=self.request,
-            extra_data={'created_via': 'web_form'}
-        )
-
-        messages.success(
-            self.request,
-            f"Student {student.full_name} created successfully!"
-        )
-
-        return redirect(self.get_success_url())
-
-
-class StudentUpdateView(BaseUpdateView):
-    """Secure student update with tenant isolation and audit logging"""
-    form_class = StudentForm
-    template_name = 'students/student_form.html'
-    permission_required = 'students.change_student'
-    
-    def get_object(self):
-        return get_object_or_404(
-            Student.get_secure_queryset(self.request.user),
-            id=self.kwargs.get('pk')
-        )
-    
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['tenant'] = self.request.tenant
-        return kwargs
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = _('Edit Student')
-        context['is_create'] = False
-        return context
-    
-    def form_valid(self, form):
-        """Capture changes and audit the update"""
-        old_instance = Student.objects.get(id=form.instance.id)
-        
-        response = super().form_valid(form)
-        
-        # Log the update with changes
-        AuditService.log_update(
-            user=self.request.user,
-            instance=form.instance,
-            old_instance=old_instance,
-            request=self.request,
-            extra_data={'updated_via': 'web_form'}
-        )
-        
-        messages.success(
-            self.request,
-            f"Student {form.instance.full_name} updated successfully!"
-        )
-        
-        return response
-    
-    def get_success_url(self):
-        return reverse_lazy('students:student_detail', kwargs={'pk': self.object.id})
-
-
 class StudentDeleteView(BaseDeleteView):
     """Secure student deletion with soft delete and audit logging"""
     template_name = 'students/student_confirm_delete.html'
@@ -392,14 +441,226 @@ class StudentDeleteView(BaseDeleteView):
         return reverse_lazy('students:student_list')
 
 
+    def get_success_url(self):
+        messages.success(self.request, _("Basic information updated."))
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.object.pk})
+
+class AddressCreateView(BaseCreateView):
+    """Create Address"""
+    model = StudentAddress
+    form_class = StudentAddressForm
+    template_name = 'students/forms/address_form.html'
+    permission_required = 'students.add_student'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['student'] = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        return context
+
+    def form_valid(self, form):
+        student = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        form.instance.student = student
+        form.instance.tenant = self.request.tenant
+        self.object = form.save()
+        messages.success(self.request, _("Address saved successfully."))
+        return redirect('students:student_onboarding', pk=student.pk)
+
+class AddressUpdateView(BaseUpdateView):
+    """Update Address"""
+    model = StudentAddress
+    form_class = StudentAddressForm
+    template_name = 'students/forms/address_form.html'
+    permission_required = 'students.change_student'
+
+    def get_queryset(self):
+        return StudentAddress.objects.filter(student__tenant=self.request.tenant)
+
+    def get_success_url(self):
+        messages.success(self.request, _("Address updated successfully."))
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.object.student.pk})
+
+class MedicalInfoCreateView(BaseCreateView):
+    """Create Medical Info"""
+    model = StudentMedicalInfo
+    form_class = StudentMedicalInfoForm
+    template_name = 'students/forms/medical_form.html'
+    permission_required = 'students.add_student'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['student'] = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        return context
+
+    def form_valid(self, form):
+        student = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        form.instance.student = student
+        form.instance.tenant = self.request.tenant
+        self.object = form.save()
+        messages.success(self.request, _("Medical information saved."))
+        return redirect('students:student_onboarding', pk=student.pk)
+
+class MedicalInfoUpdateView(BaseUpdateView):
+    """Update Medical Info"""
+    model = StudentMedicalInfo
+    form_class = StudentMedicalInfoForm
+    template_name = 'students/forms/medical_form.html'
+    permission_required = 'students.change_student'
+
+    def get_queryset(self):
+        return StudentMedicalInfo.objects.filter(student__tenant=self.request.tenant)
+
+    def get_success_url(self):
+        messages.success(self.request, _("Medical information updated."))
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.object.student.pk})
+
+class StudentTransportCreateView(BaseCreateView):
+    """Create Transport Allocation"""
+    model = TransportAllocation
+    form_class = StudentTransportForm
+    template_name = 'students/forms/transport_form.html'
+    permission_required = 'students.add_student'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['student'] = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        return context
+
+    def form_valid(self, form):
+        student = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        form.instance.student = student
+        form.instance.tenant = self.request.tenant
+        # Fee defaults could be set here based on route
+        self.object = form.save()
+        messages.success(self.request, _("Transport allocated successfully."))
+        return redirect('students:student_onboarding', pk=student.pk)
+
+class StudentTransportUpdateView(BaseUpdateView):
+    """Update Transport Allocation"""
+    model = TransportAllocation
+    form_class = StudentTransportForm
+    template_name = 'students/forms/transport_form.html'
+    permission_required = 'students.change_student'
+
+    def get_queryset(self):
+        return TransportAllocation.objects.filter(student__tenant=self.request.tenant)
+
+    def get_success_url(self):
+        messages.success(self.request, _("Transport allocation updated."))
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.object.student.pk})
+
+
+class StudentHostelCreateView(BaseCreateView):
+    """Create Hostel Allocation"""
+    model = HostelAllocation
+    form_class = StudentHostelForm
+    template_name = 'students/forms/hostel_form.html'
+    permission_required = 'students.add_student'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['student'] = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        return context
+
+    def form_valid(self, form):
+        student = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        form.instance.student = student
+        form.instance.tenant = self.request.tenant
+        self.object = form.save()
+        messages.success(self.request, _("Hostel allocated successfully."))
+        return redirect('students:student_onboarding', pk=student.pk)
+
+class StudentHostelUpdateView(BaseUpdateView):
+    """Update Hostel Allocation"""
+    model = HostelAllocation
+    form_class = StudentHostelForm
+    template_name = 'students/forms/hostel_form.html'
+    permission_required = 'students.change_student'
+
+    def get_queryset(self):
+        return HostelAllocation.objects.filter(student__tenant=self.request.tenant)
+
+    def get_success_url(self):
+        messages.success(self.request, _("Hostel allocation updated."))
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.object.student.pk})
+
+
+class StudentHistoryCreateView(BaseCreateView):
+    """Add Academic History Record"""
+    model = StudentAcademicHistory
+    form_class = StudentHistoryForm
+    template_name = 'students/forms/history_form.html'
+    permission_required = 'students.add_student'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['student'] = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        return context
+
+    def form_valid(self, form):
+        student = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        form.instance.student = student
+        form.instance.tenant = self.request.tenant
+        self.object = form.save()
+        messages.success(self.request, _("Academic history added."))
+        return redirect('students:student_onboarding', pk=student.pk)
+
+class StudentHistoryUpdateView(BaseUpdateView):
+    """Update Academic History Record"""
+    model = StudentAcademicHistory
+    form_class = StudentHistoryForm
+    template_name = 'students/forms/history_form.html'
+    permission_required = 'students.change_student'
+
+    def get_queryset(self):
+        return StudentAcademicHistory.objects.filter(student__tenant=self.request.tenant)
+
+    def get_success_url(self):
+        messages.success(self.request, _("Academic history updated."))
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.object.student.pk})
+
+
+class StudentIdentificationCreateView(BaseCreateView):
+    """Create Identification Details"""
+    model = StudentIdentification
+    form_class = StudentIdentificationForm
+    template_name = 'students/forms/identification_form.html'
+    permission_required = 'students.add_student'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['student'] = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        return context
+
+    def form_valid(self, form):
+        student = get_object_or_404(Student.get_secure_queryset(self.request.user), pk=self.kwargs['student_id'])
+        form.instance.student = student
+        form.instance.tenant = self.request.tenant
+        self.object = form.save()
+        messages.success(self.request, _("Identification details saved."))
+        return redirect('students:student_onboarding', pk=student.pk)
+
+class StudentIdentificationUpdateView(BaseUpdateView):
+    model = StudentIdentification
+    form_class = StudentIdentificationForm
+    template_name = 'students/forms/identification_form.html'
+    permission_required = 'students.change_student'
+
+    def get_queryset(self):
+        return StudentIdentification.objects.filter(student__tenant=self.request.tenant)
+
+    def get_success_url(self):
+        messages.success(self.request, _("Identification details updated."))
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.object.student.pk})
+
 # ============================================================================
 # GUARDIAN MANAGEMENT VIEWS
 # ============================================================================
 
 class GuardianCreateView(BaseCreateView):
     """Create guardian for student with tenant isolation"""
+    model = Guardian
     form_class = GuardianForm
-    template_name = 'students/guardian_form.html'
+    template_name = 'students/forms/guardian_form.html'
     permission_required = 'students.add_student'
     
     def get_context_data(self, **kwargs):
@@ -438,13 +699,14 @@ class GuardianCreateView(BaseCreateView):
         return response
     
     def get_success_url(self):
-        return reverse_lazy('students:student_detail', kwargs={'pk': self.kwargs['student_id']})
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.kwargs['student_id']})
 
 
 class GuardianUpdateView(BaseUpdateView):
     """Update guardian information"""
+    model = Guardian
     form_class = GuardianForm
-    template_name = 'students/guardian_form.html'
+    template_name = 'students/forms/guardian_form.html'
     permission_required = 'students.change_student'
     
     def get_object(self):
@@ -466,7 +728,7 @@ class GuardianUpdateView(BaseUpdateView):
         return context
     
     def get_success_url(self):
-        return reverse_lazy('students:student_detail', kwargs={'pk': self.kwargs['student_id']})
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.kwargs['student_id']})
 
 
 # ============================================================================
@@ -475,8 +737,9 @@ class GuardianUpdateView(BaseUpdateView):
 
 class DocumentUploadView(BaseCreateView):
     """Secure document upload with validation and audit"""
+    model = StudentDocument
     form_class = StudentDocumentForm
-    template_name = 'students/document_form.html'
+    template_name = 'students/forms/document_form.html'
     permission_required = 'students.add_student'
     
     def get_context_data(self, **kwargs):
@@ -518,7 +781,9 @@ class DocumentUploadView(BaseCreateView):
         return response
     
     def get_success_url(self):
-        return reverse_lazy('students:student_detail', kwargs={'pk': self.kwargs['student_id']})
+        return reverse_lazy('students:student_onboarding', kwargs={'pk': self.kwargs['student_id']})
+
+
 
 
 class DocumentDownloadView(BaseView):
@@ -557,11 +822,40 @@ class DocumentDownloadView(BaseView):
         return response
 
 
+class DocumentDeleteView(BaseDeleteView):
+    """Secure document deletion"""
+    model = StudentDocument
+    permission_required = 'students.delete_student'
+    
+    def get_object(self):
+        return get_object_or_404(
+            StudentDocument.objects.filter(tenant=self.request.tenant),
+            id=self.kwargs.get('pk')
+        )
+    
+    def delete(self, request, *args, **kwargs):
+        document = self.get_object()
+        student_id = document.student_id
+        
+        # Log deletion
+        AuditService.log_deletion(
+            user=request.user,
+            instance=document,
+            request=request,
+            extra_data={'student_id': str(student_id)}
+        )
+        
+        document.delete()
+        messages.success(request, _("Document deleted successfully."))
+        return redirect('students:student_onboarding', pk=student_id)
+
+
+
 # ============================================================================
 # BULK OPERATIONS VIEWS
 # ============================================================================
 
-class StudentBulkUploadView(BaseView):
+class StudentBulkUploadView(BaseTemplateView):
     """Comprehensive bulk upload with validation, error handling, and progress tracking"""
     template_name = 'students/student_bulk_upload.html'
     permission_required = 'students.add_student'
@@ -1303,7 +1597,7 @@ class StudentExportView(BaseView):
 # SPECIALIZED VIEWS
 # ============================================================================
 
-class StudentAcademicHistoryView(BaseView):
+class StudentAcademicHistoryView(BaseTemplateView):
     """View student academic history"""
     template_name = 'students/student_academic_history.html'
     permission_required = 'students.view_student'
@@ -1344,7 +1638,7 @@ class StudentAcademicHistoryView(BaseView):
         return context
 
 
-class StudentPromoteView(BaseView):
+class StudentPromoteView(BaseTemplateView):
     """Promote student to next class"""
     template_name = 'students/student_promote.html'
     permission_required = 'students.change_student'
@@ -1406,7 +1700,7 @@ class StudentPromoteView(BaseView):
         return redirect('students:student_detail', pk=student.id)
 
 
-class StudentReportView(BaseView):
+class StudentReportView(BaseTemplateView):
     """Generate student report"""
     template_name = 'students/student_report.html'
     permission_required = 'students.view_student'
@@ -1462,64 +1756,3 @@ class StudentIdCardView(BaseDetailView):
         generator = StudentIDCardGenerator(student)
         return generator.get_id_card_response()
 
-
-# ============================================================================
-# MULTI-STEP REGISTRATION VIEWS
-# ============================================================================
-
-class StudentRegistrationStep1View(StudentCreateView):
-    """Step 1: Student Information"""
-    template_name = 'students/registration/step1_student.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['step'] = 1
-        return context
-    
-    def get_success_url(self):
-        # Redirect to Step 2 with the created student ID
-        return reverse_lazy('students:registration_step2', kwargs={'student_id': self.object.id})
-
-
-class StudentRegistrationStep2View(GuardianCreateView):
-    """Step 2: Guardian Information"""
-    template_name = 'students/registration/step2_guardian.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['step'] = 2
-        return context
-        
-    def get_success_url(self):
-        # Redirect to Step 3
-        return reverse_lazy('students:registration_step3', kwargs={'student_id': self.kwargs['student_id']})
-
-
-class StudentRegistrationStep3View(DocumentUploadView):
-    """Step 3: Document Upload"""
-    template_name = 'students/registration/step3_documents.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['step'] = 3
-        # Pass document form explicitly if needed, but BaseCreateView handles 'form'
-        return context
-        
-    
-    def get_success_url(self):
-        # Final step - redirect to student detail
-        return reverse_lazy('students:student_detail', kwargs={'pk': self.kwargs['student_id']})
-    
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        
-        # Create user account after successful registration
-        try:
-            student = self.object.student
-            student.create_user_account()
-            messages.success(self.request, f"User account created for {student.full_name}")
-        except Exception as e:
-            logger.error(f"Failed to create user account: {e}")
-            messages.warning(self.request, "Student registered, but user account creation failed.")
-            
-        return response

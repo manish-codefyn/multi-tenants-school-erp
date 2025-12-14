@@ -1,0 +1,81 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Student Onboarding" %} - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{% trans "Student Onboarding" %}</h1>
+            <p class="text-muted mb-0">{% trans "Complete profile for" %} <strong>{{ student.full_name }}</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'students:student_list' %}" class="btn btn-outline-secondary">
+                <i class="bx bx-left-arrow me-2"></i>{% trans "Back to List" %}
+            </a>
+            {% if is_ready_for_review %}
+            <a href="{% url 'students:student_detail' pk=student.pk %}" class="btn btn-success">
+                <i class="bx bx-right-arrow me-2"></i>{% trans "Finish & View Profile" %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <h4 class="small font-weight-bold">{% trans "Profile Completion" %} <span class="float-end">{{ progress|floatformat:0 }}%</span></h4>
+            <div class="progress mb-4">
+                <div class="progress-bar bg-{{ progress|yesno:'danger,warning,success' }}" role="progressbar" style="width: {{ progress }}%"
+                    aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            {% if not is_ready_for_review %}
+            <div class="alert alert-info py-2 mb-0">
+                <i class="bx bx-info-circle me-2"></i>{% trans "Please complete all required sections to finish the onboarding process." %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Steps Grid -->
+    <div class="row">
+        {% for step in steps %}
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-{{ step.is_completed|yesno:'success,primary' }} shadow h-100 py-2 position-relative">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-{{ step.is_completed|yesno:'success,primary' }} text-uppercase mb-1">
+                                {{ step.title }}
+                                {% if step.optional %}
+                                <span class="badge bg-secondary text-white ms-2">{% trans "Optional" %}</span>
+                                {% endif %}
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if step.is_completed %}
+                                <span class="text-success"><i class="bx bx-check-circle me-1"></i> {% trans "Completed" %}</span>
+                                {% else %}
+                                <span class="text-secondary"><i class="bx bx-circle me-1"></i> {% trans "Pending" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="{{ step.icon }} fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <a href="{{ step.url }}" class="stretched-link"></a>
+                </div>
+                {% if not step.is_completed %}
+                <div class="card-footer bg-white border-0 pt-0">
+                    <small class="text-primary">{% trans "Click to add details" %} <i class="bx bx-arrow-right ms-1"></i></small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

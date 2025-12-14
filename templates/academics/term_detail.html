@@ -1,0 +1,59 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}{{ term.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">{% trans "Term Details" %}</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th class="ps-0">{% trans "Academic Year" %}</th>
+                        <td class="text-end">{{ term.academic_year.name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0">{% trans "Term Name" %}</th>
+                        <td class="text-end fw-bold">{{ term.name }}</td>
+                    </tr>
+                     <tr>
+                        <th class="ps-0">{% trans "Type" %}</th>
+                        <td class="text-end">{{ term.get_term_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0">{% trans "Start Date" %}</th>
+                        <td class="text-end">{{ term.start_date }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0">{% trans "End Date" %}</th>
+                        <td class="text-end">{{ term.end_date }}</td>
+                    </tr>
+                     <tr>
+                        <th class="ps-0">{% trans "Status" %}</th>
+                        <td class="text-end">
+                             {% if term.is_current %}
+                            <span class="badge bg-success">Current</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Archived</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                
+                <div class="d-grid gap-2 mt-3">
+                    {% if perms.academics.change_term %}
+                    <a href="{% url 'academics:term_update' term.pk %}" class="btn btn-primary">
+                        <i class="bx bx-edit"></i> {% trans "Edit" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -290,3 +290,89 @@ class StudentExportSerializer(serializers.ModelSerializer):
             'academic_year_name', 'status', 'category',
             'total_credits_earned', 'cumulative_grade_point'
         ]
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    """
+    Base serializer for Student (used for create/update/simple retrieve)
+    """
+    full_name = serializers.CharField(read_only=True)
+    age = serializers.IntegerField(read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = Student
+        fields = [
+            'id',
+
+            # Identity
+            'admission_number',
+            'roll_number',
+            'university_reg_no',
+
+            # Name
+            'first_name',
+            'middle_name',
+            'last_name',
+            'full_name',
+
+            # Personal
+            'date_of_birth',
+            'age',
+            'gender',
+            'blood_group',
+            'nationality',
+
+            # Contact
+            'personal_email',
+            'institutional_email',
+            'mobile_primary',
+            'mobile_secondary',
+
+            # Academic
+            'academic_year',
+            'current_class',
+            'section',
+            'current_semester',
+            'admission_type',
+            'enrollment_date',
+
+            # Status
+            'status',
+            'status_display',
+            'status_changed_date',
+
+            # Meta
+            'created_at',
+            'updated_at',
+        ]
+
+        read_only_fields = [
+            'tenant',
+            'user',
+            'admission_number',
+            'institutional_email',
+            'status_changed_date',
+            'created_at',
+            'updated_at',
+        ]
+
+    def validate_personal_email(self, value):
+        """
+        Ensure email uniqueness per tenant
+        """
+        tenant = self.context.get('tenant')
+        qs = Student.objects.filter(
+            personal_email=value,
+            tenant=tenant
+        )
+
+        if self.instance:
+            qs = qs.exclude(id=self.instance.id)
+
+        if qs.exists():
+            raise serializers.ValidationError(
+                _('A student with this email already exists')
+            )
+
+        return value

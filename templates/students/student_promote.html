@@ -1,27 +1,63 @@
 {% extends 'layouts/dashboard.html' %}
+{% load static %}
 {% load i18n %}
+{% load crispy_forms_tags %}
 
-{% block title %}
-    {% trans "Promote Student" %} | {{ block.super }}
-{% endblock %}
+{% block title %}{% trans "Promote Student" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">{% trans "Promote Student" %}: {{ student.full_name }}</h1>
-        </div>
-    </div>
-    
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">{% trans "Promotion Details" %}</h6>
-        </div>
-        <div class="card-body">
-            <p>{% trans "Promotion functionality coming soon." %}</p>
-            <p>{% trans "Current Class" %}: {{ student.current_class.name }}</p>
-            
-            <a href="{% url 'students:student_detail' student.id %}" class="btn btn-secondary">{% trans "Back to Student Profile" %}</a>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-transparent border-bottom">
+                <h5 class="mb-0">{% trans "Promote Student" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    {% if student.photo %}
+                    <img src="{{ student.photo.url }}" class="rounded-circle me-3" width="60" height="60" alt="">
+                    {% else %}
+                    <div class="rounded-circle bg-light-primary text-primary d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                        <span class="fs-4">{{ student.first_name|first }}</span>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h5 class="mb-1">{{ student.full_name }}</h5>
+                        <p class="mb-0 text-muted">
+                            {% trans "Current Class" %}: <strong>{{ student.current_class.name }}</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 bg-light-info">
+                    <div class="d-flex align-items-center">
+                        <div class="font-35 text-info"><i class='bx bx-info-circle'></i></div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-info">{% trans "Note" %}</h6>
+                            <div>{% trans "Promoting a student will update their current class and maintain a record in their academic history." %}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Promote To Class" %}</label>
+                        <select name="new_class_id" class="form-select" required>
+                            <option value="">{% trans "Select Next Class" %}</option>
+                            {% for cls in next_classes %}
+                            <option value="{{ cls.id }}">{{ cls.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">{% trans "Confirm Promotion" %}</button>
+                        <a href="{% url 'students:student_detail' pk=student.pk %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

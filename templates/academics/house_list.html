@@ -1,0 +1,67 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Houses" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "School Houses" %}</h5>
+                <div class="btn-group">
+                    <a href="{% url 'academics:house_points_list' %}" class="btn btn-outline-info">
+                        <i class="bx bx-trophy"></i> {% trans "Points Log" %}
+                    </a>
+                     {% if perms.academics.add_house %}
+                    <a href="{% url 'academics:house_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> {% trans "Add New House" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    {% for house in houses %}
+                    <div class="col-md-4 col-xl-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            {% if house.color %}
+                            <div class="card-img-top" style="height: 10px; background-color: {{ house.color }};"></div>
+                            {% endif %}
+                            <div class="card-body text-center">
+                                {% if house.logo %}
+                                <img src="{{ house.logo.url }}" class="rounded-circle mb-3 border p-1" width="80" height="80" alt="{{ house.name }}">
+                                {% else %}
+                                <div class="rounded-circle mb-3 bg-light d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="bx bx-home fs-1 text-secondary"></i>
+                                </div>
+                                {% endif %}
+                                <h5 class="card-title mb-1">{{ house.name }}</h5>
+                                <p class="text-muted small mb-2">{{ house.motto|default:"No Moto" }}</p>
+                                <h3 class="text-primary fw-bold mb-3">{{ house.total_points }} <small class="fs-6 text-muted">pts</small></h3>
+                                
+                                <p class="mb-3 small">
+                                    <span class="text-muted">Master:</span><br>
+                                    <strong>{{ house.house_master.get_full_name|default:"Not Assigned" }}</strong>
+                                </p>
+
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'academics:house_detail' house.pk %}" class="btn btn-outline-primary btn-sm">
+                                        {% trans "View Details" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center">
+                         <div class="alert alert-info">{% trans "No houses found." %}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

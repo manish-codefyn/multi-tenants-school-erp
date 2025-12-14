@@ -1,0 +1,108 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Bulk Upload Students" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-transparent border-bottom">
+                <h5 class="mb-0">{% trans "Bulk Student Upload" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info border-0 bg-light-info">
+                    <div class="d-flex align-items-center">
+                        <div class="font-35 text-info"><i class='bx bx-info-circle'></i></div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-info">{% trans "Instructions" %}</h6>
+                            <ul class="mb-0 ps-3">
+                                <li>{% trans "Upload a CSV or Excel file containing student data." %}</li>
+                                <li>{% trans "First Name and Last Name are required fields." %}</li>
+                                <li>{% trans "Dates should be in YYYY-MM-DD or DD-MM-YYYY format." %}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6>{% trans "1. Download Sample Template" %}</h6>
+                    <p class="text-muted">{% trans "Use one of the templates below to structure your data." %}</p>
+                    <div class="d-flex gap-2">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bx bx-download me-1"></i> {% trans "Simple Template" %}
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'students:bulk_upload_sample' %}?type=simple&format=csv">CSV</a></li>
+                                <li><a class="dropdown-item" href="{% url 'students:bulk_upload_sample' %}?type=simple&format=excel">Excel</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bx bx-download me-1"></i> {% trans "Detailed Template" %}
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'students:bulk_upload_sample' %}?type=detailed&format=csv">CSV</a></li>
+                                <li><a class="dropdown-item" href="{% url 'students:bulk_upload_sample' %}?type=detailed&format=excel">Excel</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="mb-4">
+                    <h6>{% trans "2. Upload Data" %}</h6>
+                    <form method="post" enctype="multipart/form-data" id="uploadForm">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Select File" %}</label>
+                            <input type="file" name="file" class="form-control" accept=".csv, .xls, .xlsx" required>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="update_existing" id="updateExisting">
+                                    <label class="form-check-label" for="updateExisting">
+                                        {% trans "Update existing students (match by email)" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="skip_errors" id="skipErrors" checked>
+                                    <label class="form-check-label" for="skipErrors">
+                                        {% trans "Skip rows with errors and continue" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Year Selection (Optional override) -->
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Academic Year" %}</label>
+                            <select name="academic_year" class="form-select">
+                                <option value="">{% trans "Use Default Current Year" %}</option>
+                                {% for year in academic_years %}
+                                <option value="{{ year.id }}">{{ year.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-upload me-1"></i> {% trans "Upload & Process" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

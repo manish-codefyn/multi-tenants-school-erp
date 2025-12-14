@@ -1,0 +1,111 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}{% trans "House Points Log" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "House Points Log" %}</h5>
+                <div class="btn-group">
+                     {% if perms.academics.add_housepoints %}
+                    <a href="{% url 'academics:house_points_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> {% trans "Award Points" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Filter -->
+                <form method="get" class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <select name="house_id" class="form-select">
+                            <option value="">{% trans "All Houses" %}</option>
+                            {% for house in houses %}
+                            <option value="{{ house.id }}" {% if request.GET.house_id == house.id|stringformat:"s" %}selected{% endif %}>
+                                {{ house.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                     <div class="col-md-3">
+                        <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}" placeholder="Start Date">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}" placeholder="End Date">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-secondary w-100">{% trans "Filter" %}</button>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table id="pointsTable" class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "House" %}</th>
+                                <th>{% trans "Activity" %}</th>
+                                <th>{% trans "Points" %}</th>
+                                <th>{% trans "Awarded By" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for point in house_points %}
+                            <tr>
+                                <td>{{ point.date_awarded }}</td>
+                                <td>
+                                    <strong>{{ point.house.name }}</strong>
+                                </td>
+                                <td>
+                                    {{ point.activity }}
+                                    {% if point.description %}
+                                    <i class="bx bx-info-circle text-muted" title="{{ point.description }}"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                     <span class="badge {% if point.points > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ point.points }}
+                                    </span>
+                                </td>
+                                <td>{{ point.awarded_by.get_full_name|default:"-" }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        {% if perms.academics.delete_housepoints %}
+                                        <a href="{% url 'academics:house_points_delete' point.pk %}" 
+                                           class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">{% trans "No points records found." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {% include "includes/datatable_scripts.html" %}
+    <script>
+        $(document).ready(function() {
+            $('#pointsTable').DataTable({
+                "pageLength": 25,
+                "order": [[0, "desc"]] // Sort by Date
+            });
+        });
+    </script>
+{% endblock %}

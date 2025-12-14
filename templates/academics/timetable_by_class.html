@@ -1,0 +1,108 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load academic_tags %} 
+{# Assuming we might have some custom tags, if not we will use standard logic #}
+
+{% block page_title %}{% trans "Class Timetable" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                         <h5 class="card-title mb-0">{% trans "Timetable View" %}</h5>
+                    </div>
+                    <div class="col-md-6">
+                        <form method="get" class="row g-2 justify-content-end">
+                            <div class="col-auto">
+                                <select name="class_id" class="form-select" required>
+                                    <option value="">{% trans "Select Class" %}</option>
+                                    {% for class_obj in classes %}
+                                    <option value="{{ class_obj.id }}" {% if current_class.id == class_obj.id %}selected{% endif %}>
+                                        {{ class_obj.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <select name="section_id" class="form-select">
+                                    <option value="">{% trans "All Sections" %}</option>
+                                    {% for section in sections %}
+                                    <option value="{{ section.id }}" {% if current_section.id == section.id %}selected{% endif %}>
+                                        {{ section.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary">{% trans "View" %}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if timetable_grid %}
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>{% trans "Period / Day" %}</th>
+                                {% for period in periods %}
+                                <th>
+                                    Period {{ period }}
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day, periods in timetable_grid.items %}
+                            <tr>
+                                <th class="align-middle bg-light">{{ day }}</th>
+                                {% for period_num, entry in periods.items %}
+                                <td class="align-middle">
+                                    {% if entry %}
+                                        <div class="p-2 border rounded bg-white shadow-sm">
+                                            {% if entry.period_type == 'LECTURE' %}
+                                                <strong class="text-primary d-block">{{ entry.subject.subject.name }}</strong>
+                                                <small class="text-muted d-block">{{ entry.teacher.get_full_name|default:"TBA" }}</small>
+                                            {% else %}
+                                                <strong class="text-secondary">{{ entry.get_period_type_display }}</strong>
+                                            {% endif %}
+                                            
+                                            <div class="small text-muted mt-1">
+                                                {{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}
+                                            </div>
+                                            {% if entry.room %}
+                                            <div class="badge bg-light text-dark border">{{ entry.room }}</div>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    {% if current_class %}
+                    <div class="alert alert-info text-center">
+                        {% trans "No timetable configuration found for this class selection." %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-secondary text-center">
+                        {% trans "Please select a class to view its timetable." %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

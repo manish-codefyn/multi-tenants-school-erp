@@ -1,31 +1,74 @@
-{% extends 'layouts/dashboard.html' %}
+<!DOCTYPE html>
+<html lang="en">
 {% load i18n %}
-
-{% block title %}
-    {% trans "Student Report" %} | {{ block.super }}
-{% endblock %}
-
-{% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0 text-gray-800">{% trans "Student Report" %}: {{ student.full_name }}</h1>
-        </div>
+<head>
+    <meta charset="UTF-8">
+    <title>{% trans "Student Report" %} - {{ student.full_name }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        .header p { margin: 5px 0; color: #666; }
+        .student-info { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .info-group { flex: 1; }
+        .info-label { font-weight: bold; color: #555; display: block; margin-bottom: 5px; }
+        .info-value { display: block; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 20px; }
+        @media print {
+            body { -webkit-print-color-adjust: exact; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: right; padding: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px;">{% trans "Print Report" %}</button>
     </div>
-    
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">{% trans "Generate Report" %}</h6>
+
+    <div class="container">
+        <div class="header">
+            <h1>{{ user.tenant.name }}</h1>
+            <p>{{ user.tenant.address }}</p>
+            <h2>{% trans "Student Report Card" %}</h2>
         </div>
-        <div class="card-body">
-            <p>{% trans "Report generation functionality coming soon." %}</p>
-            
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> {% trans "This feature will allow generating detailed academic and attendance reports." %}
+
+        <div class="student-info">
+            <div class="info-group">
+                <span class="info-label">{% trans "Name" %}</span>
+                <span class="info-value">{{ student.full_name }}</span>
+                
+                <span class="info-label">{% trans "Admission Number" %}</span>
+                <span class="info-value">{{ student.admission_number }}</span>
             </div>
-            
-            <a href="{% url 'students:student_detail' student.id %}" class="btn btn-secondary">{% trans "Back to Student Profile" %}</a>
+            <div class="info-group">
+                <span class="info-label">{% trans "Class" %}</span>
+                <span class="info-value">{{ student.current_class.name }} - {{ student.section.name }}</span>
+                
+                <span class="info-label">{% trans "Academic Year" %}</span>
+                <span class="info-value">{{ academic_year.name }}</span>
+            </div>
+            <div class="info-group" style="text-align: right;">
+                {% if student.photo %}
+                <img src="{{ student.photo.url }}" style="width: 100px; height: 100px; object-fit: cover; border: 1px solid #ddd;">
+                {% endif %}
+            </div>
+        </div>
+
+        <h3>{% trans "Academic Performance" %}</h3>
+        <!-- Note: This section would be populated with dynamic exam data if available in context -->
+        <!-- Currently using placeholders based on StudentReportView context -->
+        
+        <!-- Placeholder for later integration with Exams Module -->
+        <p class="text-muted"><em>{% trans "Detailed academic records for the current term." %}</em></p>
+
+        <div class="footer">
+            <p>{% trans "Generated on" %} {{ report_date|date:"F d, Y" }}</p>
+            <p>{% trans "This is a computer-generated document and requires no signature." %}</p>
         </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

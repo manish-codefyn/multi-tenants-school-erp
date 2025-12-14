@@ -1,0 +1,80 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Document Upload" %} - {% trans "Student Onboarding" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{% trans "Document Upload" %}</h1>
+            <p class="text-muted mb-0">{% trans "Upload Required Documents" %}</p>
+        </div>
+        <div>
+            {% if student %}
+            <a href="{% url 'students:student_onboarding' pk=student.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Onboarding" %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Upload New Document" %}</h6>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>{% trans "Upload" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Existing Documents List -->
+    {% if student.documents.exists %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Uploaded Documents" %}</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "File Name" %}</th>
+                            <th>{% trans "Upload Date" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in student.documents.all %}
+                        <tr>
+                            <td>{{ doc.get_doc_type_display }}</td>
+                            <td>{{ doc.file_name }}</td>
+                            <td>{{ doc.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'students:document_download' document_id=doc.id %}" class="btn btn-sm btn-info" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

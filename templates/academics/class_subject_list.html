@@ -1,0 +1,105 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Class Subjects" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Class Subject Allocations" %}</h5>
+                <div class="btn-group">
+                     {% if perms.academics.add_classsubject %}
+                    <a href="{% url 'academics:class_subject_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> {% trans "Assign Subject to Class" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                 <!-- Filter -->
+                <form method="get" class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <select name="class_id" class="form-select" onchange="this.form.submit()">
+                            <option value="">{% trans "All Classes" %}</option>
+                            {% for class_obj in classes %}
+                            <option value="{{ class_obj.id }}" {% if request.GET.class_id == class_obj.id|stringformat:"s" %}selected{% endif %}>
+                                {{ class_obj.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table id="classSubjectTable" class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Class" %}</th>
+                                <th>{% trans "Subject" %}</th>
+                                <th>{% trans "Teacher" %}</th>
+                                <th>{% trans "Periods/Week" %}</th>
+                                <th>{% trans "Compulsory" %}</th>
+                                <th>{% trans "Academic Year" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cs in class_subjects %}
+                            <tr>
+                                <td><strong>{{ cs.class_name.name }}</strong></td>
+                                <td>{{ cs.subject.name }}</td>
+                                <td>{{ cs.teacher.get_full_name|default:"-" }}</td>
+                                <td>{{ cs.periods_per_week }}</td>
+                                <td>
+                                    {% if cs.is_compulsory %}
+                                    <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ cs.academic_year.name }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        {% if perms.academics.change_classsubject %}
+                                        <a href="{% url 'academics:class_subject_update' cs.pk %}" 
+                                           class="btn btn-sm btn-warning" title="Edit">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.academics.delete_classsubject %}
+                                        <a href="{% url 'academics:class_subject_delete' cs.pk %}" 
+                                           class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">{% trans "No assignments found." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {% include "includes/datatable_scripts.html" %}
+    <script>
+        $(document).ready(function() {
+            $('#classSubjectTable').DataTable({
+                "pageLength": 15,
+                "order": [[0, "asc"], [1, "asc"]] // Sort by Class then Subject
+            });
+        });
+    </script>
+{% endblock %}

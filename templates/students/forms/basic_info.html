@@ -1,0 +1,48 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Basic Information" %} - {% trans "Student Onboarding" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{% trans "Basic Information" %}</h1>
+            <p class="text-muted mb-0">{% trans "Step 1: Student Personal Details" %}</p>
+        </div>
+        <div>
+            {% if object %}
+            <a href="{% url 'students:student_onboarding' pk=object.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Onboarding" %}
+            </a>
+            {% else %}
+            <a href="{% url 'students:student_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>{% trans "Cancel" %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ form|crispy }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% trans "Save & Continue" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

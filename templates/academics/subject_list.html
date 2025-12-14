@@ -1,55 +1,84 @@
 {% extends 'layouts/dashboard.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block extra_css %}
-    {% include "includes/datatable_styles.html" %}
-{% endblock %}
+{% block page_title %}{% trans "Subjects" %}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h5 class="mb-0">Subjects</h5>
-            <a href="{% url 'academics:subject_create' %}" class="btn btn-primary btn-sm"><i class='bx bx-plus'></i> Add New</a>
-        </div>
-        <div class="table-responsive">
-            <table id="subjectTable" class="table table-striped table-bordered" data-datatable data-title="Subjects" data-export-columns="[0, 1, 2, 3, 4, 5]">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Code</th>
-                        <th>Type</th>
-                        <th>Group</th>
-                        <th>Credits</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for subject in subjects %}
-                    <tr>
-                        <td>{{ subject.name }}</td>
-                        <td>{{ subject.code }}</td>
-                        <td>{{ subject.get_subject_type_display }}</td>
-                        <td>{{ subject.get_subject_group_display|default:"-" }}</td>
-                        <td>{{ subject.credit_hours }}</td>
-                        <td>
-                            {% if subject.is_active %}
-                            <span class="badge bg-success">Active</span>
-                            {% else %}
-                            <span class="badge bg-danger">Inactive</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="d-flex order-actions">
-                                <a href="{% url 'academics:subject_update' subject.pk %}" class="ms-3" title="Edit"><i class='bx bxs-edit'></i></a>
-                                <a href="{% url 'academics:subject_delete' subject.pk %}" class="ms-3 text-danger" title="Delete"><i class='bx bxs-trash'></i></a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Subjects Repository" %}</h5>
+                <div class="btn-group">
+                     {% if perms.academics.add_subject %}
+                    <a href="{% url 'academics:subject_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> {% trans "Add New Subject" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="subjectTable" class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Name" %}</th>
+                                <th>{% trans "Code" %}</th>
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Group" %}</th>
+                                <th>{% trans "Credit Hours" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects %}
+                            <tr>
+                                <td>
+                                    <strong>{{ subject.name }}</strong>
+                                </td>
+                                <td>{{ subject.code }}</td>
+                                <td>{{ subject.get_subject_type_display }}</td>
+                                <td>{{ subject.get_subject_group_display|default:"-" }}</td>
+                                <td>{{ subject.credit_hours }}</td>
+                                <td>
+                                    {% if subject.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'academics:subject_detail' subject.pk %}" 
+                                           class="btn btn-sm btn-info" title="View">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        {% if perms.academics.change_subject %}
+                                        <a href="{% url 'academics:subject_update' subject.pk %}" 
+                                           class="btn btn-sm btn-warning" title="Edit">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.academics.delete_subject %}
+                                        <a href="{% url 'academics:subject_delete' subject.pk %}" 
+                                           class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">{% trans "No subjects found." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -57,4 +86,12 @@
 
 {% block extra_scripts %}
     {% include "includes/datatable_scripts.html" %}
+    <script>
+        $(document).ready(function() {
+            $('#subjectTable').DataTable({
+                "pageLength": 15,
+                "order": [[0, "asc"]] // Sort by Name
+            });
+        });
+    </script>
 {% endblock %}

@@ -1,130 +1,69 @@
 {% extends 'layouts/dashboard.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Teacher Dashboard{% endblock %}
+{% block page_title %}{% trans "Academics Dashboard" %}{% endblock %}
+{% block page_description %}{% trans "Overview of academic years, terms, and classes" %}{% endblock %}
 
 {% block content %}
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-    <div class="breadcrumb-title pe-3">Academics</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
-                <li class="breadcrumb-item active" aria-current="page">Teacher Dashboard</li>
-            </ol>
-        </nav>
-    </div>
-</div>
-
-<!-- Today's Schedule Section -->
 <div class="row">
-    <div class="col-12">
-        <div class="card radius-10">
-            <div class="card-header">
-                <h6 class="mb-0">Today's Schedule ({{ today|date:"l, F d, Y" }})</h6>
-            </div>
+    <!-- Quick Stats Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm border-start border-primary border-4 h-100">
             <div class="card-body">
-                {% if todays_schedule %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Time</th>
-                                <th>Subject</th>
-                                <th>Class & Section</th>
-                                <th>Room</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for schedule in todays_schedule %}
-                            <tr>
-                                <td>
-                                    <span class="badge bg-primary">
-                                        {{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <h6 class="mb-0">{{ schedule.subject.name }}</h6>
-                                    <small class="text-muted">{{ schedule.subject.code }}</small>
-                                </td>
-                                <td>
-                                    {{ schedule.class_name.name }} - {{ schedule.section.name }}
-                                </td>
-                                <td>
-                                    {% if schedule.room %}
-                                    <span class="badge bg-secondary">{{ schedule.room }}</span>
-                                    {% else %}
-                                    <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="bx bx-calendar-x bx-lg text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No classes scheduled for today</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Summary Cards -->
-<div class="row row-cols-1 row-cols-md-3 row-cols-xl-3 g-3 mb-4">
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-primary">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="mb-0 text-secondary">My Classes</p>
-                        <h4 class="my-1 text-primary">{{ my_classes.count }}</h4>
+                        <p class="mb-0 text-secondary">Academic Year</p>
+                        <h4 class="my-1 text-primary">{{ current_academic_year.name|default:"Not Set" }}</h4>
                     </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto">
-                        <i class="bx bxs-book-content"></i>
+                    <div class="widgets-icons rounded-circle text-white bg-primary ms-auto">
+                        <i class="bx bx-calendar"></i>
                     </div>
-                </div>
-                <div class="mt-3">
-                    <small>Active classes as class teacher</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-success">
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm border-start border-success border-4 h-100">
             <div class="card-body">
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="mb-0 text-secondary">My Subjects</p>
-                        <h4 class="my-1 text-success">{{ my_subjects.count }}</h4>
+                        <p class="mb-0 text-secondary">Current Term</p>
+                        <h4 class="my-1 text-success">{{ current_term.name|default:"Not Set" }}</h4>
                     </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto">
-                        <i class="bx bxs-book"></i>
+                    <div class="widgets-icons rounded-circle text-white bg-success ms-auto">
+                        <i class="bx bx-time"></i>
                     </div>
-                </div>
-                <div class="mt-3">
-                    <small>Subjects this academic year</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card radius-10 border-start border-0 border-3 border-info">
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm border-start border-info border-4 h-100">
             <div class="card-body">
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <p class="mb-0 text-secondary">Today's Classes</p>
-                        <h4 class="my-1 text-info">{{ todays_schedule.count }}</h4>
+                        <p class="mb-0 text-secondary">Total Classes</p>
+                        <h4 class="my-1 text-info">{{ active_classes_count|default:"0" }}</h4>
                     </div>
-                    <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto">
-                        <i class="bx bxs-calendar"></i>
+                    <div class="widgets-icons rounded-circle text-white bg-info ms-auto">
+                        <i class="bx bx-buildings"></i>
                     </div>
                 </div>
-                <div class="mt-3">
-                    <small>Scheduled for today</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="mb-0 text-secondary">Total Students</p>
+                        <h4 class="my-1 text-warning">{{ total_students_count|default:"0" }}</h4>
+                    </div>
+                    <div class="widgets-icons rounded-circle text-white bg-warning ms-auto">
+                        <i class="bx bx-user"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -132,153 +71,48 @@
 </div>
 
 <div class="row">
-    <!-- My Classes Section -->
-    <div class="col-12 col-lg-6">
-        <div class="card radius-10">
-            <div class="card-header">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <h6 class="mb-0">My Classes (Class Teacher)</h6>
-                    </div>
-                    <div class="ms-auto">
-                        <a href="{% url 'academics:class_list' %}" class="btn btn-sm btn-primary">View All</a>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if my_classes %}
-                <div class="list-group list-group-flush">
-                    {% for class in my_classes %}
-                    <div class="list-group-item px-0">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar avatar-sm me-3">
-                                <div class="avatar-initial bg-primary rounded-circle">
-                                    {{ class.name|first }}
-                                </div>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-0">{{ class.name }}</h6>
-                                <small class="text-muted">
-                                    {% if class.description %}{{ class.description|truncatechars:50 }}{% endif %}
-                                </small>
-                            </div>
-                            <div class="text-end">
-                                {% if class.is_active %}
-                                <span class="badge bg-success">Active</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Inactive</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="bx bx-book-open bx-lg text-muted mb-3"></i>
-                    <p class="text-muted mb-0">Not assigned as class teacher</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- My Subjects Section -->
-    <div class="col-12 col-lg-6">
-        <div class="card radius-10">
-            <div class="card-header">
-                <div class="d-flex align-items-center">
-                    <div>
-                        <h6 class="mb-0">My Subjects (Teaching)</h6>
-                    </div>
-                    <div class="ms-auto">
-                        <a href="{% url 'academics:subject_list' %}" class="btn btn-sm btn-primary">View All</a>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if my_subjects %}
-                <div class="list-group list-group-flush">
-                    {% for subject_assignment in my_subjects %}
-                    <div class="list-group-item px-0">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-grow-1">
-                                <h6 class="mb-0">{{ subject_assignment.subject.name }}</h6>
-                                <small class="text-muted">
-                                    {{ subject_assignment.class_name.name }} • {{ subject_assignment.subject.code }}
-                                </small>
-                            </div>
-                            <div class="text-end">
-                                <span class="badge bg-info">{{ subject_assignment.academic_year.name }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="bx bx-book bx-lg text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No subjects assigned for teaching</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Quick Actions - Teacher -->
-<div class="row mt-4">
-    <div class="col-12 col-lg-12">
-        <div class="card radius-10">
-            <div class="card-header">
-                <h6 class="mb-0">Teacher Quick Actions</h6>
+    <!-- Quick Actions -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">{% trans "Quick Actions" %}</h5>
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <!-- Mark Attendance -->
-                    <div class="col-md-3 col-sm-6">
-                        <a href="{% url 'academics:attendance_create' %}" class="btn btn-outline-success w-100 py-3">
-                            <i class="bx bx-check-square fs-4"></i>
-                            <div class="mt-2">Mark Attendance</div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:academic_year_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-primary"><i class="bx bx-calendar-event"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Academic Years</h6>
                         </a>
                     </div>
-                    
-                    <!-- My Schedule -->
-                    <div class="col-md-3 col-sm-6">
-                        <a href="{% url 'academics:timetable_weekly' %}" class="btn btn-outline-info w-100 py-3">
-                            <i class="bx bx-time fs-4"></i>
-                            <div class="mt-2">My Schedule</div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:term_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-success"><i class="bx bx-time-five"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Terms</h6>
                         </a>
                     </div>
-                    
-                    <!-- Upload Material -->
-                    <div class="col-md-3 col-sm-6">
-                        <a href="{% url 'academics:studymaterial_create' %}" class="btn btn-outline-primary w-100 py-3">
-                            <i class="bx bx-upload fs-4"></i>
-                            <div class="mt-2">Upload Material</div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:class_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-info"><i class="bx bx-building"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Classes</h6>
                         </a>
                     </div>
-                    
-                    <!-- My Classes -->
-                    <div class="col-md-3 col-sm-6">
-                        <a href="{% url 'academics:class_list' %}" class="btn btn-outline-warning w-100 py-3">
-                            <i class="bx bx-group fs-4"></i>
-                            <div class="mt-2">My Classes</div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:section_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-warning"><i class="bx bx-group"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Sections</h6>
                         </a>
                     </div>
-                    
-                    <!-- Attendance Report -->
-                    <div class="col-md-3 col-sm-6">
-                        <a href="{% url 'academics:attendance_report' %}" class="btn btn-outline-secondary w-100 py-3">
-                            <i class="bx bx-bar-chart fs-4"></i>
-                            <div class="mt-2">Attendance Report</div>
+                     <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:subject_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-danger"><i class="bx bx-book"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Subjects</h6>
                         </a>
                     </div>
-                    
-                    <!-- Bulk Attendance -->
-                    <div class="col-md-3 col-sm-6">
-                        <a href="{% url 'academics:attendance_bulk' %}" class="btn btn-outline-danger w-100 py-3">
-                            <i class="bx bx-list-check fs-4"></i>
-                            <div class="mt-2">Bulk Attendance</div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:timetable_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-dark"><i class="bx bx-table"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Timetable</h6>
                         </a>
                     </div>
                 </div>
@@ -286,4 +120,15 @@
         </div>
     </div>
 </div>
+
+<style>
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        background-color: #f8f9fa;
+        transform: translateY(-3px);
+    }
+    .transition {
+        transition: all 0.3s ease;
+    }
+</style>
 {% endblock %}

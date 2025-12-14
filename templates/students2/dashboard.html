@@ -1,0 +1,95 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Students Dashboard - EduERP{% endblock %}
+
+{% block content %}
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">Students</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item active" aria-current="page">Students Dashboard</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-4">Student Management</h4>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+    <div class="col">
+        <div class="card radius-10 bg-gradient-cosmic">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Total Students</p>
+                        <h4 class="my-1 text-white">{{ total_students|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-user"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ibiza">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Active Students</p>
+                        <h4 class="my-1 text-white">{{ active_students|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-user-check"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ohhappiness">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Alumni</p>
+                        <h4 class="my-1 text-white">{{ alumni|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white"><i class="bx bx-graduation"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card radius-10 bg-gradient-kyoto">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-dark">Suspended</p>
+                        <h4 class="my-1 text-dark">{{ suspended|default:"0" }}</h4>
+                    </div>
+                    <div class="text-dark fs-1"><i class="bx bx-user-x"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 col-lg-6">
+        <div class="card radius-10">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'students:student_create' %}" class="btn btn-primary"><i class="bx bx-plus-circle me-2"></i>Add New Student</a>
+                    <a href="{% url 'students:student_list' %}" class="btn btn-outline-primary"><i class="bx bx-list-ul me-2"></i>View All Students</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

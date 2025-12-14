@@ -1,0 +1,43 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Delete Timetable Entry" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-danger shadow-lg">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0"><i class="bx bx-warning"></i> {% trans "Confirm Deletion" %}</h5>
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="mb-4">
+                    <i class="bx bx-trash text-danger" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="mb-3">{% trans "Are you sure?" %}</h4>
+                <p class="lead mb-4">
+                    {% blocktrans with day=object.get_day_display period=object.period_number class_name=object.class_name.name %}
+                    You are about to delete the timetable entry for <strong>{{ class_name }}</strong> on <strong>{{ day }}</strong>, <strong>Period {{ period }}</strong>.
+                    {% endblocktrans %}
+                    <br>
+                    <span class="text-danger small">
+                        {% trans "This action cannot be undone." %}
+                    </span>
+                </p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'academics:timetable_list' %}" class="btn btn-secondary px-4">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4">
+                            {% trans "Delete" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

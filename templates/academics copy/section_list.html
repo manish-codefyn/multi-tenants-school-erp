@@ -1,0 +1,54 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block extra_css %}
+    {% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Sections</h5>
+            <a href="{% url 'academics:section_create' %}" class="btn btn-primary btn-sm"><i class='bx bx-plus'></i> Add New</a>
+        </div>
+        <div class="table-responsive">
+            <table id="sectionTable" class="table table-striped table-bordered" data-datatable data-title="Sections" data-export-columns="[0, 1, 2, 3, 4, 5]">
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        <th>Section</th>
+                        <th>Code</th>
+                        <th>Incharge</th>
+                        <th>Room</th>
+                        <th>Strength</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for section in sections %}
+                    <tr>
+                        <td>{{ section.class_name.name }}</td>
+                        <td>{{ section.name }}</td>
+                        <td>{{ section.code }}</td>
+                        <td>{{ section.section_incharge.get_full_name|default:"-" }}</td>
+                        <td>{{ section.room_number|default:"-" }}</td>
+                        <td>{{ section.current_strength }} / {{ section.max_strength }}</td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'academics:section_update' section.pk %}" class="ms-3" title="Edit"><i class='bx bxs-edit'></i></a>
+                                <a href="{% url 'academics:section_delete' section.pk %}" class="ms-3 text-danger" title="Delete"><i class='bx bxs-trash'></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+    {% include "includes/datatable_scripts.html" %}
+{% endblock %}

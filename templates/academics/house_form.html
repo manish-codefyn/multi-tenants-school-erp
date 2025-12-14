@@ -1,0 +1,65 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static crispy_forms_tags %}
+{% load i18n %}
+
+{% block page_title %}
+    {% if object %}{% trans "Edit House" %}{% else %}{% trans "Add House" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    {% if object %}{% trans "Edit House" %}{% else %}{% trans "New House" %}{% endif %}
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.code|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.color|as_crispy_field }}
+                        </div>
+                         <div class="col-md-6 mb-3">
+                             {{ form.house_master|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.motto|as_crispy_field }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.description|as_crispy_field }}
+                    </div>
+
+                     <div class="mb-3">
+                        {{ form.logo|as_crispy_field }}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'academics:house_list' %}" class="btn btn-secondary">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save"></i> {% trans "Save" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

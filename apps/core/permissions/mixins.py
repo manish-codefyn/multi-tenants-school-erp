@@ -1,11 +1,91 @@
 from django.core.exceptions import PermissionDenied
-from django.http import Http404
+from django.http import Http404,HttpResponseForbidden,  JsonResponse
 from django.contrib.auth.mixins import AccessMixin
 from django.utils.decorators import method_decorator
 from django.views import View
 from functools import wraps
 from apps.tenants.models import Tenant
+from django.utils.decorators import method_decorator
+from functools import wraps
+from django.core.cache import cache
+import time
+import json
 
+
+class RateLimitedViewMixin:
+    """Mixin to add rate limiting to views"""
+    rate_limit = '10/minute'
+    rate_limit_key = 'user'
+    
+    def get_rate_limit(self):
+        """Override to provide dynamic rate limits"""
+        return self.rate_limit
+    
+    def get_rate_limit_key(self):
+        """Override to customize rate limit key"""
+        return self.rate_limit_key
+    
+    def get_cache_key(self, request):
+        """Generate cache key for rate limiting"""
+        key_type = self.get_rate_limit_key()
+        
+        if key_type == 'user' and request.user.is_authenticated:
+            return f"rate_limit:user:{request.user.id}:{int(time.time() // 60)}"
+        elif key_type == 'ip':
+            ip = request.META.get('REMOTE_ADDR', 'unknown')
+            return f"rate_limit:ip:{ip}:{int(time.time() // 60)}"
+        else:
+            # Default to IP if user not authenticated
+            ip = request.META.get('REMOTE_ADDR', 'unknown')
+            return f"rate_limit:ip:{ip}:{int(time.time() // 60)}"
+    
+    def parse_rate_limit(self, rate_string):
+        """Parse rate limit string like '10/minute' or '100/hour'"""
+        try:
+            num, period = rate_string.split('/')
+            num = int(num)
+            period = period.lower().strip()
+            
+            # Convert period to seconds
+            if period == 'second':
+                return num, 1
+            elif period == 'minute':
+                return num, 60
+            elif period == 'hour':
+                return num, 3600
+            elif period == 'day':
+                return num, 86400
+            else:
+                return num, 60  # Default to minute
+        except (ValueError, AttributeError):
+            return 10, 60  # Default fallback
+    
+    def dispatch(self, request, *args, **kwargs):
+        """Apply rate limiting before dispatch"""
+        rate_string = self.get_rate_limit()
+        max_requests, time_window = self.parse_rate_limit(rate_string)
+        
+        cache_key = self.get_cache_key(request)
+        
+        # Get current count
+        current = cache.get(cache_key, 0)
+        
+        if current >= max_requests:
+            return self.rate_limit_exceeded(request)
+        
+        # Increment counter
+        cache.set(cache_key, current + 1, time_window)
+        
+        return super().dispatch(request, *args, **kwargs)
+    
+    def rate_limit_exceeded(self, request):
+        """Handle rate limit exceeded"""
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({
+                'error': 'Rate limit exceeded',
+                'code': 'rate_limit_exceeded'
+            }, status=429)
+        return HttpResponseTooManyRequests("Rate limit exceeded. Please try again later.")
 
 class PermissionRequiredMixin(AccessMixin):
     """

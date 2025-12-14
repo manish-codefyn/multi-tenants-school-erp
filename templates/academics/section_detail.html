@@ -1,0 +1,115 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}{{ section.class_name.name }} - {{ section.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">{% trans "Section Details" %}</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th class="ps-0">{% trans "Class" %}</th>
+                        <td class="text-end fw-bold">{{ section.class_name.name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0">{% trans "Section Name" %}</th>
+                        <td class="text-end">{{ section.name }}</td>
+                    </tr>
+                     <tr>
+                        <th class="ps-0">{% trans "Code" %}</th>
+                        <td class="text-end">{{ section.code }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0">{% trans "Incharge" %}</th>
+                        <td class="text-end">{{ section.section_incharge.get_full_name|default:"Not Assigned" }}</td>
+                    </tr>
+                    <tr>
+                        <th class="ps-0">{% trans "Room" %}</th>
+                        <td class="text-end">{{ section.room_number|default:"-" }}</td>
+                    </tr>
+                     <tr>
+                        <th class="ps-0">{% trans "Status" %}</th>
+                        <td class="text-end">
+                             {% if section.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+
+                 <div class="mt-4">
+                    <h6 class="text-muted small fw-bold">Capacity</h6>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>{{ section.current_strength }} Students</span>
+                        <span>Max: {{ section.max_strength }}</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {% widthratio section.current_strength section.max_strength 100 %}%"></div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    {% if perms.academics.change_section %}
+                    <a href="{% url 'academics:section_update' section.pk %}" class="btn btn-primary">
+                        <i class="bx bx-edit"></i> {% trans "Edit Section" %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">{% trans "Students in Section" %}</h5>
+            </div>
+            <div class="card-body">
+                 <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Roll No." %}</th>
+                                <th>{% trans "Name" %}</th>
+                                <th>{% trans "Category" %}</th>
+                                <th>{% trans "Gender" %}</th>
+                                <th>{% trans "Action" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in section.students.all %}
+                            <tr>
+                                <td>{{ student.roll_number|default:"-" }}</td>
+                                <td>
+                                    <strong>{{ student.full_name }}</strong>
+                                    <br><small class="text-muted">{{ student.admission_number }}</small>
+                                </td>
+                                <td>{{ student.category.name|default:"-" }}</td>
+                                <td>{{ student.get_gender_display }}</td>
+                                <td>
+                                    <a href="{% url 'students:student_detail' student.pk %}" class="btn btn-sm btn-light">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">{% trans "No students assigned to this section." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

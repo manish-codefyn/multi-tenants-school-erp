@@ -1,0 +1,51 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Set Current Academic Year" %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">{% trans "Change Current Academic Session" %}</h5>
+            </div>
+            <div class="card-body p-4">
+                {% if current_year %}
+                <div class="alert alert-info mb-4">
+                    <strong>{% trans "Current Session:" %}</strong> {{ current_year.name }} ({{ current_year.start_date }} - {{ current_year.end_date }})
+                </div>
+                {% else %}
+                <div class="alert alert-warning mb-4">
+                    <i class="bx bx-warning"></i> {% trans "No academic year is currently active." %}
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Select Academic Year" %}</label>
+                        <select name="academic_year_id" class="form-select form-select-lg" required>
+                            <option value="">{% trans "Choose..." %}</option>
+                            {% for year in academic_years %}
+                            <option value="{{ year.id }}" {% if year.is_current %}selected{% endif %}>
+                                {{ year.name }} ({{ year.start_date }} - {{ year.end_date }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            {% trans "Update Current Session" %}
+                        </button>
+                        <a href="{% url 'academics:academic_year_list' %}" class="btn btn-link link-secondary">
+                            {% trans "Cancel" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,36 +1,61 @@
 {% extends 'layouts/dashboard.html' %}
 {% load static crispy_forms_tags %}
+{% load i18n %}
 
-{% block title %}{{ view.action }} Academic Year{% endblock %}
+{% block page_title %}
+    {% if object %}{% trans "Edit Academic Year" %}{% else %}{% trans "Add Academic Year" %}{% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-    <div class="breadcrumb-title pe-3">Academics</div>
-    <div class="ps-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 p-0">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard_redirect' %}"><i class="bx bx-home-alt"></i></a></li>
-                <li class="breadcrumb-item"><a href="{% url 'academics:academic_year_list' %}">Academic Years</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{% if object %}Edit{% else %}Add{% endif %} Academic Year</li>
-            </ol>
-        </nav>
-    </div>
-</div>
-
 <div class="row">
-    <div class="col-xl-9 mx-auto">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="mb-4">Academic Year Details</h5>
-                <form method="post">
+    <div class="col-md-8 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    {% if object %}{% trans "Edit Academic Year" %}{% else %}{% trans "New Academic Year" %}{% endif %}
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate>
                     {% csrf_token %}
-                    {{ form|crispy }}
+                    
                     <div class="row">
-                        <div class="col-sm-3"></div>
-                        <div class="col-sm-9 text-secondary">
-                            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
-                            <a href="{% url 'academics:academic_year_list' %}" class="btn btn-light px-4">Cancel</a>
+                        <div class="col-md-6 mb-3">
+                            {{ form.name|as_crispy_field }}
                         </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.code|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.start_date|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.end_date|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                         <div class="form-check form-switch">
+                            {{ form.is_current }}
+                            <label class="form-check-label" for="{{ form.is_current.id_for_label }}">
+                                {{ form.is_current.label }}
+                            </label>
+                            <div class="form-text text-muted">
+                                {% trans "Setting this as current will automatically unset any other current academic year." %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'academics:academic_year_list' %}" class="btn btn-secondary">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save"></i> {% trans "Save" %}
+                        </button>
                     </div>
                 </form>
             </div>

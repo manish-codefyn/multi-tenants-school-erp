@@ -1,3 +1,4 @@
+from datetime import datetime, date
 import uuid
 import os
 from django.db import models
@@ -502,8 +503,12 @@ class Student(BaseModel):
              except (AttributeError, TypeError):
                  pass
         
-        if self.enrollment_date and self.enrollment_date > today:
-            errors['enrollment_date'] = _("Enrollment date cannot be in the future")
+        if self.enrollment_date:
+            enrollment_date_val = self.enrollment_date
+            if isinstance(enrollment_date_val, datetime):
+                enrollment_date_val = enrollment_date_val.date()
+            if enrollment_date_val > today:
+                errors['enrollment_date'] = _("Enrollment date cannot be in the future")
 
         # Academic validation
         if self.section and self.current_class and self.section.class_name != self.current_class:
@@ -1409,9 +1414,7 @@ class StudentAcademicHistory(BaseModel):
             elif self.result == "FAIL" and self.percentage >= self.class_name.pass_percentage:
                 errors['result'] = _('Result should be PASS if percentage meets passing criteria')
 
-        # Date validation
-        if self.start_date and self.end_date and self.start_date >= self.end_date:
-            errors['end_date'] = _('End date must be after start date')
+
             
         # Roll number uniqueness within class and academic year
         if StudentAcademicHistory.objects.filter(
@@ -1425,35 +1428,7 @@ class StudentAcademicHistory(BaseModel):
         if errors:
             raise ValidationError(errors)
 
-    @property
-    def is_completed(self):
-        """Check if academic year is completed"""
-        return self.status == "COMPLETED"
 
-    @property
-    def pass_fail_status(self):
-        """Get pass/fail status"""
-        return "PASS" if self.promoted else "FAIL"
-
-    def calculate_percentage(self):
-        """Calculate percentage if total and max marks are available"""
-        if self.total_marks and self.max_marks and self.max_marks > 0:
-            self.percentage = (self.total_marks / self.max_marks) * 100
-        return self.percentage
-
-    def save(self, *args, **kwargs):
-        """Enhanced save with automatic calculations"""
-        # Calculate percentage if not provided
-        if not self.percentage and self.total_marks and self.max_marks:
-            self.calculate_percentage()
-            
-        # Set promoted based on result
-        if self.result in ["PASS", "APPEARING"]:
-            self.promoted = True
-        else:
-            self.promoted = False
-            
-        super().save(*args, **kwargs)
 
 class StudentIdentification(BaseModel):
     """

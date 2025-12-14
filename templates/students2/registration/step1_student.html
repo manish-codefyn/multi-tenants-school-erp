@@ -14,7 +14,7 @@
                 <h5 class="card-title mb-0 fw-bold"><i class="fas fa-user-graduate me-2"></i>{% trans "Student Basic Information" %}</h5>
             </div>
             <div class="card-body p-4 p-md-5">
-                <form method="post" enctype="multipart/form-data">
+                <form method="post" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
                     
                     <!-- Section: Personal Details -->
@@ -94,12 +94,8 @@
                         <div class="col-md-4">
                             {{ form.section|as_crispy_field }}
                         </div>
-                        <div class="col-md-4">
-                             {{ form.roll_number|as_crispy_field }}
-                        </div>
-                         <div class="col-md-6">
-                             {{ form.reg_no|as_crispy_field }}
-                         </div>
+                      
+                       
                     </div>
 
                     <hr class="text-muted opacity-25 my-4">
@@ -120,13 +116,6 @@
                     </div>
                     
                     <!-- Hidden or non-layout fields -->
-                    {% for field in form %}
-                        {% if field.name not in "first_name,middle_name,last_name,date_of_birth,gender,blood_group,nationality,marital_status,category,religion,personal_email,institutional_email,mobile_primary,mobile_secondary,admission_type,enrollment_date,academic_year,current_class,section,roll_number,reg_no,annual_family_income,is_minority,is_physically_challenged" %}
-                             {{ field|as_crispy_field }}
-                        {% endif %}
-                    {% endfor %}
-
-                    
                     <div class="d-flex justify-content-end mt-5 pt-3 border-top">
                         <a href="{% url 'students:student_list' %}" class="btn btn-light btn-lg me-3 px-4">{% trans "Cancel" %}</a>
                         <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
@@ -146,4 +135,17 @@
         box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.15);
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+</script>
 {% endblock %}

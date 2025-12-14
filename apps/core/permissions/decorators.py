@@ -3,6 +3,16 @@ from functools import wraps
 from django.http import HttpResponseForbidden
 import json
 
+
+def require_https(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.is_secure():
+            return HttpResponseForbidden("HTTPS is required")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
 def permission_required(perm, raise_exception=True):
     """
     Decorator for function-based views

@@ -2,968 +2,302 @@
 {% load static %}
 {% load i18n %}
 
-{% block extra_css %}
-<style>
-    .student-profile-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 0.5rem;
-        margin-bottom: 2rem;
-    }
-    .student-avatar-lg {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 4px solid white;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .info-card {
-        border: none;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        transition: transform 0.3s;
-    }
-    .info-card:hover {
-        transform: translateY(-5px);
-    }
-    .nav-tabs-custom .nav-link {
-        border: none;
-        color: #6c757d;
-        font-weight: 500;
-    }
-    .nav-tabs-custom .nav-link.active {
-        color: #667eea;
-        border-bottom: 2px solid #667eea;
-    }
-</style>
-{% endblock %}
-
-{% block page_title %}{{ student.full_name }}{% endblock %}
-{% block page_description %}{% trans "Student Profile" %}{% endblock %}
+{% block title %}{{ student.full_name }} - {% trans "Student Details" %}{% endblock %}
 
 {% block content %}
-<!-- Profile Header -->
-<div class="student-profile-header">
-    <div class="row align-items-center">
-        <div class="col-auto">
-            {% with student.get_photo as photo %}
-            {% if photo and photo.file %}
-            <img src="{{ photo.file.url }}" alt="{{ student.full_name }}" 
-                 class="student-avatar-lg">
-            {% else %}
-            <div class="student-avatar-lg bg-white text-dark d-flex align-items-center justify-content-center fs-1">
-                {{ student.first_name|first }}{{ student.last_name|first }}
-            </div>
-            {% endif %}
-            {% endwith %}
-        </div>
-        <div class="col">
-            <h1 class="h3 mb-2">{{ student.full_name }}</h1>
-            <div class="row">
-                <div class="col-md-4">
-                    <p class="mb-1">
-                        <i class="fas fa-id-card me-2"></i>
-                        <strong>{{ student.admission_number }}</strong>
-                    </p>
-                    {% if student.roll_number %}
-                    <p class="mb-1">
-                        <i class="fas fa-sort-numeric-up me-2"></i>
-                        Roll: {{ student.roll_number }}
-                    </p>
-                    {% endif %}
-                </div>
-                <div class="col-md-4">
-                    <p class="mb-1">
-                        <i class="fas fa-graduation-cap me-2"></i>
-                        {{ student.current_class.name|default:"Not assigned" }}
-                    </p>
-                    {% if student.section %}
-                    <p class="mb-1">
-                        <i class="fas fa-users me-2"></i>
-                        Section: {{ student.section.name }}
-                    </p>
-                    {% endif %}
-                </div>
-                <div class="col-md-4">
-                    {% if student.status == "ACTIVE" %}
-                    <span class="badge bg-success fs-6">Active</span>
-                    {% elif student.status == "INACTIVE" %}
-                    <span class="badge bg-warning fs-6">Inactive</span>
-                    {% elif student.status == "GRADUATED" %}
-                    <span class="badge bg-info fs-6">Graduated</span>
-                    {% elif student.status == "SUSPENDED" %}
-                    <span class="badge bg-danger fs-6">Suspended</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="col-auto">
-            <div class="btn-group">
-                {% if perms.students.change_student %}
-                <a href="{% url 'students:student_update' student.id %}" class="btn btn-light">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-                {% endif %}
-                <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    More Actions
-                </button>
-                <ul class="dropdown-menu">
-                    {% if perms.students.change_student %}
-                    <li>
-                        <a class="dropdown-item" href="{% url 'students:student_promote' student.id %}">
-                            <i class="fas fa-user-graduate"></i> Promote
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'students:student_report' student.id %}">
-                            <i class="fas fa-file-export"></i> Generate Report
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'students:student_id_card' student.id %}">
-                            <i class="fas fa-id-card"></i> Generate ID Card
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% if perms.students.delete_student %}
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="{% url 'students:student_delete' student.id %}">
-                            <i class="fas fa-trash"></i> Delete
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
+<!--breadcrumb-->
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">{% trans "Students" %}</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'students:student_list' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item active" aria-current="page">{% trans "Student Profile" %}</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="ms-auto">
+        <div class="btn-group">
+            <a href="{% url 'students:student_onboarding' pk=student.pk %}" class="btn btn-primary">{% trans "Edit Profile" %}</a>
+            <button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
+                <a class="dropdown-item" href="{% url 'students:student_id_card' pk=student.pk %}" target="_blank">{% trans "Generate ID Card" %}</a>
+                <a class="dropdown-item" href="{% url 'students:student_report' pk=student.pk %}" target="_blank">{% trans "Print Report" %}</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'students:student_promote' pk=student.pk %}">{% trans "Promote Student" %}</a>
             </div>
         </div>
     </div>
 </div>
+<!--end breadcrumb-->
 
-<!-- Tabs Navigation -->
-<ul class="nav nav-tabs nav-tabs-custom mb-4" id="studentTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" 
-                data-bs-target="#personal" type="button">
-            <i class="fas fa-user me-2"></i> Personal
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="academic-tab" data-bs-toggle="tab" 
-                data-bs-target="#academic" type="button">
-            <i class="fas fa-graduation-cap me-2"></i> Academic
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="guardians-tab" data-bs-toggle="tab" 
-                data-bs-target="#guardians" type="button">
-            <i class="fas fa-users me-2"></i> Guardians
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" 
-                data-bs-target="#documents" type="button">
-            <i class="fas fa-file-alt me-2"></i> Documents
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="medical-tab" data-bs-toggle="tab" 
-                data-bs-target="#medical" type="button">
-            <i class="fas fa-heartbeat me-2"></i> Medical
-        </button>
-    </li>
-</ul>
-
-<!-- Tab Content -->
-<div class="tab-content" id="studentTabsContent">
-    <!-- Personal Information Tab -->
-    <div class="tab-pane fade show active" id="personal" role="tabpanel">
+<div class="container-fluid">
+    <div class="main-body">
         <div class="row">
-            <!-- Basic Information -->
-            <div class="col-md-6 mb-4">
-                <div class="card info-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-user me-2"></i> Basic Information
-                        </h5>
-                    </div>
+            <div class="col-lg-4">
+                <div class="card">
                     <div class="card-body">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="40%">Date of Birth</th>
-                                <td>{{ student.date_of_birth }} (Age: {{ student.age }})</td>
-                            </tr>
-                            <tr>
-                                <th>Gender</th>
-                                <td>{{ student.get_gender_display }}</td>
-                            </tr>
-                            <tr>
-                                <th>Blood Group</th>
-                                <td>{{ student.blood_group|default:"Not specified" }}</td>
-                            </tr>
-                            <tr>
-                                <th>Nationality</th>
-                                <td>{{ student.nationality }}</td>
-                            </tr>
-                            <tr>
-                                <th>Marital Status</th>
-                                <td>{{ student.get_marital_status_display }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contact Information -->
-            <div class="col-md-6 mb-4">
-                <div class="card info-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-address-book me-2"></i> Contact Information
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="40%">Personal Email</th>
-                                <td>
-                                    <a href="mailto:{{ student.personal_email }}">
-                                        {{ student.personal_email }}
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Institutional Email</th>
-                                <td>
-                                    {% if student.institutional_email %}
-                                    <a href="mailto:{{ student.institutional_email }}">
-                                        {{ student.institutional_email }}
-                                    </a>
-                                    {% else %}
-                                    Not assigned
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Primary Mobile</th>
-                                <td>
-                                    <a href="tel:{{ student.mobile_primary }}">
-                                        {{ student.mobile_primary }}
-                                    </a>
-                                </td>
-                            </tr>
-                            {% if student.mobile_secondary %}
-                            <tr>
-                                <th>Secondary Mobile</th>
-                                <td>
-                                    <a href="tel:{{ student.mobile_secondary }}">
-                                        {{ student.mobile_secondary }}
-                                    </a>
-                                </td>
-                            </tr>
+                        <div class="d-flex flex-column align-items-center text-center">
+                            {% if student.photo %}
+                            <img src="{{ student.photo.url }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="110">
+                            {% else %}
+                            <div class="rounded-circle bg-light-primary text-primary d-flex align-items-center justify-content-center" style="width: 110px; height: 110px; font-size: 3rem;">
+                                {{ student.first_name|first }}{{ student.last_name|first }}
+                            </div>
                             {% endif %}
-                        </table>
+                            <div class="mt-3">
+                                <h4>{{ student.full_name }}</h4>
+                                <p class="text-secondary mb-1">
+                                    {{ student.current_class.name }} - {{ student.section.name }}
+                                </p>
+                                <p class="text-muted font-size-sm">{% trans "Admission No" %}: {{ student.admission_number }}</p>
+                                <span class="badge bg-{{ student.status|yesno:'success,danger' }}">{{ student.get_status_display }}</span>
+                            </div>
+                        </div>
+                        <hr class="my-4" />
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0"><i class="bx bx-envelope me-2"></i>{% trans "Email" %}</h6>
+                                <span class="text-secondary">{{ student.personal_email }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0"><i class="bx bx-phone me-2"></i>{% trans "Mobile" %}</h6>
+                                <span class="text-secondary">{{ student.mobile_primary }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0"><i class="bx bx-calendar me-2"></i>{% trans "DOB" %}</h6>
+                                <span class="text-secondary">{{ student.date_of_birth }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0"><i class="bx bx-female-sign me-2"></i>{% trans "Gender" %}</h6>
+                                <span class="text-secondary">{{ student.get_gender_display }}</span>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-            </div>
-
-            <!-- Address Information -->
-            <div class="col-12 mb-4">
-                <div class="card info-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-map-marker-alt me-2"></i> Address Information
-                        </h5>
-                        {% if perms.students.change_student %}
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                                data-bs-target="#addAddressModal">
-                            <i class="fas fa-plus"></i> Add Address
-                        </button>
-                        {% endif %}
-                    </div>
+                
+                <!-- Transport Info Card -->
+                {% if student.transport_allocation %}
+                <div class="card mt-3">
                     <div class="card-body">
-                        {% if addresses %}
-                        <div class="row">
-                            {% for address in addresses %}
-                            <div class="col-md-6 mb-3">
-                                <div class="card border">
-                                    <div class="card-body">
-                                        <h6 class="card-subtitle mb-2 text-muted">
-                                            {{ address.get_address_type_display }}
-                                            {% if address.is_current %}
-                                            <span class="badge bg-success ms-2">Current</span>
-                                            {% endif %}
-                                            {% if address.is_verified %}
-                                            <span class="badge bg-info ms-2">Verified</span>
-                                            {% endif %}
-                                        </h6>
-                                        <p class="card-text mb-2">{{ address.address_line1 }}</p>
-                                        {% if address.address_line2 %}
-                                        <p class="card-text mb-2">{{ address.address_line2 }}</p>
-                                        {% endif %}
-                                        <p class="card-text mb-2">
-                                            {{ address.city }}, {{ address.state }} - {{ address.pincode }}
-                                        </p>
-                                        <p class="card-text mb-0">{{ address.country }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% else %}
-                        <div class="alert alert-info mb-0">
-                            <i class="fas fa-info-circle"></i> No addresses added yet.
-                        </div>
-                        {% endif %}
+                         <h5 class="d-flex align-items-center mb-3">{% trans "Transport Status" %}</h5>
+                         <p><strong>{% trans "Route" %}:</strong> {{ student.transport_allocation.route.name }}</p>
+                         <p><strong>{% trans "User" %}:</strong> {{ student.transport_allocation.stop.name }}</p>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Academic Information Tab -->
-    <div class="tab-pane fade" id="academic" role="tabpanel">
-        <div class="row">
-            <!-- Current Academic Info -->
-            <div class="col-md-6 mb-4">
-                <div class="card info-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-university me-2"></i> Current Academic Information
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="40%">Admission Type</th>
-                                <td>{{ student.get_admission_type_display }}</td>
-                            </tr>
-                            <tr>
-                                <th>Enrollment Date</th>
-                                <td>{{ student.enrollment_date }}</td>
-                            </tr>
-                            <tr>
-                                <th>Academic Year</th>
-                                <td>{{ student.academic_year.name }}</td>
-                            </tr>
-                            <tr>
-                                <th>Current Semester</th>
-                                <td>{{ student.current_semester }}</td>
-                            </tr>
-                            <tr>
-                                <th>CGPA</th>
-                                <td>
-                                    <span class="badge {% if student.cumulative_grade_point >= 7.5 %}bg-success{% elif student.cumulative_grade_point >= 6 %}bg-warning{% else %}bg-danger{% endif %}">
-                                        {{ student.cumulative_grade_point }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Credits Earned</th>
-                                <td>{{ student.total_credits_earned }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Performance -->
-            <div class="col-md-6 mb-4">
-                <div class="card info-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-chart-line me-2"></i> Academic Performance
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% with student.get_academic_performance as performance %}
-                        <div class="text-center mb-4">
-                            <div class="display-4 fw-bold text-primary">
-                                {{ performance.gpa|floatformat:2 }}
-                            </div>
-                            <p class="text-muted">Current GPA</p>
-                        </div>
-                        
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <div class="h4 fw-bold">{{ performance.total_subjects }}</div>
-                                <p class="text-muted mb-0">Subjects</p>
-                            </div>
-                            <div class="col-6">
-                                <div class="h4 fw-bold">
-                                    {% if performance.rank %}
-                                    {{ performance.rank }}
-                                    {% else %}
-                                    -
-                                    {% endif %}
-                                </div>
-                                <p class="text-muted mb-0">Class Rank</p>
-                            </div>
-                        </div>
-                        {% endwith %}
-                        
-                        <div class="mt-4">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Exam Eligibility</span>
-                                <span>
-                                    {% if student.is_eligible_for_exams %}
-                                    <span class="badge bg-success">Eligible</span>
-                                    {% else %}
-                                    <span class="badge bg-danger">Not Eligible</span>
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Attendance</span>
-                                <span>
-                                    {% with student.get_attendance_percentage as attendance %}
-                                    <span class="badge {% if attendance >= 75 %}bg-success{% else %}bg-danger{% endif %}">
-                                        {{ attendance|floatformat:1 }}%
-                                    </span>
-                                    {% endwith %}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Academic History -->
-            <div class="col-12 mb-4">
-                <div class="card info-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-history me-2"></i> Academic History
-                        </h5>
-                        {% if perms.students.change_student %}
-                        <a href="{% url 'students:student_academic_history' student.id %}" 
-                           class="btn btn-sm btn-primary">
-                            <i class="bx bx-plus"></i> Add History
-                        </a>
-                        {% endif %}
-                    </div>
-                    <div class="card-body">
-                        {% if academic_history %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Academic Year</th>
-                                        <th>Class</th>
-                                        <th>Section</th>
-                                        <th>Roll No.</th>
-                                        <th>Percentage</th>
-                                        <th>Result</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for history in academic_history %}
-                                    <tr>
-                                        <td>{{ history.academic_year.name }}</td>
-                                        <td>{{ history.class_name.name }}</td>
-                                        <td>{{ history.section.name }}</td>
-                                        <td>{{ history.roll_number }}</td>
-                                        <td>
-                                            {% if history.percentage %}
-                                            <span class="badge {% if history.percentage >= 60 %}bg-success{% elif history.percentage >= 40 %}bg-warning{% else %}bg-danger{% endif %}">
-                                                {{ history.percentage }}%
-                                            </span>
-                                            {% else %}
-                                            -
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if history.result == "PASS" %}
-                                            <span class="badge bg-success">Pass</span>
-                                            {% elif history.result == "FAIL" %}
-                                            <span class="badge bg-danger">Fail</span>
-                                            {% else %}
-                                            <span class="badge bg-info">{{ history.result }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary">
-                                                <i class="bx bx-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div class="alert alert-info mb-0">
-                            <i class="bx bx-info-circle"></i> No academic history available.
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Guardians Tab -->
-    <div class="tab-pane fade" id="guardians" role="tabpanel">
-        <div class="card info-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bx bx-users me-2"></i> Guardians
-                </h5>
-                {% if perms.students.add_student %}
-                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                        data-bs-target="#addGuardianModal">
-                    <i class="bx  bx-plus"></i> Add Guardian
-                </button>
                 {% endif %}
             </div>
-            <div class="card-body">
-                {% if guardians %}
-                <div class="row">
-                    {% for guardian in guardians %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card border">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="card-title mb-1">{{ guardian.full_name }}</h5>
-                                        <h6 class="card-subtitle text-muted">
-                                            {{ guardian.get_relation_display }}
-                                            {% if guardian.is_primary %}
-                                            <span class="badge bg-primary ms-2">Primary</span>
-                                            {% endif %}
-                                            {% if guardian.is_emergency_contact %}
-                                            <span class="badge bg-danger ms-2">Emergency</span>
-                                            {% endif %}
-                                        </h6>
+            
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <ul class="nav nav-tabs nav-primary mb-0" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#primary-profile" role="tab" aria-selected="true">
+                                    <div class="d-flex align-items-center">
+                                        <div class="tab-icon"><i class='bx bx-user-pin font-18 me-1'></i></div>
+                                        <div class="tab-title">{% trans "Profile" %}</div>
                                     </div>
-                                    {% if perms.students.change_student %}
-                                    <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="bx bx-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger">
-                                            <i class="bx bx-trash"></i>
-                                        </button>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#primary-guardian" role="tab" aria-selected="false">
+                                    <div class="d-flex align-items-center">
+                                        <div class="tab-icon"><i class='bx bx-group font-18 me-1'></i></div>
+                                        <div class="tab-title">{% trans "Guardians" %}</div>
                                     </div>
-                                    {% endif %}
+                                </a>
+                            </li>
+                             <li class="nav-item" role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#primary-academic" role="tab" aria-selected="false">
+                                    <div class="d-flex align-items-center">
+                                        <div class="tab-icon"><i class='bx bx-book-bookmark font-18 me-1'></i></div>
+                                        <div class="tab-title">{% trans "Academic" %}</div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#primary-docs" role="tab" aria-selected="false">
+                                    <div class="d-flex align-items-center">
+                                        <div class="tab-icon"><i class='bx bx-file font-18 me-1'></i></div>
+                                        <div class="tab-title">{% trans "Documents" %}</div>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content pt-3">
+                            <!-- Profile Tab -->
+                            <div class="tab-pane fade show active" id="primary-profile" role="tabpanel">
+                                <h6 class="mb-3 text-uppercase">{% trans "Addresses" %}</h6>
+                                {% for address in addresses %}
+                                <div class="card shadow-none border mb-2">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ address.get_address_type_display }}</h6>
+                                        <p class="card-text">
+                                            {{ address.address_line_1 }}<br>
+                                            {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
+                                            {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
+                                            {{ address.country.name }}
+                                        </p>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted">{% trans "No addresses recorded." %}</p>
+                                {% endfor %}
+
+                                <hr>
+                                <h6 class="mb-3 text-uppercase">{% trans "Medical Info" %}</h6>
+                                {% if student.medical_info %}
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="mb-3">
+                                            <label class="mb-1 text-muted">{% trans "Blood Group" %}</label>
+                                            <div>{{ student.medical_info.blood_group }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="mb-3">
+                                            <label class="mb-1 text-muted">{% trans "Allergies" %}</label>
+                                            <div>{{ student.medical_info.allergies|default:"None" }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="mb-3">
+                                            <label class="mb-1 text-muted">{% trans "Medications" %}</label>
+                                            <div>{{ student.medical_info.medications|default:"None" }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p class="text-muted">{% trans "No medical information recorded." %}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Guardian Tab -->
+                            <div class="tab-pane fade" id="primary-guardian" role="tabpanel">
+                                <div class="row">
+                                    {% for guardian in guardians %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card shadow-none border">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ guardian.full_name }}</h5>
+                                                <h6 class="card-subtitle mb-2 text-muted">{{ guardian.get_relationship_display }}</h6>
+                                                <p class="card-text">
+                                                    <i class="bx bx-phone me-1"></i> {{ guardian.mobile_primary }}<br>
+                                                    <i class="bx bx-envelope me-1"></i> {{ guardian.email }}<br>
+                                                    <i class="bx bx-briefcase me-1"></i> {{ guardian.occupation|default:"-" }}
+                                                </p>
+                                                {% if guardian.is_emergency_contact %}
+                                                <span class="badge bg-danger">{% trans "Emergency Contact" %}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12">
+                                        <p class="text-muted">{% trans "No guardians added." %}</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Academic Tab -->
+                            <div class="tab-pane fade" id="primary-academic" role="tabpanel">
+                                <h6 class="mb-3">{% trans "Academic History" %}</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans "Institution" %}</th>
+                                                <th>{% trans "Class" %}</th>
+                                                <th>{% trans "Year" %}</th>
+                                                <th>{% trans "Percentage" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for record in academic_history %}
+                                            <tr>
+                                                <td>{{ record.institution_name }}</td>
+                                                <td>{{ record.class_name }}</td>
+                                                <td>{{ record.academic_year }}</td>
+                                                <td>{{ record.percentage }}%</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">{% trans "No history records found." %}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </div>
                                 
-                                <div class="row">
-                                    <div class="col-12 mb-2">
-                                        <i class="bx bx-phone me-2 text-muted"></i>
-                                        <a href="tel:{{ guardian.phone_primary }}">
-                                            {{ guardian.phone_primary }}
-                                        </a>
-                                        {% if guardian.phone_secondary %}
-                                        <br>
-                                        <i class="bx bx-phone-alt me-2 text-muted"></i>
-                                        <a href="tel:{{ guardian.phone_secondary }}">
-                                            {{ guardian.phone_secondary }}
-                                        </a>
-                                        {% endif %}
-                                    </div>
-                                    {% if guardian.email %}
-                                    <div class="col-12 mb-2">
-                                        <i class="bx bx-envelope me-2 text-muted"></i>
-                                        <a href="mailto:{{ guardian.email }}">
-                                            {{ guardian.email }}
-                                        </a>
-                                    </div>
-                                    {% endif %}
-                                    {% if guardian.occupation %}
-                                    <div class="col-12 mb-2">
-                                        <i class="bx bx-briefcase me-2 text-muted"></i>
-                                        {{ guardian.get_occupation_display }}
-                                        {% if guardian.company_name %}
-                                        at {{ guardian.company_name }}
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
+                                <hr>
+                                <h6 class="mb-3">{% trans "Recent Performance" %}</h6>
+                                {% if academic_performance %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans "Exam" %}</th>
+                                                <th>{% trans "Date" %}</th>
+                                                <th>{% trans "Score" %}</th>
+                                                <th>{% trans "Grade" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for result in academic_performance %}
+                                            <tr>
+                                                <td>{{ result.exam.name }}</td>
+                                                <td>{{ result.exam.start_date }}</td>
+                                                <td>{{ result.score }}/{{ result.total_marks }}</td>
+                                                <td>{{ result.grade }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-muted">{% trans "No recent exam results." %}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Documents Tab -->
+                            <div class="tab-pane fade" id="primary-docs" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans "Document Type" %}</th>
+                                                <th>{% trans "File Name" %}</th>
+                                                <th>{% trans "Date" %}</th>
+                                                <th>{% trans "Action" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for doc in documents %}
+                                            <tr>
+                                                <td>{{ doc.get_doc_type_display }}</td>
+                                                <td>{{ doc.file_name }}</td>
+                                                <td>{{ doc.created_at|date:"M d, Y" }}</td>
+                                                <td>
+                                                    <a href="{% url 'students:document_download' document_id=doc.id %}" class="btn btn-sm btn-info" target="_blank"><i class="bx bx-download"></i></a>
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">{% trans "No documents uploaded." %}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <div class="alert alert-info mb-0">
-                    <i class="bx bx-info-circle"></i> No guardians added yet.
-                </div>
-                {% endif %}
             </div>
         </div>
-    </div>
-
-    <!-- Documents Tab -->
-    <div class="tab-pane fade" id="documents" role="tabpanel">
-        <div class="card info-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bx bx-file-alt me-2"></i> Documents
-                </h5>
-                {% if perms.students.add_student %}
-                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                        data-bs-target="#uploadDocumentModal">
-                    <i class="bx bx-upload"></i> Upload Document
-                </button>
-                {% endif %}
-            </div>
-            <div class="card-body">
-                {% if documents %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Document Type</th>
-                                <th>File Name</th>
-                                <th>Status</th>
-                                <th>Issue Date</th>
-                                <th>Expiry Date</th>
-                                <th>Verified</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for document in documents %}
-                            <tr>
-                                <td>
-                                    <strong>{{ document.get_doc_type_display }}</strong>
-                                    {% if document.is_current %}
-                                    <span class="badge bg-info ms-2">v{{ document.version }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ document.file_name|truncatechars:30 }}</td>
-                                <td>
-                                    {% if document.status == "APPROVED" %}
-                                    <span class="badge bg-success">{{ document.get_status_display }}</span>
-                                    {% elif document.status == "PENDING" %}
-                                    <span class="badge bg-warning">{{ document.get_status_display }}</span>
-                                    {% elif document.status == "REJECTED" %}
-                                    <span class="badge bg-danger">{{ document.get_status_display }}</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">{{ document.get_status_display }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ document.issue_date|default:"-" }}</td>
-                                <td>
-                                    {{ document.expiry_date|default:"-" }}
-                                    {% if document.is_expired %}
-                                    <span class="badge bg-danger ms-2">Expired</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if document.is_verified %}
-                                    <span class="badge bg-success">Yes</span>
-                                    {% if document.verified_by %}
-                                    <br><small>by {{ document.verified_by.get_full_name }}</small>
-                                    {% endif %}
-                                    {% else %}
-                                    <span class="badge bg-secondary">No</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <a href="{{ document.get_download_url }}" 
-                                           class="btn btn-sm btn-outline-primary" title="Download">
-                                            <i class="bx bx-download"></i>
-                                        </a>
-                                        {% if perms.students.verify_document %}
-                                        {% if document.status == "PENDING" %}
-                                        <button class="btn btn-sm btn-outline-success" 
-                                                onclick="verifyDocument('{{ document.id }}', 'approve')"
-                                                title="Approve">
-                                            <i class="bx bx-check"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger"
-                                                onclick="verifyDocument('{{ document.id }}', 'reject')"
-                                                title="Reject">
-                                            <i class="bx bx-x"></i>
-                                        </button>
-                                        {% endif %}
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="alert alert-info mb-0">
-                    <i class="fas fa-info-circle"></i> No documents uploaded yet.
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Medical Information Tab -->
-    <div class="tab-pane fade" id="medical" role="tabpanel">
-        {% if medical_info %}
-        <div class="row">
-            <!-- Basic Medical Info -->
-            <div class="col-md-6 mb-4">
-                <div class="card info-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-heartbeat me-2"></i> Basic Medical Information
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="40%">Blood Group</th>
-                                <td>{{ medical_info.blood_group|default:"Not specified" }}</td>
-                            </tr>
-                            <tr>
-                                <th>Height</th>
-                                <td>
-                                    {% if medical_info.height_cm %}
-                                    {{ medical_info.height_cm }} cm
-                                    {% else %}
-                                    Not recorded
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Weight</th>
-                                <td>
-                                    {% if medical_info.weight_kg %}
-                                    {{ medical_info.weight_kg }} kg
-                                    {% else %}
-                                    Not recorded
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>BMI</th>
-                                <td>
-                                    {% if medical_info.bmi %}
-                                    {{ medical_info.bmi }} ({{ medical_info.bmi_category }})
-                                    {% else %}
-                                    Not calculated
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Last Checkup</th>
-                                <td>{{ medical_info.last_medical_checkup|default:"Not recorded" }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Medical Conditions -->
-            <div class="col-md-6 mb-4">
-                <div class="card info-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-stethoscope me-2"></i> Medical Conditions
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <h6 class="text-muted">Allergies</h6>
-                            <p>{{ medical_info.known_allergies|default:"None reported"|linebreaks }}</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="text-muted">Chronic Conditions</h6>
-                            <p>{{ medical_info.chronic_conditions|default:"None reported"|linebreaks }}</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="text-muted">Current Medications</h6>
-                            <p>{{ medical_info.current_medications|default:"None reported"|linebreaks }}</p>
-                        </div>
-                        <div>
-                            <h6 class="text-muted">Dietary Restrictions</h6>
-                            <p>{{ medical_info.dietary_restrictions|default:"None reported"|linebreaks }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Disability Information -->
-            {% if medical_info.has_disability %}
-            <div class="col-md-6 mb-4">
-                <div class="card info-card border-warning">
-                    <div class="card-header bg-warning text-white">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-wheelchair me-2"></i> Disability Information
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="40%">Disability Type</th>
-                                <td>{{ medical_info.disability_type }}</td>
-                            </tr>
-                            <tr>
-                                <th>Disability Percentage</th>
-                                <td>{{ medical_info.disability_percentage }}%</td>
-                            </tr>
-                            <tr>
-                                <th>Certificate Number</th>
-                                <td>{{ medical_info.disability_certificate_number|default:"Not provided" }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Emergency Contact -->
-            <div class="col-md-6 mb-4">
-                <div class="card info-card border-danger">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-exclamation-triangle me-2"></i> Emergency Contact
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="40%">Contact Name</th>
-                                <td>{{ medical_info.emergency_contact_name|default:"Not specified" }}</td>
-                            </tr>
-                            <tr>
-                                <th>Relation</th>
-                                <td>{{ medical_info.emergency_contact_relation|default:"Not specified" }}</td>
-                            </tr>
-                            <tr>
-                                <th>Primary Phone</th>
-                                <td>
-                                    {% if medical_info.emergency_contact_phone %}
-                                    <a href="tel:{{ medical_info.emergency_contact_phone }}">
-                                        {{ medical_info.emergency_contact_phone }}
-                                    </a>
-                                    {% else %}
-                                    Not specified
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Alternative Phone</th>
-                                <td>
-                                    {% if medical_info.emergency_contact_alt_phone %}
-                                    <a href="tel:{{ medical_info.emergency_contact_alt_phone }}">
-                                        {{ medical_info.emergency_contact_alt_phone }}
-                                    </a>
-                                    {% else %}
-                                    Not specified
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Medical Insurance -->
-            {% if medical_info.has_medical_insurance %}
-            <div class="col-md-6 mb-4">
-                <div class="card info-card border-info">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-shield-alt me-2"></i> Medical Insurance
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tr>
-                                <th width="40%">Insurance Provider</th>
-                                <td>{{ medical_info.insurance_provider }}</td>
-                            </tr>
-                            <tr>
-                                <th>Policy Number</th>
-                                <td>{{ medical_info.insurance_policy_number }}</td>
-                            </tr>
-                            <tr>
-                                <th>Valid Until</th>
-                                <td>{{ medical_info.insurance_valid_until }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Special Instructions -->
-            {% if medical_info.special_instructions %}
-            <div class="col-12 mb-4">
-                <div class="card info-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bx bx-exclamation-circle me-2"></i> Special Medical Instructions
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {{ medical_info.special_instructions|linebreaks }}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        {% else %}
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> No medical information recorded yet.
-            {% if perms.students.change_student %}
-            <a href="#" class="alert-link" data-bs-toggle="modal" data-bs-target="#addMedicalInfoModal">
-                Add medical information
-            </a>
-            {% endif %}
-        </div>
-        {% endif %}
     </div>
 </div>
-
-<!-- Modals -->
-{% include 'students/modals/add_guardian.html' %}
-{% include 'students/modals/add_address.html' %}
-{% include 'students/modals/upload_document.html' %}
-{% include 'students/modals/add_medical_info.html' %}
-
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-    // Initialize DataTables
-    $(document).ready(function() {
-        $('table.table-hover').DataTable({
-            pageLength: 10,
-            responsive: true
-        });
-    });
-
-    // Document verification function
-    function verifyDocument(documentId, action) {
-        if (!confirm(`Are you sure you want to ${action} this document?`)) {
-            return;
-        }
-
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        fetch(`/api/documents/${documentId}/verify/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                action: action,
-                reason: prompt(`Reason for ${action}:`)
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            location.reload();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
-        });
-    }
-</script>
 {% endblock %}

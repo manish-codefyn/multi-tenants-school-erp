@@ -1,64 +1,101 @@
 {% extends 'layouts/dashboard.html' %}
 {% load static %}
-{% block extra_css %}
-    {% include "includes/datatable_styles.html" %}
-{% endblock %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Academic Years" %}{% endblock %}
+{% block page_description %}{% trans "Manage academic sessions" %}{% endblock %}
+
 {% block content %}
-    <div class="card">
-        <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between mb-4">
-                <h5 class="mb-0">Academic Years</h5>
-                <a href="{% url 'academics:academic_year_create' %}"
-                   class="btn btn-primary btn-sm"><i class='bx bx-plus'></i> Add New</a>
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Academic Years" %}</h5>
+                <div class="btn-group">
+                     {% if perms.academics.add_academicyear %}
+                    <a href="{% url 'academics:academic_year_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> {% trans "Add New" %}
+                    </a>
+                    {% endif %}
+                    {% if perms.academics.change_academicyear %}
+                    <a href="{% url 'academics:set_current_academic_year' %}" class="btn btn-outline-secondary">
+                        <i class="bx bx-check-circle"></i> {% trans "Set Current" %}
+                    </a>
+                    {% endif %}
+                </div>
             </div>
-            <div class="table-responsive">
-                <table id="academicYearTable"
-                       class="table table-striped table-bordered"
-                       data-datatable
-                       data-title="Academic Years"
-                       data-export-columns="[0, 1, 2, 3, 4]">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Code</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Current</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for year in academic_years %}
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="academicYearTable" class="table table-hover table-striped">
+                        <thead>
                             <tr>
-                                <td>{{ year.name }}</td>
+                                <th>{% trans "Name" %}</th>
+                                <th>{% trans "Code" %}</th>
+                                <th>{% trans "Start Date" %}</th>
+                                <th>{% trans "End Date" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for year in academic_years %}
+                            <tr>
+                                <td>
+                                    <strong>{{ year.name }}</strong>
+                                </td>
                                 <td>{{ year.code }}</td>
                                 <td>{{ year.start_date }}</td>
                                 <td>{{ year.end_date }}</td>
                                 <td>
                                     {% if year.is_current %}
-                                        <span class="badge bg-success">Yes</span>
+                                    <span class="badge bg-success">Current</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">No</span>
+                                    <span class="badge bg-secondary">Archived</span>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <div class="d-flex order-actions">
-                                        <a href="{% url 'academics:academic_year_update' year.pk %}"
-                                           class="ms-3"
-                                           title="Edit"><i class='bx bxs-edit'></i></a>
-                                        <a href="{% url 'academics:academic_year_delete' year.pk %}"
-                                           class="ms-3 text-danger"
-                                           title="Delete"><i class='bx bxs-trash'></i></a>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'academics:academic_year_detail' year.pk %}" 
+                                           class="btn btn-sm btn-info" title="View">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        {% if perms.academics.change_academicyear %}
+                                        <a href="{% url 'academics:academic_year_update' year.pk %}" 
+                                           class="btn btn-sm btn-warning" title="Edit">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.academics.delete_academicyear %}
+                                        <a href="{% url 'academics:academic_year_delete' year.pk %}" 
+                                           class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="bx bx-trash"></i>
+                                        </a>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">{% trans "No academic years found." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
+
 {% block extra_scripts %}
     {% include "includes/datatable_scripts.html" %}
+    <script>
+        $(document).ready(function() {
+            $('#academicYearTable').DataTable({
+                "pageLength": 10,
+                "order": [[4, "desc"], [2, "desc"]] // Sort by Status (Current first approx) then Start Date
+            });
+        });
+    </script>
 {% endblock %}
