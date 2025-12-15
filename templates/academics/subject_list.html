@@ -5,83 +5,154 @@
 {% block page_title %}{% trans "Subjects" %}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">{% trans "Subjects Repository" %}</h5>
-                <div class="btn-group">
-                     {% if perms.academics.add_subject %}
-                    <a href="{% url 'academics:subject_create' %}" class="btn btn-primary">
-                        <i class="bx bx-plus"></i> {% trans "Add New Subject" %}
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table id="subjectTable" class="table table-hover table-striped">
-                        <thead>
-                            <tr>
-                                <th>{% trans "Name" %}</th>
-                                <th>{% trans "Code" %}</th>
-                                <th>{% trans "Type" %}</th>
-                                <th>{% trans "Group" %}</th>
-                                <th>{% trans "Credit Hours" %}</th>
-                                <th>{% trans "Status" %}</th>
-                                <th>{% trans "Actions" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for subject in subjects %}
-                            <tr>
-                                <td>
-                                    <strong>{{ subject.name }}</strong>
-                                </td>
-                                <td>{{ subject.code }}</td>
-                                <td>{{ subject.get_subject_type_display }}</td>
-                                <td>{{ subject.get_subject_group_display|default:"-" }}</td>
-                                <td>{{ subject.credit_hours }}</td>
-                                <td>
-                                    {% if subject.is_active %}
-                                    <span class="badge bg-success">Active</span>
-                                    {% else %}
-                                    <span class="badge bg-danger">Inactive</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{% url 'academics:subject_detail' subject.pk %}" 
-                                           class="btn btn-sm btn-info" title="View">
-                                            <i class="bx bx-show"></i>
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0 text-primary fw-bold">{% trans "Subject Library" %}</h4>
+            <p class="text-muted small mb-0">{% trans "Manage master list of subjects and courses" %}</p>
+        </div>
+        {% if perms.academics.add_subject %}
+        <a href="{% url 'academics:subject_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bx bx-plus fs-5"></i> {% trans "New Subject" %}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Table Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="subjectTable" class="table table-hover align-middle mb-0" style="width:100%">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-secondary text-uppercase small font-monospace">{% trans "Subject Name" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Code" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Type" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Group" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Credits" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Status" %}</th>
+                            <th class="pe-4 py-3 text-end text-secondary text-uppercase small font-monospace">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for subject in subjects %}
+                        <tr>
+                            <!-- Name -->
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar avatar-sm bg-label-primary rounded d-flex align-items-center justify-content-center">
+                                        <i class="bx bx-book-open fs-4"></i>
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        <a href="{% url 'academics:subject_detail' subject.pk %}" class="fw-bold text-dark text-decoration-none hover-primary">
+                                            {{ subject.name }}
                                         </a>
+                                        <span class="text-muted small">{% trans "Core Academic Subject" %}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- Code -->
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary font-monospace">{{ subject.code }}</span>
+                            </td>
+                            
+                            <!-- Type -->
+                            <td>
+                                {% if 'THEORY' in subject.subject_type|upper or 'LECTURE' in subject.subject_type|upper %}
+                                    <span class="badge bg-label-info"><i class="bx bx-book me-1"></i>{{ subject.get_subject_type_display }}</span>
+                                {% elif 'PRACTICAL' in subject.subject_type|upper or 'LAB' in subject.subject_type|upper %}
+                                    <span class="badge bg-label-warning"><i class="bx bx-test-tube me-1"></i>{{ subject.get_subject_type_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-label-secondary">{{ subject.get_subject_type_display }}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Group -->
+                            <td>
+                                {% if subject.subject_group %}
+                                    <span class="text-dark small">{{ subject.get_subject_group_display }}</span>
+                                {% else %}
+                                    <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Credits -->
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-time-five text-muted me-2 small"></i>
+                                    <span class="fw-medium">{{ subject.credit_hours }}</span>
+                                </div>
+                            </td>
+
+                            <!-- Status -->
+                            <td>
+                                {% if subject.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="pe-4 text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'academics:subject_detail' subject.pk %}">
+                                                <i class="bx bx-show me-2"></i> {% trans "View Details" %}
+                                            </a>
+                                        </li>
                                         {% if perms.academics.change_subject %}
-                                        <a href="{% url 'academics:subject_update' subject.pk %}" 
-                                           class="btn btn-sm btn-warning" title="Edit">
-                                            <i class="bx bx-edit"></i>
-                                        </a>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'academics:subject_update' subject.pk %}">
+                                                <i class="bx bx-edit me-2"></i> {% trans "Edit" %}
+                                            </a>
+                                        </li>
                                         {% endif %}
                                         {% if perms.academics.delete_subject %}
-                                        <a href="{% url 'academics:subject_delete' subject.pk %}" 
-                                           class="btn btn-sm btn-danger" title="Delete">
-                                            <i class="bx bx-trash"></i>
-                                        </a>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'academics:subject_delete' subject.pk %}">
+                                                <i class="bx bx-trash me-2"></i> {% trans "Delete" %}
+                                            </a>
+                                        </li>
                                         {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center">{% trans "No subjects found." %}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <!-- No Data row handled by DataTables -->
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+/* Custom modern table styles */
+#subjectTable thead th {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+.bg-label-primary { background-color: #e7e7ff !important; color: #696cff !important; }
+.bg-label-info { background-color: #d7f5fc !important; color: #03c3ec !important; }
+.bg-label-warning { background-color: #fff2d6 !important; color: #ffab00 !important; }
+.bg-label-secondary { background-color: #ebeef0 !important; color: #8592a3 !important; }
+.hover-primary:hover { color: #696cff !important; }
+.avatar-sm { width: 2.5rem; height: 2.5rem; }
+</style>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -89,9 +160,20 @@
     <script>
         $(document).ready(function() {
             $('#subjectTable').DataTable({
-                "pageLength": 15,
-                "order": [[0, "asc"]] // Sort by Name
+                "pageLength": 10,
+                "order": [[0, "asc"]], // Sort by Name
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "{% trans 'Search subjects...' %}"
+                },
+                "dom": '<"row mx-2 my-3"<"col-md-6"l><"col-md-6"f>>t<"row mx-2 my-3"<"col-md-6"i><"col-md-6"p>>',
+                "columnDefs": [
+                    { "orderable": false, "targets": [6] } // Disable sorting on Actions
+                ]
             });
+            
+            // Clean up search input
+            $('.dataTables_filter input').addClass('form-control border-0 bg-light shadow-sm').css('padding', '10px 15px');
         });
     </script>
 {% endblock %}

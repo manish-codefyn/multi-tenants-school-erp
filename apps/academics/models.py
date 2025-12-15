@@ -30,6 +30,10 @@ class AcademicYear(BaseModel):
     def __str__(self):
         return f"{self.name} ({self.start_date} - {self.end_date})"
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('academics:academic_year_detail', args=[str(self.id)])
+
 
 
 class Term(BaseModel):
@@ -158,6 +162,10 @@ class SchoolClass(BaseModel):
     @property
     def can_admit_more(self):
         return self.available_seats > 0
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('academics:class_detail', args=[str(self.id)])
 
 
 class Section(BaseModel):

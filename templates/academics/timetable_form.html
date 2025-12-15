@@ -87,3 +87,79 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        const classSelect = $('#id_class_name');
+        const sectionSelect = $('#id_section');
+        const subjectSelect = $('#id_subject');
+
+        function loadDependentData(classId) {
+            if (!classId) {
+                sectionSelect.html('<option value="">---------</option>');
+                subjectSelect.html('<option value="">---------</option>');
+                return;
+            }
+
+            // Load Sections
+            $.ajax({
+                url: "{% url 'academics:ajax_load_sections' %}",
+                data: {
+                    'class_id': classId
+                },
+                success: function(data) {
+                    let sectionHtml = '<option value="">---------</option>';
+                    data.forEach(function(section) {
+                        // Check if current value matches (for edit mode)
+                        const selected = (section.id == sectionSelect.attr('data-selected')) ? 'selected' : '';
+                        sectionHtml += `<option value="${section.id}" ${selected}>${section.name}</option>`;
+                    });
+                    
+                    // Preserve selected value logic is tricky in pure JS without knowing initial state easily,
+                    // but for edit mode, standard Django form rendering usually pre-selects correct option 
+                    // IF the queryset in form __init__ was set correctly (which we did).
+                    // However, if we replace HTML, we wipe that selection unless we are careful.
+                    // Actually, since we only trigger this on CHANGE, initially rendered form is correct.
+                    // We should only replace options if it's a user interaction.
+                    
+                    // WAIT. If we are in edit mode, the form already rendered with correct options.
+                    // We should NOT clear them on page load unless we want to refresh.
+                    // Actually, standard pattern: trigger only on change.
+                    // But if page reloads with error, we want to maintain state.
+                    
+                    // Better strategy: Only update if triggered by change event.
+                    sectionSelect.html(sectionHtml);
+                }
+            });
+
+            // Load Subjects
+            $.ajax({
+                url: "{% url 'academics:ajax_load_subjects' %}",
+                data: {
+                    'class_id': classId
+                },
+                success: function(data) {
+                    let subjectHtml = '<option value="">---------</option>';
+                    if (data.length === 0) {
+                        subjectHtml = '<option value="">{% trans "No subjects found for this class" %}</option>';
+                    } else {
+                        data.forEach(function(item) {
+                            subjectHtml += `<option value="${item.id}">${item.subject__name}</option>`;
+                        });
+                    }
+                    subjectSelect.html(subjectHtml);
+                },
+                error: function(xhr, status, error) {
+                     console.error("Error loading subjects:", error);
+                     subjectSelect.html('<option value="">{% trans "Error loading subjects" %}</option>');
+                }
+            });
+        }
+
+        classSelect.change(function() {
+            loadDependentData($(this).val());
+        });
+    });
+</script>
+{% endblock %}

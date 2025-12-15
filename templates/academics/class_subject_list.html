@@ -5,101 +5,231 @@
 {% block page_title %}{% trans "Class Subjects" %}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">{% trans "Class Subject Allocations" %}</h5>
-                <div class="btn-group">
-                     {% if perms.academics.add_classsubject %}
-                    <a href="{% url 'academics:class_subject_create' %}" class="btn btn-primary">
-                        <i class="bx bx-plus"></i> {% trans "Assign Subject to Class" %}
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="card-body">
-                 <!-- Filter -->
-                <form method="get" class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <select name="class_id" class="form-select" onchange="this.form.submit()">
-                            <option value="">{% trans "All Classes" %}</option>
-                            {% for class_obj in classes %}
-                            <option value="{{ class_obj.id }}" {% if request.GET.class_id == class_obj.id|stringformat:"s" %}selected{% endif %}>
-                                {{ class_obj.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </form>
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0 text-primary fw-bold">{% trans "Class Subject Allocations" %}</h4>
+            <p class="text-muted small mb-0">{% trans "Assign and manage subjects for each class" %}</p>
+        </div>
+        {% if perms.academics.add_classsubject %}
+        <a href="{% url 'academics:class_subject_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bx bx-plus fs-5"></i> {% trans "Assign Subject" %}
+        </a>
+        {% endif %}
+    </div>
 
-                <div class="table-responsive">
-                    <table id="classSubjectTable" class="table table-hover table-striped">
-                        <thead>
-                            <tr>
-                                <th>{% trans "Class" %}</th>
-                                <th>{% trans "Subject" %}</th>
-                                <th>{% trans "Teacher" %}</th>
-                                <th>{% trans "Periods/Week" %}</th>
-                                <th>{% trans "Compulsory" %}</th>
-                                <th>{% trans "Academic Year" %}</th>
-                                <th>{% trans "Actions" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for cs in class_subjects %}
-                            <tr>
-                                <td><strong>{{ cs.class_name.name }}</strong></td>
-                                <td>{{ cs.subject.name }}</td>
-                                <td>{{ cs.teacher.get_full_name|default:"-" }}</td>
-                                <td>{{ cs.periods_per_week }}</td>
-                                <td>
-                                    {% if cs.is_compulsory %}
-                                    <span class="badge bg-success">Yes</span>
+    <!-- Filter Card -->
+    <div class="card border-0 shadow-sm mb-4 bg-white">
+        <div class="card-body p-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label text-muted small fw-semibold text-uppercase">{% trans "Filter by Class" %}</label>
+                    <select name="class_id" class="form-select border-0 bg-light" onchange="this.form.submit()">
+                        <option value="">{% trans "All Classes" %}</option>
+                        {% for class_obj in classes %}
+                        <option value="{{ class_obj.id }}" {% if request.GET.class_id == class_obj.id|stringformat:"s" %}selected{% endif %}>
+                            {{ class_obj.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'academics:class_subject_list' %}" class="btn btn-light border-0 bg-light text-muted">
+                        <i class="bx bx-reset me-1"></i> {% trans "Reset" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table id="classSubjectTable" class="table table-hover align-middle mb-0" style="width:100%">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-secondary text-uppercase small font-monospace">{% trans "Class" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Subject" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Teacher" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Load" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Type" %}</th>
+                            <th class="py-3 text-secondary text-uppercase small font-monospace">{% trans "Year" %}</th>
+                            <th class="pe-4 py-3 text-end text-secondary text-uppercase small font-monospace">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for cs in class_subjects %}
+                        <tr>
+                            <!-- Class -->
+                            <td class="ps-4">
+                                <span class="fw-bold text-dark">{{ cs.class_name.name }}</span>
+                            </td>
+                            
+                            <!-- Subject -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar avatar-xs bg-label-info rounded-circle d-flex align-items-center justify-content-center text-info">
+                                        <i class="bx bx-book"></i>
+                                    </div>
+                                    <span class="fw-medium text-dark">{{ cs.subject.name }}</span>
+                                </div>
+                            </td>
+                            
+                            <!-- Teacher -->
+                            <td>
+                                {% if cs.teacher %}
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if cs.teacher.profile_image %}
+                                        <img src="{{ cs.teacher.profile_image.url }}" class="rounded-circle" width="24" height="24" alt="Avatar">
                                     {% else %}
-                                    <span class="badge bg-secondary">No</span>
+                                        <div class="avatar avatar-xs rounded-circle bg-secondary-subtle d-flex align-items-center justify-content-center text-secondary small fw-bold">
+                                            {{ cs.teacher.first_name|first }}{{ cs.teacher.last_name|first }}
+                                        </div>
                                     {% endif %}
-                                </td>
-                                <td>{{ cs.academic_year.name }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
+                                    <span class="text-dark small">{{ cs.teacher.get_full_name }}</span>
+                                </div>
+                                {% else %}
+                                <span class="badge bg-label-secondary">{% trans "Unassigned" %}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Periods -->
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ cs.periods_per_week }} {% trans "p/w" %}</span>
+                            </td>
+
+                            <!-- Compulsory -->
+                            <td>
+                                {% if cs.is_compulsory %}
+                                    <span class="badge bg-label-primary">{% trans "Compulsory" %}</span>
+                                {% else %}
+                                    <span class="badge bg-label-warning">{% trans "Optional" %}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Year -->
+                            <td>
+                                <span class="text-muted small">{{ cs.academic_year.name }}</span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="pe-4 text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
                                         {% if perms.academics.change_classsubject %}
-                                        <a href="{% url 'academics:class_subject_update' cs.pk %}" 
-                                           class="btn btn-sm btn-warning" title="Edit">
-                                            <i class="bx bx-edit"></i>
-                                        </a>
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'academics:class_subject_update' cs.pk %}">
+                                                <i class="bx bx-edit me-2"></i> {% trans "Edit" %}
+                                            </a>
+                                        </li>
                                         {% endif %}
                                         {% if perms.academics.delete_classsubject %}
-                                        <a href="{% url 'academics:class_subject_delete' cs.pk %}" 
-                                           class="btn btn-sm btn-danger" title="Delete">
-                                            <i class="bx bx-trash"></i>
-                                        </a>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'academics:class_subject_delete' cs.pk %}">
+                                                <i class="bx bx-trash me-2"></i> {% trans "Delete" %}
+                                            </a>
+                                        </li>
                                         {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center">{% trans "No assignments found." %}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <!-- DataTables handles empty state usually, but fallback here -->
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+/* Custom modern table styles */
+#classSubjectTable thead th {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+.bg-label-primary { background-color: #e7e7ff !important; color: #696cff !important; }
+.bg-label-info { background-color: #d7f5fc !important; color: #03c3ec !important; }
+.bg-label-warning { background-color: #fff2d6 !important; color: #ffab00 !important; }
+.bg-label-secondary { background-color: #ebeef0 !important; color: #8592a3 !important; }
+.avatar-xs { width: 1.625rem; height: 1.625rem; }
+/* Button styling adjustment for export buttons */
+.dt-buttons .btn {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    border: 1px solid #d9dee3;
+    color: #566a7f;
+    margin-right: 0.25rem;
+}
+.dt-buttons .btn:hover {
+    background-color: #f3f4f6;
+    color: #696cff;
+}
+</style>
 {% endblock %}
 
 {% block extra_scripts %}
+    <!-- DataTables & Export Buttons -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
     {% include "includes/datatable_scripts.html" %}
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
     <script>
         $(document).ready(function() {
             $('#classSubjectTable').DataTable({
                 "pageLength": 15,
-                "order": [[0, "asc"], [1, "asc"]] // Sort by Class then Subject
+                "order": [[0, "asc"], [1, "asc"]], // Sort by Class, then Subject
+                "dom": '<"row mx-1 my-3"<"col-md-6 d-flex align-items-center"B><"col-md-6"f>>t<"row mx-1 my-3"<"col-md-6"i><"col-md-6"p>>',
+                "buttons": [
+                    {
+                        extend: 'copy',
+                        text: '<i class="bx bx-copy me-1"></i>Copy',
+                        className: 'btn btn-outline-secondary btn-sm'
+                    },
+                    {
+                        extend: 'excel',
+                        text: '<i class="bx bx-spreadsheet me-1"></i>Excel',
+                        className: 'btn btn-outline-success btn-sm'
+                    },
+                    {
+                        extend: 'pdf',
+                        text: '<i class="bx bxs-file-pdf me-1"></i>PDF',
+                        className: 'btn btn-outline-danger btn-sm'
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="bx bx-printer me-1"></i>Print',
+                        className: 'btn btn-outline-info btn-sm'
+                    }
+                ],
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "{% trans 'Search subjects...' %}"
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": [6] } // Disable sorting on Actions
+                ]
             });
+            
+            // Style the search box to match
+            $('.dataTables_filter input').addClass('form-control border-0 bg-light shadow-sm').css('padding', '10px 15px');
         });
     </script>
 {% endblock %}

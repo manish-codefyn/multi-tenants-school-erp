@@ -8,6 +8,7 @@
 {% block content %}
 <div class="row mb-3">
     <div class="col-12">
+        <!-- Academic Year Alerts -->
         {% if missing_academic_year %}
         <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show py-2">
             <div class="d-flex align-items-center">
@@ -20,7 +21,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% elif total_academic_years_all > 0 and total_academic_years == 0 %}
-         <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show py-2">
+        <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show py-2">
             <div class="d-flex align-items-center">
                 <div class="font-35 text-white"><i class="bx bx-error-circle"></i></div>
                 <div class="ms-3">
@@ -45,6 +46,7 @@
         </div>
         {% endif %}
 
+        <!-- Term Alerts -->
         {% if missing_term %}
         <div class="alert alert-warning border-0 bg-warning alert-dismissible fade show py-2">
             <div class="d-flex align-items-center">
@@ -58,44 +60,47 @@
         </div>
         {% endif %}
 
+        <!-- Classes Alerts -->
         {% if total_classes_all > 0 and total_classes == 0 %}
         <div class="alert alert-info border-0 bg-info alert-dismissible fade show py-2">
-             <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center">
                 <div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
                 <div class="ms-3">
                     <h6 class="mb-0 text-white">No Active Classes Found</h6>
                     <div class="text-white">You have {{ total_classes_all }} classes in the system, but none are active. Check your class configurations.</div>
                 </div>
             </div>
-             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% elif total_classes_all == 0 %}
-         <div class="alert alert-primary border-0 bg-primary alert-dismissible fade show py-2">
-             <div class="d-flex align-items-center">
+        <div class="alert alert-primary border-0 bg-primary alert-dismissible fade show py-2">
+            <div class="d-flex align-items-center">
                 <div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
                 <div class="ms-3">
                     <h6 class="mb-0 text-white">Welcome!</h6>
                     <div class="text-white">It looks like you haven't created any classes yet. <a href="{% url 'academics:class_create' %}" class="text-white fw-bold">Create your first class</a> to get started.</div>
                 </div>
             </div>
-             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endif %}
         
+        <!-- Students Alerts -->
         {% if total_students_all > 0 and total_students == 0 %}
         <div class="alert alert-info border-0 bg-info alert-dismissible fade show py-2">
-             <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center">
                 <div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
                 <div class="ms-3">
                     <h6 class="mb-0 text-white">No Active Students Found</h6>
-                     <div class="text-white">You have {{ total_students_all }} students in the system, but none are active.</div>
+                    <div class="text-white">You have {{ total_students_all }} students in the system, but none are active.</div>
                 </div>
             </div>
-             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endif %}
     </div>
 </div>
+
 <div class="row">
     <!-- Quick Stats Cards -->
     <div class="col-md-3 mb-4">
@@ -113,6 +118,7 @@
             </div>
         </div>
     </div>
+    
     <div class="col-md-3 mb-4">
         <div class="card border-0 shadow-sm border-start border-success border-4 h-100">
             <div class="card-body">
@@ -128,6 +134,7 @@
             </div>
         </div>
     </div>
+    
     <div class="col-md-3 mb-4">
         <div class="card border-0 shadow-sm border-start border-info border-4 h-100">
             <div class="card-body">
@@ -143,6 +150,7 @@
             </div>
         </div>
     </div>
+    
     <div class="col-md-3 mb-4">
         <div class="card border-0 shadow-sm border-start border-warning border-4 h-100">
             <div class="card-body">
@@ -193,7 +201,7 @@
                             <h6 class="mb-0 mt-2 text-dark">Sections</h6>
                         </a>
                     </div>
-                     <div class="col-md-2 col-6 text-center">
+                    <div class="col-md-2 col-6 text-center">
                         <a href="{% url 'academics:subject_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
                             <div class="font-35 text-danger"><i class="bx bx-book"></i></div>
                             <h6 class="mb-0 mt-2 text-dark">Subjects</h6>
@@ -211,14 +219,62 @@
     </div>
 </div>
 
-<style>
-    .hover-shadow:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        background-color: #f8f9fa;
-        transform: translateY(-3px);
-    }
-    .transition {
-        transition: all 0.3s ease;
-    }
-</style>
-{% endblock %}
+<!-- Additional Data Sections (Optional) -->
+{% if upcoming_holidays %}
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">{% trans "Upcoming Holidays" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for holiday in upcoming_holidays %}
+                    <div class="list-group-item border-0 px-0 py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">{{ holiday.title }}</h6>
+                                <small class="text-muted">{{ holiday.start_date|date:"M d, Y" }} - {{ holiday.end_date|date:"M d, Y" }}</small>
+                            </div>
+                            <span class="badge bg-light text-dark">{{ holiday.get_type_display }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if today_attendance.total > 0 %}
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">{% trans "Today's Attendance" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h1 class="display-4 text-primary">{{ today_attendance.percentage }}%</h1>
+                    <p class="text-muted">Attendance Rate</p>
+                </div>
+                <div class="row text-center mt-3">
+                    <div class="col-4">
+                        <h4 class="text-success">{{ today_attendance.present }}</h4>
+                        <small class="text-muted">Present</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-danger">{{ today_attendance.absent }}</h4>
+                        <small class="text-muted">Absent</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-secondary">{{ today_attendance.total }}</h4>
+                        <small class="text-muted">Total</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}   

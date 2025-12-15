@@ -34,12 +34,14 @@ class AcademicYearForm(TenantAwareModelForm):
             
             # Check for overlapping academic years
             overlapping_years = AcademicYear.objects.filter(
+                tenant=self.tenant,
                 start_date__lte=end_date,
                 end_date__gte=start_date
             )
             
-            if self.instance.pk:
-                overlapping_years = overlapping_years.exclude(pk=self.instance.pk)
+            # Explicitly exclude the current instance if it exists (for updates)
+            if self.instance and self.instance.pk:
+                overlapping_years = overlapping_years.exclude(id=self.instance.pk)
             
             if overlapping_years.exists():
                 raise ValidationError("Academic year overlaps with existing year")
@@ -148,6 +150,43 @@ class TimeTableForm(TenantAwareModelForm):
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
             'end_time': forms.TimeInput(attrs={'type': 'time'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Default: Empty querysets for dependent fields if no class selected
+        # (Only if we are not editing an existing instance with data, but simpler to start empty and fill)
+        # But TenantAwareModelForm sets initial tenant-filtered querysets.
+        
+        # We need to filter further based on class_name
+        self.fields['section'].queryset = Section.objects.none()
+        self.fields['subject'].queryset = ClassSubject.objects.none()
+        
+        # Get class_id from bound data or instance
+        class_id = None
+        if 'class_name' in self.data:
+            class_id = self.data.get('class_name')
+        elif self.instance.pk:
+            class_id = self.instance.class_name_id
+            
+        # Apply filters if class is selected
+        if class_id:
+            try:
+                # Ensure we filter by tenant as well (inherited from TenantAwareModelForm logic)
+                tenant_filter = {'tenant': self.tenant} if self.tenant else {}
+                
+                self.fields['section'].queryset = Section.objects.filter(
+                    class_name_id=class_id, 
+                    **tenant_filter
+                ).order_by('name')
+                
+                self.fields['subject'].queryset = ClassSubject.objects.filter(
+                    class_name_id=class_id, 
+                    **tenant_filter
+                ).order_by('subject__name')
+                
+            except (ValueError, TypeError):
+                pass  # Invalid class_id, leave querysets empty
 
 
 class StudentAttendanceForm(TenantAwareModelForm):

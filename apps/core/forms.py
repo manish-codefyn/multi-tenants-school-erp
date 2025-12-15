@@ -8,6 +8,7 @@ class BaseForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
         # Filter foreign key fields to current tenant's data
@@ -33,12 +34,20 @@ class TenantAwareModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         self.tenant = kwargs.pop('tenant', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
         # Get tenant from request if not provided
         if not self.tenant and self.request:
             self.tenant = getattr(self.request, 'tenant', None)
-        
+            
+        # Pre-assign tenant to instance if available
+        if self.tenant:
+            try:
+                self.instance.tenant = self.tenant
+            except Exception:
+                pass
+
         # Filter foreign key fields to current tenant's data
         if self.tenant:
             for field_name, field in self.fields.items():
@@ -49,11 +58,11 @@ class TenantAwareModelForm(forms.ModelForm):
                         field.queryset = field.queryset.filter(tenant=self.tenant)
     
     def clean(self):
-        cleaned_data = super().clean()
-        
-        # Auto-assign tenant if not set
+        # Auto-assign tenant if not set (must do this before supervision validation)
         if self.tenant and hasattr(self.instance, 'tenant') and not self.instance.tenant_id:
             self.instance.tenant = self.tenant
+            
+        cleaned_data = super().clean()
         
         return cleaned_data
     

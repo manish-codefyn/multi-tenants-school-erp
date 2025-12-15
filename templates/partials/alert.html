@@ -1,40 +1,57 @@
-<!-- Add this in your base template where you want alerts to appear -->
 {% if messages %}
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 9999; margin-top: 5rem;">
-    <div class="toast-container">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} border-0 alert-dismissible fade show" role="alert">
-            <div class="d-flex align-items-center">
-                <div class="me-3">
-                    <i class='bx 
-                        {% if message.tags == 'primary' %}bx-bookmark-heart
-                        {% elif message.tags == 'secondary' %}bx-tag-alt
-                        {% elif message.tags == 'success' %}bxs-check-circle
-                        {% elif message.tags == 'danger' %}bxs-message-square-x
-                        {% elif message.tags == 'warning' %}bx-info-circle
-                        {% elif message.tags == 'info' %}bx-info-square
-                        {% elif message.tags == 'dark' %}bx-bell
-                        {% else %}bx-info-circle{% endif %}
-                        fs-4
-                    '></i>
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999; margin-top: 5rem;">
+    {% for message in messages %}
+    <div class="toast align-items-center border-0
+        {% if message.tags == 'success' %}bg-success text-white
+        {% elif message.tags == 'error' or message.tags == 'danger' %}bg-danger text-white
+        {% elif message.tags == 'warning' %}bg-warning text-dark
+        {% elif message.tags == 'info' %}bg-info text-white
+        {% else %}bg-primary text-white{% endif %}"
+        role="alert" aria-live="assertive" aria-atomic="true"
+        data-bs-autohide="true" data-bs-delay="5000">
+        <div class="d-flex">
+            <div class="toast-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class='bx 
+                            {% if message.tags == 'success' %}bxs-check-circle fs-4
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}bxs-message-square-x fs-4
+                            {% elif message.tags == 'warning' %}bx-info-circle fs-4
+                            {% elif message.tags == 'info' %}bx-info-square fs-4
+                            {% else %}bx-bell fs-4{% endif %}
+                        '></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <strong class="me-auto">
+                            {% if message.tags == 'success' %}Success!
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}Error!
+                            {% elif message.tags == 'warning' %}Warning!
+                            {% elif message.tags == 'info' %}Information
+                            {% else %}Notification{% endif %}
+                        </strong>
+                        <div class="mb-0">{{ message }}</div>
+                    </div>
                 </div>
-                <div class="flex-grow-1">
-                    <strong class="me-auto">
-                        {% if message.tags == 'primary' %}Primary Alert
-                        {% elif message.tags == 'secondary' %}Secondary Alert
-                        {% elif message.tags == 'success' %}Success!
-                        {% elif message.tags == 'danger' %}Error!
-                        {% elif message.tags == 'warning' %}Warning!
-                        {% elif message.tags == 'info' %}Information
-                        {% elif message.tags == 'dark' %}Notification
-                        {% else %}Alert{% endif %}
-                    </strong>
-                    <div class="mb-0">{{ message }}</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" 
+                    data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
-        {% endfor %}
     </div>
+    {% endfor %}
 </div>
+
+<script>
+// Initialize toasts
+document.addEventListener('DOMContentLoaded', function() {
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+    var toastList = toastElList.map(function (toastEl) {
+        return new bootstrap.Toast(toastEl)
+    })
+    
+    // Show all toasts
+    toastList.forEach(function(toast) {
+        toast.show();
+    });
+});
+</script>
 {% endif %}

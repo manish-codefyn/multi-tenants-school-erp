@@ -29,6 +29,10 @@
         <li> <a href="{% url 'academics:subject_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Subjects" %}</a></li>
         {% endif %}
 
+        {% if perms.academics.view_classsubject %}
+        <li> <a href="{% url 'academics:class_subject_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Class Subjects" %}</a></li>
+        {% endif %}
+
         {% if perms.academics.view_house %}
         <li> <a href="{% url 'academics:house_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Houses" %}</a></li>
         {% endif %}

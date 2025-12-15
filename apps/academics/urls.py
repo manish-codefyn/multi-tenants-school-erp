@@ -167,6 +167,7 @@ urlpatterns = [
     # ============================================================================
     # AJAX ENDPOINTS
     # ============================================================================
-    path('api/sections-by-class/<uuid:class_id>/', views.SectionListView.as_view(), name='api_sections_by_class'),
+    path('ajax/load-sections/', views.load_sections, name='ajax_load_sections'),
+    path('ajax/load-subjects/', views.load_subjects, name='ajax_load_subjects'),
     path('api/students-by-class-section/', views.BulkAttendanceView.as_view(), name='api_students_by_class_section'),
 ]

@@ -686,6 +686,9 @@ class ClassSubjectCreateView(BaseCreateView):
     permission_required = 'academics.add_classsubject'
     roles_required = ['admin', 'principal']
 
+    def get_success_url(self):
+        return reverse_lazy('academics:class_subject_list')
+
 
 class ClassSubjectUpdateView(BaseUpdateView):
     """Update class subject assignment"""
@@ -694,6 +697,9 @@ class ClassSubjectUpdateView(BaseUpdateView):
     template_name = 'academics/class_subject_form.html'
     permission_required = 'academics.change_classsubject'
     roles_required = ['admin', 'principal']
+
+    def get_success_url(self):
+        return reverse_lazy('academics:class_subject_list')
 
 
 class ClassSubjectDeleteView(BaseDeleteView):
@@ -715,7 +721,7 @@ class TimeTableListView(BaseListView):
     """List all timetable entries"""
     model = TimeTable
     template_name = 'academics/timetable_list.html'
-    context_object_name = 'timetable_entries'
+    context_object_name = 'timetables'
     ordering = ['day', 'period_number']
     search_fields = ['class_name__name', 'section__name', 'subject__subject__name']
     permission_required = 'academics.view_timetable'
@@ -751,7 +757,8 @@ class TimeTableListView(BaseListView):
         context = super().get_context_data(**kwargs)
         context['classes'] = SchoolClass.objects.filter(is_active=True)
         context['academic_years'] = AcademicYear.objects.all()
-        context['days'] = [choice[0] for choice in TimeTable.DAY_CHOICES]
+        context['academic_years'] = AcademicYear.objects.all()
+        context['days'] = TimeTable.DAY_CHOICES
         
         # Get sections based on selected class
         class_id = self.request.GET.get('class_id')
@@ -1477,11 +1484,28 @@ class AcademicsDashboardView(BaseTemplateView):
         current_year = AcademicYear.objects.filter(is_current=True).first()
         current_term = Term.objects.filter(is_current=True).first()
         
-        # Statistics
-        context['total_classes'] = SchoolClass.objects.filter(is_active=True).count()
+        # Statistics - using proper context variable names
+        context['total_classes'] = SchoolClass.objects.count()
+        context['total_classes_all'] = SchoolClass.objects.with_deleted().count()
+        
+        # Active classes count for the card
+        context['active_classes_count'] = SchoolClass.objects.count()  # or SchoolClass.objects.filter(is_active=True).count()
+        
+        # Academic Years
+        context['total_academic_years'] = AcademicYear.objects.count()
+        context['total_academic_years_all'] = AcademicYear.objects.with_deleted().count()
+        
+        # Terms
+        context['total_terms'] = Term.objects.count()
+        context['total_terms_all'] = Term.objects.with_deleted().count()
+        
+        # Other Stats
         context['total_sections'] = Section.objects.filter(is_active=True).count()
         context['total_subjects'] = Subject.objects.filter(is_active=True).count()
-        context['total_students'] = self.get_total_students()
+        
+        context['total_students'] = self.get_total_students(active_only=True)
+        context['total_students_all'] = self.get_total_students(active_only=False)
+        context['total_students_count'] = self.get_total_students(active_only=True)  # For the card
         
         # Today's attendance
         today = timezone.now().date()
@@ -1497,15 +1521,22 @@ class AcademicsDashboardView(BaseTemplateView):
             is_published=True
         ).order_by('-publish_date')[:5]
         
-        context['current_year'] = current_year
+        # Fixed variable names - should match template
+        context['current_academic_year'] = current_year  # Changed from 'current_year'
         context['current_term'] = current_term
+        
+        # Alerts context
+        context['missing_academic_year'] = not current_year
+        context['missing_term'] = not current_term
         
         return context
     
-    def get_total_students(self):
-        """Get total active students"""
+    def get_total_students(self, active_only=True):
+        """Get total students"""
         from apps.students.models import Student
-        return Student.objects.filter(is_active=True).count()
+        if active_only:
+            return Student.objects.filter(is_active=True).count()  # Assuming Student has is_active field
+        return Student.objects.with_deleted().count()
     
     def get_today_attendance(self, date):
         """Get today's attendance summary"""
@@ -1516,8 +1547,8 @@ class AcademicsDashboardView(BaseTemplateView):
         return {
             'total': total,
             'present': present,
-            'absent': total - present,
-            'percentage': (present / total * 100) if total > 0 else 0
+            'absent': total - present if total > 0 else 0,
+            'percentage': round((present / total * 100), 2) if total > 0 else 0
         }
 
 
@@ -1617,21 +1648,54 @@ class AcademicsReportsView(BaseTemplateView):
             })
         
         return report_data
+
+# ============================================================================
+# AJAX VIEWS
+# ============================================================================
+
+def load_sections(request):
+    """
+    AJAX view to load sections for a given class
+    """
+    from django.http import JsonResponse
+    class_id = request.GET.get('class_id')
+    sections = Section.objects.none()
     
-    def get_subject_distribution_report(self):
-        """Generate subject distribution report"""
-        subjects = Subject.objects.filter(is_active=True)
-        report_data = []
+    if class_id:
+        sections = Section.objects.filter(class_name_id=class_id).order_by('name')
         
-        for subject in subjects:
-            class_subjects = subject.class_subjects.all()
-            total_periods = sum(cs.periods_per_week for cs in class_subjects)
-            
-            report_data.append({
-                'subject': subject,
-                'classes_count': class_subjects.count(),
-                'total_periods': total_periods,
-                'teachers_count': class_subjects.values('teacher').distinct().count()
-            })
+        # Apply tenant filter if available
+        if hasattr(request, 'tenant'):
+             sections = sections.filter(tenant=request.tenant)
+
+    # Convert to list and cast UUID to string to avoid serialization errors
+    data = list(sections.values('id', 'name'))
+    for item in data:
+        item['id'] = str(item['id'])
+
+    return JsonResponse(data, safe=False)
+
+
+def load_subjects(request):
+    """
+    AJAX view to load subjects (ClassSubject) for a given class
+    """
+    from django.http import JsonResponse
+    class_id = request.GET.get('class_id')
+    subjects = ClassSubject.objects.none()
+    
+    if class_id:
+        # We return ClassSubject IDs but display the related Subject name
+        subjects = ClassSubject.objects.filter(class_name_id=class_id).order_by('subject__name')
         
-        return report_data
+        # Apply tenant filter if available
+        if hasattr(request, 'tenant'):
+             subjects = subjects.filter(tenant=request.tenant)
+             
+    # value_list explanation: we need 'id' of ClassSubject (to save FK) and 'subject__name' to display
+    data = list(subjects.values('id', 'subject__name'))
+    for item in data:
+        item['id'] = str(item['id'])
+    
+    return JsonResponse(data, safe=False)
+        

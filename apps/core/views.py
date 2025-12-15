@@ -471,6 +471,11 @@ class BaseCreateView(BaseView, CreateView):
             "Please correct the errors below."
         )
         
+        # Add non-field errors as specific messages
+        if '__all__' in form.errors:
+            for error in form.errors['__all__']:
+                messages.error(self.request, error)
+        
         return super().form_invalid(form)
     
     def get_success_url(self):
@@ -565,6 +570,24 @@ class BaseUpdateView(BaseView, UpdateView):
             )
         
         return super().get_success_url()
+
+    def form_invalid(self, form):
+        """Handle invalid form submission"""
+        # Log form errors
+        logger.warning(f"Form validation failed: {form.errors}")
+        
+        # Add error message
+        messages.error(
+            self.request,
+            "Please correct the errors below."
+        )
+        
+        # Add non-field errors as specific messages
+        if '__all__' in form.errors:
+            for error in form.errors['__all__']:
+                messages.error(self.request, error)
+        
+        return super().form_invalid(form)
 
 # In apps/core/views.py, update the BaseDeleteView class:
 
