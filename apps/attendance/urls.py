@@ -12,12 +12,16 @@ urlpatterns = [
     path('students/', views.StudentAttendanceListView.as_view(), name='student_list'),
     path('students/mark/', views.StudentAttendanceMarkView.as_view(), name='student_mark'),
     path('students/bulk-mark/', views.StudentBulkAttendanceMarkView.as_view(), name='student_bulk_mark'),
+    path('api/students/', views.get_students_by_class, name='api_get_students'),
     path('students/my-attendance/', views.MyAttendanceView.as_view(), name='my_attendance'),
     path('students/<int:student_id>/report/', views.StudentAttendanceReportView.as_view(), name='student_report'),
     
     # Staff Attendance
     path('staff/', views.StaffAttendanceListView.as_view(), name='staff_list'),
     path('staff/mark/', views.StaffAttendanceMarkView.as_view(), name='staff_mark'),
+    path('api/staff/', views.get_staff_by_department, name='api_get_staff'),
+    path('api/verify-face/', views.verify_face_attendance, name='api_verify_face'),
+    path('api/verify-student-face/', views.verify_student_face_attendance, name='api_verify_student_face'),
     path('staff/my-attendance/', views.StaffMyAttendanceView.as_view(), name='staff_my_attendance'),
     
     # General

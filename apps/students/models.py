@@ -613,6 +613,14 @@ class Student(BaseModel):
             
         return f"{prefix}{new_seq:06d}"
 
+    @property
+    def full_name(self):
+        parts = [self.first_name, self.middle_name, self.last_name]
+        return " ".join(filter(None, parts))
+
+    def get_full_name(self):
+        return self.full_name
+
     # ==================== API SERIALIZATION ====================
     def to_api_dict(self, include_sensitive=False):
         """Convert to API-safe dictionary"""

@@ -141,3 +141,49 @@ class BulkAttendanceForm(forms.Form):
                 raise ValidationError("No attendance data provided")
         
         return cleaned_data
+
+
+class StaffBulkAttendanceForm(forms.Form):
+    """Form for bulk staff attendance marking"""
+    date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        initial=timezone.now().date
+    )
+    department = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        empty_label="All Departments",
+        widget=forms.Select(attrs={'class': 'form-control', 'onchange': 'loadStaff()'})
+    )
+    
+    # This field will be populated dynamically via JavaScript
+    attendance_data = forms.JSONField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    
+    def __init__(self, *args, **kwargs):
+        self.tenant = kwargs.pop('tenant', None)
+        super().__init__(*args, **kwargs)
+        
+        from apps.hr.models import Department
+        if self.tenant:
+            self.fields['department'].queryset = Department.objects.filter(
+                tenant=self.tenant
+            )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        date = cleaned_data.get('date')
+        attendance_data = cleaned_data.get('attendance_data', {})
+        
+        if date:
+            # Validate that date is not in the future
+            if date > timezone.now().date():
+                raise ValidationError("Cannot mark attendance for future dates")
+            
+            # Validate attendance data
+            if not attendance_data:
+                raise ValidationError("No attendance data provided")
+        
+        return cleaned_data

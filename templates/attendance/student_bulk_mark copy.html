@@ -378,29 +378,8 @@ document.getElementById('qr-tab').addEventListener('shown.bs.tab', function (e) 
 });
 
 function onScanSuccess(decodedText, decodedResult) {
-    if (allStudents.length === 0) {
-         const resultDiv = document.getElementById('qr-result');
-         resultDiv.classList.remove('d-none', 'alert-success');
-         resultDiv.classList.add('alert-warning');
-         resultDiv.innerHTML = '<i class="bx bx-error"></i> Please click "Load Students" button first!';
-         return;
-    }
-
-    // Scan logic: Try ID match, or parse complex "Admission No: ..." format
-    let searchTerm = decodedText.trim();
-    
-    // Regex for ADM-YYYY-SSS-N pattern
-    const admissionMatch = decodedText.match(/(ADM-\d{4}-[A-Za-z0-9_]+-\d+)/i);
-    if (admissionMatch) {
-         searchTerm = admissionMatch[1].trim();
-    }
-    
-    // Find student in the loaded list
-    const student = allStudents.find(s => 
-        (s.roll_number && s.roll_number.toString() === searchTerm) || 
-        (s.admission_number && s.admission_number.trim() === searchTerm) ||
-        (s.admission_number && s.admission_number.toLowerCase().trim() === searchTerm.toLowerCase())
-    );
+    // Scan logic: Assuming QR contains "roll_number" or "admission_number"
+    const student = allStudents.find(s => s.roll_number === decodedText || s.admission_number === decodedText);
     
     if (student) {
         updateStatus(student.id, 'PRESENT');
@@ -414,30 +393,16 @@ function onScanSuccess(decodedText, decodedResult) {
         if(list.children[0].innerText === 'No scans yet') list.innerHTML = '';
         list.prepend(li);
         
-        // Detailed Feedback
+        // Feedback
         const resultDiv = document.getElementById('qr-result');
-        resultDiv.classList.remove('d-none', 'alert-danger', 'alert-warning');
+        resultDiv.classList.remove('d-none', 'alert-danger');
         resultDiv.classList.add('alert-success');
-        
-        const avatar = student.image_url 
-            ? `<img src="${student.image_url}" class="rounded-circle shadow-sm" width="50" height="50">`
-            : `<div class="avatar rounded-circle bg-white text-primary fw-bold d-flex align-items-center justify-content-center" style="width:50px;height:50px;border:2px solid #fff">${student.name.substring(0,2).toUpperCase()}</div>`;
-
-        resultDiv.innerHTML = `
-            <div class="d-flex align-items-center">
-                <div class="me-3">${avatar}</div>
-                <div>
-                    <h6 class="fw-bold mb-0">Marked Present!</h6>
-                    <div class="fs-5">${student.name}</div>
-                    <div class="small opacity-75">Roll: ${student.roll_number || '-'} | ${student.admission_number}</div>
-                </div>
-            </div>
-        `;
+        resultDiv.innerText = `Marked Present: ${student.name}`;
     } else {
         const resultDiv = document.getElementById('qr-result');
-        resultDiv.classList.remove('d-none', 'alert-success', 'alert-warning');
+        resultDiv.classList.remove('d-none', 'alert-success');
         resultDiv.classList.add('alert-danger');
-        resultDiv.innerText = `Student not found for QR: ${searchTerm} (Raw: ${decodedText.substring(0, 20)}...)`;
+        resultDiv.innerText = `Student not found for QR: ${decodedText}`;
     }
 }
 
@@ -445,32 +410,18 @@ function onScanFailure(error) {
     // Handle scan failure, usually better to ignore frame errors
 }
 
-/* ================= FACE REC LOGIC ================= */
+/* ================= FACE REC LOGIC (Stub) ================= */
 let videoStream = null;
-let faceRecInterval = null;
-
 function startFaceRec() {
     const video = document.getElementById('faceVideo');
-    
-    // Check if students are loaded
-    if(allStudents.length === 0) {
-        alert("Please load students for the class first!");
-        // Switch back to manual tab to prompt user? Maybe just alert.
-        return;
-    }
-
     if (navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(function (stream) {
                 videoStream = stream;
                 video.srcObject = stream;
-                
-                // Start Auto-Scan Loop
-                faceRecInterval = setInterval(captureAndSend, 3000); // Check every 3 seconds
             })
             .catch(function (error) {
                 console.log("Something went wrong with camera!", error);
-                alert("Cannot access camera. Please allow permissions.");
             });
     }
 }
@@ -480,111 +431,6 @@ function stopFaceRec() {
         videoStream.getTracks().forEach(track => track.stop());
         document.getElementById('faceVideo').srcObject = null;
     }
-    if(faceRecInterval) {
-        clearInterval(faceRecInterval);
-        faceRecInterval = null;
-    }
-}
-
-function captureAndSend() {
-    if (!videoStream) return;
-    
-    const video = document.getElementById('faceVideo');
-    const canvas = document.getElementById('faceCanvas');
-    const context = canvas.getContext('2d');
-    
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    // Draw video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Get base64 data
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    
-    // Prepare Candidate IDs -> Optimization
-    const candidateIds = allStudents.map(s => s.id);
-    
-    // Send to API
-    fetch("{% url 'attendance:api_verify_student_face' %}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({
-            image: imageData,
-            candidate_ids: candidateIds
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.match) {
-            // Success!
-            updateStatus(data.student_id, 'PRESENT');
-            renderStudents();
-            showFaceFeedback(data.name, true);
-        } else if (data.error) {
-            // Server Error (e.g. library missing)
-            console.error("API Error:", data.error);
-            showFaceFeedback("Error", false);
-            
-            // Stop scanning to prevent spamming server
-            stopFaceRec();
-            alert(`Face Recognition Error: ${data.error}`);
-        } else {
-            // No match found
-            console.log("No match:", data.message);
-            showFaceFeedback("Scanning...", false);
-        }
-    })
-    .catch(err => {
-        console.error("Face Rec Error", err);
-        showFaceFeedback("Error", false);
-    });
-}
-
-function showFaceFeedback(name, isSuccess) {
-    const canvas = document.getElementById('faceCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    if (isSuccess) {
-        // Audio Feedback
-        const audio = new Audio('/static/audio/beep.mp3'); // Assuming a beep sound exists or just browser beep
-        // Better: Synthesized speech
-        if ('speechSynthesis' in window) {
-            const msg = new SpeechSynthesisUtterance("Attendance Marked for " + name);
-            window.speechSynthesis.speak(msg);
-        }
-
-        // Visual Toast
-        if(typeof toastr !== 'undefined') {
-            toastr.success(`Attendance Marked: ${name}`);
-        }
-        
-        // Canvas Overlay
-        ctx.font = "bold 24px Arial";
-        ctx.fillStyle = "#00ff00";
-        ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 3;
-        ctx.strokeText(`VERIFIED: ${name}`, 20, 40);
-        ctx.fillText(`VERIFIED: ${name}`, 20, 40);
-        
-        ctx.strokeStyle = "#00ff00";
-        ctx.lineWidth = 5;
-        ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 100); 
-    } else {
-        if (name === "Error") {
-             ctx.fillStyle = "#ff0000";
-             ctx.fillText("System Error", 20, 40);
-        }
-    }
-
-    // Clear after 2s (longer duration)
-    setTimeout(() => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }, 2000);
 }
 
 // Initial Call

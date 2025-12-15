@@ -1,0 +1,872 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Bulk Staff Attendance{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #c7c7c7; 
+        border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8; 
+    }
+
+    .attendance-header {
+        margin-bottom: 2rem;
+    }
+
+    .btn-glass {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .card {
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .control-panel {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .staff-card {
+        border: none;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .staff-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+    }
+
+    .staff-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .staff-card:hover::before {
+        opacity: 1;
+    }
+
+    .staff-img {
+        width: 90px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+
+    .staff-card:hover .staff-img {
+        transform: scale(1.05);
+    }
+
+    .status-btn-group {
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 8px;
+    }
+
+    .btn-check:checked + .btn {
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-weight: 600;
+    }
+
+    /* Badge Pulse Animation */
+    @keyframes pulse-primary {
+        0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(79, 70, 229, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+    }
+    .badge-pulse {
+        animation: pulse-primary 2s infinite;
+    }
+
+    /* Tab Styling */
+    .nav-tabs {
+        border-bottom: none;
+        background: #f1f5f9;
+        padding: 0.5rem 0.5rem 0;
+    }
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: 8px 8px 0 0;
+        color: #64748b;
+        font-weight: 500;
+        padding: 1rem 1.5rem;
+        transition: all 0.2s;
+    }
+    .nav-tabs .nav-link:hover {
+        color: #475569;
+        background: rgba(255,255,255,0.5);
+    }
+    .nav-tabs .nav-link.active {
+        color: #0f172a;
+        background: white;
+        font-weight: 600;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.02);
+    }
+
+    /* Empty States */
+    .empty-state {
+        text-center: center;
+        padding: 3rem;
+    }
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+    }
+
+    /* QR & Face Previews */
+    .qr-preview-container, .face-preview-container {
+        background: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .qr-preview, .face-preview {
+        width: 100%;
+        min-height: 320px;
+        object-fit: cover;
+    }
+
+    .scan-log {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    /* Floating Summary */
+    .summary-stats .badge {
+        font-size: 0.9rem;
+        transition: transform 0.2s;
+    }
+    .summary-stats .badge:hover {
+        transform: scale(1.05);
+    }
+
+    .face-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 2px solid rgba(255,255,255,0.2);
+        box-sizing: border-box;
+    }
+    .face-guide-box {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 250px;
+        border: 2px dashed rgba(255,255,255,0.7);
+        border-radius: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="attendance-header animate__animated animate__fadeIn">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h2 class="animate__animated animate__fadeInDown fw-bold text-dark">📋 Bulk Staff Attendance</h2>
+            <p class="lead mb-0 text-muted animate__animated animate__fadeInUp">Mark attendance for multiple staff members efficiently</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'attendance:dashboard' %}" class="btn btn-glass btn-lg text-dark">
+                <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-lg animate__animated animate__fadeInUp">
+    <div class="card-header bg-white p-0">
+        <ul class="nav nav-tabs card-header-tabs m-0" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" data-bs-toggle="tab" href="#manual-tab" role="tab">
+                    <i class="bi bi-grid-fill me-2"></i>Manual Marking
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" data-bs-toggle="tab" href="#qr-tab" role="tab">
+                    <i class="bi bi-qr-code-scan me-2"></i>QR Scanner
+                    <span class="badge bg-primary badge-pulse ms-2 rounded-pill">Live</span>
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" data-bs-toggle="tab" href="#face-tab" role="tab">
+                    <i class="bi bi-person-bounding-box me-2"></i>Face ID
+                    <span class="badge bg-warning text-dark ms-2 rounded-pill">Beta</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="control-panel">
+            <form method="post" id="attendanceForm">
+                {% csrf_token %}
+                {{ form.attendance_data }}
+                
+                <div class="row g-4 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small text-uppercase text-muted">
+                            <i class="bi bi-calendar3 me-2"></i>Select Date
+                        </label>
+                        {{ form.date }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold small text-uppercase text-muted">
+                            <i class="bi bi-building me-2"></i>Department
+                        </label>
+                        {{ form.department }}
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" onclick="loadStaff()" class="btn btn-primary w-100 py-2 shadow-sm">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Load Staff Members
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-content">
+            <!-- Manual Marking Tab -->
+            <div class="tab-pane fade show active" id="manual-tab" role="tabpanel">
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                            <button type="button" class="btn btn-outline-success border-0 px-4" onclick="markAll('PRESENT')">
+                                <i class="bi bi-check-circle-fill me-2"></i>All Present
+                            </button>
+                            <div class="vr"></div>
+                            <button type="button" class="btn btn-outline-danger border-0 px-4" onclick="markAll('ABSENT')">
+                                <i class="bi bi-x-circle-fill me-2"></i>All Absent
+                            </button>
+                        </div>
+                        <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-light active" id="view-grid" title="Grid View">
+                                <i class="bi bi-grid-3x3-gap-fill"></i>
+                            </button>
+                            <button type="button" class="btn btn-light" id="view-list" title="List View">
+                                <i class="bi bi-list-ul"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="staff-container-grid" class="row g-4">
+                        <div class="col-12 empty-state">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <h4>Waiting for Selection</h4>
+                            <p class="text-muted">Select a department above and click "Load Staff Members" to start marking.</p>
+                        </div>
+                    </div>
+
+                    <div id="staff-container-list" class="d-none">
+                        <div class="table-responsive rounded-3 shadow-sm">
+                            <table class="table table-hover align-middle mb-0 bg-white">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4" style="width: 80px">Photo</th>
+                                        <th>Name</th>
+                                        <th>Employee ID</th>
+                                        <th>Designation</th>
+                                        <th>Department</th>
+                                        <th style="width: 200px">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staff-table-body">
+                                    <!-- Staff rows will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Scan Tab -->
+            <div class="tab-pane fade" id="qr-tab" role="tabpanel">
+                <div class="row g-0">
+                    <div class="col-md-6 bg-dark p-4 d-flex align-items-center justify-content-center">
+                        <div style="width: 100%; max-width: 400px;">
+                            <div class="qr-preview-container">
+                                <div id="qr-reader" class="qr-preview"></div>
+                            </div>
+                            <p class="text-white-50 text-center mt-3 mb-0">
+                                <i class="bi bi-upc-scan me-2"></i>Align QR Code within frame
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">Using QR Scanner</h5>
+                            <span class="badge bg-primary rounded-pill px-3 py-2" id="scan-count">0 Scanned</span>
+                        </div>
+                        <div class="card border-0 shadow-sm h-100 bg-light">
+                            <div class="card-body p-0">
+                                <div id="scanned-list" class="scan-log p-3">
+                                    <div class="text-center text-muted py-5">
+                                        <i class="bi bi-qr-code-scan display-1 opacity-25 mb-3"></i>
+                                        <p>Scanned staff members will appear here automatically.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Face Recognition Tab -->
+            <div class="tab-pane fade" id="face-tab" role="tabpanel">
+                <div class="p-5 text-center">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8">
+                            <div class="face-preview-container mb-4 mx-auto" style="max-width: 640px;">
+                                <video id="face-video" class="face-preview" autoplay muted playsinline></video>
+                                <canvas id="face-canvas" class="d-none"></canvas>
+                                <div class="face-overlay">
+                                    <div class="face-guide-box"></div>
+                                </div>
+                            </div>
+                            
+                            <div id="face-controls">
+                                <button type="button" class="btn btn-primary btn-lg rounded-pill px-5 shadow-lg" id="btn-start-face">
+                                    <i class="bi bi-camera-video-fill me-2"></i>Start Recognition
+                                </button>
+                                <button type="button" class="btn btn-danger btn-lg rounded-pill px-5 shadow-lg d-none" id="btn-stop-face">
+                                    <i class="bi bi-stop-circle-fill me-2"></i>Stop Recognition
+                                </button>
+                                <div id="face-status" class="mt-3 text-muted">
+                                    <span class="spinner-border spinner-border-sm me-2 d-none" role="status"></span>
+                                    <span class="status-text">Camera ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-footer bg-white border-top p-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="summary-stats d-flex gap-2">
+                <div class="d-flex align-items-center bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill border border-success border-opacity-25">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <span class="small fw-bold text-uppercase me-2">Present</span>
+                    <span id="summary-present" class="fw-bold fs-5">0</span>
+                </div>
+                <div class="d-flex align-items-center bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill border border-danger border-opacity-25">
+                    <i class="bi bi-x-circle-fill me-2"></i>
+                    <span class="small fw-bold text-uppercase me-2">Absent</span>
+                    <span id="summary-absent" class="fw-bold fs-5">0</span>
+                </div>
+            </div>
+            <button type="submit" form="attendanceForm" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg hover-scale">
+                <i class="bi bi-cloud-arrow-up-fill me-2"></i>Save Attendance
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="position-fixed top-0 end-0 p-4" style="z-index: 1050">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-6">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span id="toast-message">Attendance saved successfully!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // State management
+    let attendanceState = {};
+    let allStaff = [];
+    
+    // View Toggles
+    const gridViewBtn = document.getElementById('view-grid');
+    const listViewBtn = document.getElementById('view-list');
+    const gridContainer = document.getElementById('staff-container-grid');
+    const listContainer = document.getElementById('staff-container-list');
+    
+    gridViewBtn.addEventListener('click', () => {
+        gridViewBtn.classList.add('active', 'btn-light');
+        gridViewBtn.classList.remove('btn-outline-primary');
+        listViewBtn.classList.remove('active', 'btn-light');
+        
+        gridContainer.classList.remove('d-none');
+        listContainer.classList.add('d-none');
+    });
+    
+    listViewBtn.addEventListener('click', () => {
+        listViewBtn.classList.add('active', 'btn-light');
+        listViewBtn.classList.remove('btn-outline-primary');
+        gridViewBtn.classList.remove('active', 'btn-light');
+        
+        listContainer.classList.remove('d-none');
+        gridContainer.classList.add('d-none');
+    });
+
+    // Form Submit Handler
+    const form = document.getElementById('attendanceForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        updateHiddenJson();
+        
+        // Show success toast
+        const toast = new bootstrap.Toast(document.getElementById('successToast'));
+        document.getElementById('toast-message').textContent = `Saving ${Object.keys(attendanceState).length} records...`;
+        toast.show();
+        
+        // Submit after delay to show animation
+        setTimeout(() => {
+            form.submit();
+        }, 800);
+    });
+    
+    // Auto load if department selected
+    const deptSelect = document.getElementById('id_department');
+    if(deptSelect && deptSelect.value) {
+        loadStaff();
+    }
+});
+
+function loadStaff() {
+    const deptId = document.getElementById('id_department').value;
+    const btn = document.querySelector('button[onclick="loadStaff()"]');
+    const originalText = btn.innerHTML;
+    
+    // Loading state
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    btn.disabled = true;
+    
+    fetch(`{% url 'attendance:api_get_staff' %}?department_id=${deptId}`)
+        .then(response => response.json())
+        .then(data => {
+            allStaff = data.staff;
+            
+            attendanceState = {};
+            allStaff.forEach(s => {
+                attendanceState[s.id] = 'PRESENT';
+                // Try to find status from previous data if available (optional)
+            });
+            
+            renderStaff();
+            updateHiddenJson();
+            updateSummary();
+            
+            // Add animation to cards
+            const cards = document.querySelectorAll('.staff-card');
+            cards.forEach((card, i) => {
+                card.style.animationDelay = `${i * 0.05}s`;
+                card.classList.add('animate__animated', 'animate__fadeInUp');
+            });
+        })
+        .catch(error => {
+            console.error('Error loading staff:', error);
+            document.getElementById('staff-container-grid').innerHTML = 
+                '<div class="col-12"><div class="alert alert-danger shadow-sm border-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error loading staff data. Please try again.</div></div>';
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+}
+
+function renderStaff() {
+    const gridContainer = document.getElementById('staff-container-grid');
+    const tableBody = document.getElementById('staff-table-body');
+    
+    gridContainer.innerHTML = '';
+    tableBody.innerHTML = '';
+    
+    if (allStaff.length === 0) {
+        gridContainer.innerHTML = `
+            <div class="col-12 empty-state">
+                <div class="empty-state-icon text-warning">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h4>No Staff Found</h4>
+                <p class="text-muted">No active staff members found in this department.</p>
+            </div>`;
+        return;
+    }
+    
+    allStaff.forEach(staff => {
+        const status = attendanceState[staff.id] || 'PRESENT';
+        
+        // Grid Item
+        const cardHtml = `
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="card staff-card h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="position-relative d-inline-block mb-3">
+                            <img src="${staff.image_url || 'https://via.placeholder.com/150/e0e0e0/000000?text=' + staff.name.charAt(0)}" class="staff-img" alt="${staff.name}">
+                        </div>
+                        <h6 class="card-title text-truncate fw-bold mb-1" title="${staff.name}">${staff.name}</h6>
+                        <small class="text-muted text-uppercase d-block mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">${staff.designation}</small>
+                        <span class="badge bg-light text-dark mb-4 border">${staff.employee_id}</span>
+                        
+                        <div class="btn-group w-100 status-btn-group shadow-inner" role="group">
+                            <input type="radio" class="btn-check" name="status-${staff.id}" id="present-${staff.id}" 
+                                autocomplete="off" ${status === 'PRESENT' ? 'checked' : ''}
+                                onchange="updateStatus(${staff.id}, 'PRESENT')">
+                            <label class="btn btn-sm btn-outline-success border-0 rounded-start" for="present-${staff.id}">P</label>
+
+                            <input type="radio" class="btn-check" name="status-${staff.id}" id="late-${staff.id}" 
+                                autocomplete="off" ${status === 'LATE' ? 'checked' : ''}
+                                onchange="updateStatus(${staff.id}, 'LATE')">
+                            <label class="btn btn-sm btn-outline-warning border-0" for="late-${staff.id}">L</label>
+
+                            <input type="radio" class="btn-check" name="status-${staff.id}" id="absent-${staff.id}" 
+                                autocomplete="off" ${status === 'ABSENT' ? 'checked' : ''}
+                                onchange="updateStatus(${staff.id}, 'ABSENT')">
+                            <label class="btn btn-sm btn-outline-danger border-0 rounded-end" for="absent-${staff.id}">A</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        gridContainer.innerHTML += cardHtml;
+        
+        // Table Row (simplified for brevity)
+        const rowHtml = `
+            <tr data-staff-id="${staff.id}">
+                <td class="ps-4">
+                    <img src="${staff.image_url || 'https://via.placeholder.com/40'}" class="rounded-circle border" width="40" height="40">
+                </td>
+                <td class="fw-bold">${staff.name}</td>
+                <td class="text-muted">${staff.employee_id}</td>
+                <td>${staff.designation}</td>
+                <td><span class="badge bg-light text-dark border">${staff.department}</span></td>
+                <td>
+                     <select class="form-select form-select-sm border-0 bg-light fw-bold" 
+                             onchange="updateStatus(${staff.id}, this.value)"
+                             style="color: ${getStatusColor(status)}">
+                        <option value="PRESENT" ${status === 'PRESENT' ? 'selected' : ''} class="text-success">Present</option>
+                        <option value="LATE" ${status === 'LATE' ? 'selected' : ''} class="text-warning">Late</option>
+                        <option value="ABSENT" ${status === 'ABSENT' ? 'selected' : ''} class="text-danger">Absent</option>
+                        <option value="HALF_DAY" ${status === 'HALF_DAY' ? 'selected' : ''}>Half Day</option>
+                        <option value="LEAVE" ${status === 'LEAVE' ? 'selected' : ''}>On Leave</option>
+                    </select>
+                </td>
+            </tr>
+        `;
+        tableBody.innerHTML += rowHtml;
+    });
+}
+
+function getStatusColor(status) {
+    if(status === 'PRESENT') return '#198754';
+    if(status === 'ABSENT') return '#dc3545';
+    if(status === 'LATE') return '#ffc107';
+    return '#6c757d';
+}
+
+function updateStatus(staffId, status) {
+    attendanceState[staffId] = status;
+    
+    // Update Radio Buttons (Grid)
+    const radio = document.getElementById(`${status.toLowerCase()}-${staffId}`);
+    if(radio) radio.checked = true;
+    
+    // Update Select (List)
+    const row = document.querySelector(`tr[data-staff-id="${staffId}"] select`);
+    if(row) {
+        row.value = status;
+        row.style.color = getStatusColor(status);
+    }
+
+    updateHiddenJson();
+    updateSummary();
+}
+
+function markAll(status) {
+    if(allStaff.length === 0) return;
+    allStaff.forEach(s => {
+        updateStatus(s.id, status);
+    });
+}
+
+function updateHiddenJson() {
+    document.getElementById('id_attendance_data').value = JSON.stringify(attendanceState);
+}
+
+function updateSummary() {
+    const present = Object.values(attendanceState).filter(s => s === 'PRESENT').length;
+    const absent = Object.values(attendanceState).filter(s => s === 'ABSENT').length;
+    
+    document.getElementById('summary-present').textContent = present;
+    document.getElementById('summary-absent').textContent = absent;
+}
+
+// Global functions
+window.updateStatus = updateStatus;
+window.markAll = markAll;
+window.loadStaff = loadStaff;
+
+// ----------------------------------------------------------------
+// QR Scanner Logic (Robust)
+// ----------------------------------------------------------------
+let html5QrcodeScanner = null;
+
+document.getElementById('qr-tab').addEventListener('shown.bs.tab', function (e) {
+     if(!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        html5QrcodeScanner.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            onScanSuccess,
+            onScanFailure
+        ).catch(err => {
+            console.error("Error starting QR scanner", err);
+        });
+     }
+});
+
+document.getElementById('qr-tab').addEventListener('hidden.bs.tab', function (e) {
+    if(html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+            html5QrcodeScanner = null;
+        }).catch(err => console.error("Failed to stop scanner", err));
+    }
+});
+
+function onScanSuccess(decodedText, decodedResult) {
+    // Normalise text: trim
+    const scannedId = decodedText.trim();
+    console.log("Scanned:", scannedId);
+
+    // Try finding by different fields: ID, EmployeeID
+    const staff = allStaff.find(s => 
+        s.employee_id && s.employee_id.trim() === scannedId || 
+        s.id.toString() === scannedId
+    );
+    
+    if (staff) {
+        if (attendanceState[staff.id] !== 'PRESENT') {
+            updateStatus(staff.id, 'PRESENT');
+            addLog(staff, 'Marked Present', 'success');
+            playSuccessSound();
+        } else {
+            addLog(staff, 'Already Marked', 'warning');
+        }
+    } else {
+         addLog({name: 'Unknown', employee_id: scannedId}, 'Not Found', 'danger');
+    }
+}
+
+function onScanFailure(error) {
+    // Ignore frame errors
+}
+
+function addLog(staff, message, type='success') {
+    const list = document.getElementById('scanned-list');
+    const emptyState = list.querySelector('.empty-state');
+    if (emptyState) emptyState.remove();
+    
+    const item = `
+        <div class="d-flex justify-content-between align-items-center mb-2 p-3 bg-white rounded shadow-sm animate__animated animate__fadeInLeft">
+            <div class="d-flex align-items-center">
+                <img src="${staff.image_url || 'https://via.placeholder.com/40'}" class="rounded-circle me-3" width="40" height="40">
+                <div>
+                    <span class="fw-bold d-block text-dark">${staff.name}</span>
+                    <small class="text-muted">${staff.employee_id}</small>
+                </div>
+            </div>
+            <span class="badge bg-${type}">${message}</span>
+        </div>
+    `;
+    list.insertAdjacentHTML('afterbegin', item);
+    
+    const countBadge = document.getElementById('scan-count');
+    countBadge.textContent = `${list.querySelectorAll('.badge').length} Attempts`;
+}
+
+function playSuccessSound() {
+    const audio = new Audio('/static/sounds/beep.mp3');
+    audio.play().catch(e => {}); 
+}
+
+// ----------------------------------------------------------------
+// Real Face Recognition Logic
+// ----------------------------------------------------------------
+let videoStream = null;
+let recognitionInterval = null;
+const videoEl = document.getElementById('face-video');
+const canvasEl = document.getElementById('face-canvas');
+const statusSp = document.querySelector('#face-status .status-text');
+const statusSpin = document.querySelector('#face-status .spinner-border');
+
+document.getElementById('btn-start-face').addEventListener('click', async () => {
+    try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoEl.srcObject = videoStream;
+        
+        document.getElementById('btn-start-face').classList.add('d-none');
+        document.getElementById('btn-stop-face').classList.remove('d-none');
+        
+        statusSp.textContent = "Analyzing...";
+        statusSpin.classList.remove('d-none');
+        
+        // Start Recognition Loop
+        recognitionInterval = setInterval(captureAndVerify, 2000); // Check every 2 seconds
+        
+    } catch (err) {
+        alert("Could not access camera. Please check permissions.");
+    }
+});
+
+document.getElementById('btn-stop-face').addEventListener('click', stopFaceRec);
+
+function stopFaceRec() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoEl.srcObject = null;
+        videoStream = null;
+    }
+    if (recognitionInterval) {
+        clearInterval(recognitionInterval);
+        recognitionInterval = null;
+    }
+    document.getElementById('btn-start-face').classList.remove('d-none');
+    document.getElementById('btn-stop-face').classList.add('d-none');
+    statusSp.textContent = "Camera stopped";
+    statusSpin.classList.add('d-none');
+}
+
+document.getElementById('face-tab').addEventListener('hidden.bs.tab', stopFaceRec);
+
+async function captureAndVerify() {
+    if (!videoStream) return;
+    
+    // Draw for capture
+    const context = canvasEl.getContext('2d');
+    canvasEl.width = videoEl.videoWidth;
+    canvasEl.height = videoEl.videoHeight;
+    context.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+    
+    const imageData = canvasEl.toDataURL('image/jpeg', 0.8);
+    
+    try {
+        const response = await fetch("{% url 'attendance:api_verify_face' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ image: imageData })
+        });
+        
+        const result = await response.json();
+        
+        if (result.match) {
+             const staff = allStaff.find(s => s.id === result.staff_id);
+             if (staff) {
+                 statusSp.textContent = `Matched: ${result.name}`;
+                 statusSp.classList.add('text-success');
+                 updateStatus(staff.id, 'PRESENT');
+                 playSuccessSound();
+                 
+                 // Speech Feedback
+                 if ('speechSynthesis' in window) {
+                     const msg = new SpeechSynthesisUtterance("Welcome " + result.name);
+                     window.speechSynthesis.speak(msg);
+                 }
+
+                 // Visual Overlay
+                 context.font = "bold 30px Arial";
+                 context.fillStyle = "#00ff00";
+                 context.strokeStyle = "#000000";
+                 context.lineWidth = 3;
+                 context.strokeText(`VERIFIED: ${result.name}`, 50, 50);
+                 context.fillText(`VERIFIED: ${result.name}`, 50, 50);
+                 
+                 context.lineWidth = 5;
+                 context.strokeStyle = "#00ff00";
+                 context.strokeRect(50, 50, canvasEl.width - 100, canvasEl.height - 100);
+
+                 // Show feedback (Toastr or Bootstrap)
+                 if(typeof toastr !== 'undefined') {
+                     toastr.success(`Face Verified: ${result.name}`);
+                 } else {
+                     const toast = new bootstrap.Toast(document.getElementById('successToast'));
+                     document.getElementById('toast-message').textContent = `Face Verified: ${result.name}`;
+                     toast.show();
+                 }
+                 
+                 // Reset text after delay
+                 setTimeout(() => {
+                     statusSp.textContent = "Scanning...";
+                     statusSp.classList.remove('text-success');
+                     // Clear canvas overlay
+                     context.clearRect(0,0, canvasEl.width, canvasEl.height);
+                 }, 2000);
+             }
+        } else {
+             statusSp.textContent = "Scanning... (No Match)";
+        }
+        
+    } catch (error) {
+        console.error("Verification error:", error);
+    }
+}
+
+</script>
+{% endblock %}

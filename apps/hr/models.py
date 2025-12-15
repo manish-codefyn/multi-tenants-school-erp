@@ -384,6 +384,9 @@ class Staff(BaseModel):
     def full_name(self):
         return self.user.get_full_name()
 
+    def get_full_name(self):
+        return self.full_name
+
     @property
     def age(self):
         today = timezone.now().date()

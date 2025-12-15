@@ -795,94 +795,6 @@ class QRCodeAttendanceView(LoginRequiredMixin, TemplateView):
         context['today'] = timezone.now().date()
         return context
 
-    def post(self, request, *args, **kwargs):
-        """Handle QR scan submission"""
-        import re
-        reg_no_input = request.POST.get('reg_no', '').strip()
-        
-        if not reg_no_input:
-            return JsonResponse({'status': 'error', 'message': 'No input provided'})
-            
-        tenant = request.tenant
-        student = None
-        
-        # Try to parse complex QR format
-        # Look for ADM-YYYY-SCHEMA-SEQ pattern specifically or Admission No: prefix
-        # Pattern: ADM followed by anything until whitespace, newline or end
-        admission_match = re.search(r'(ADM-\d{4}-[A-Za-z0-9_]+-\d+)', reg_no_input, re.IGNORECASE)
-        
-        if admission_match:
-            search_term = admission_match.group(1).strip()
-            # Try finding by admission number
-            student = Student.objects.filter(
-                tenant=tenant,
-                admission_number__iexact=search_term,
-                status='ACTIVE'
-            ).first()
-        else:
-            # Fallback: Try exact match on admission number or registration number
-            student = Student.objects.filter(
-                Q(admission_number__iexact=reg_no_input) | Q(reg_no__iexact=reg_no_input),
-                tenant=tenant,
-                status='ACTIVE'
-            ).first()
-            
-        if not student:
-            # Debug info
-            debug_info = f"Parsed: '{search_term}'" if admission_match else f"Raw: '{reg_no_input}'"
-            return JsonResponse({
-                'status': 'error', 
-                'message': f'Student not found. Tenant: {tenant.schema_name}. Input: {debug_info}'
-            })
-            
-        # Mark attendance
-        today = timezone.now().date()
-        
-        # Check if already marked for today
-        existing = StudentAttendance.objects.filter(
-            tenant=tenant,
-            student=student,
-            date=today
-        ).first()
-        
-        if existing:
-            return JsonResponse({
-                'status': 'error', # Or success but with different message
-                'message': f'Attendance already marked for {student.full_name} today ({existing.get_status_display()})',
-                'student': {
-                    'name': student.full_name,
-                    'reg_no': student.admission_number,
-                    'class': f"{student.current_class.name} - {student.section.name}" if student.current_class else "",
-                    'photo_url': student.profile_image.url if hasattr(student, 'profile_image') and student.profile_image else None
-                }
-            })
-            
-        # Create attendance record
-        try:
-             StudentAttendance.objects.create(
-                tenant=tenant,
-                student=student,
-                date=today,
-                class_name=student.current_class,
-                section=student.section,
-                status='PRESENT',
-                marked_by=request.user,
-                remarks='QR Scan'
-            )
-        except Exception as e:
-             return JsonResponse({'status': 'error', 'message': str(e)})
-            
-        return JsonResponse({
-            'status': 'success',
-            'message': f'Attendance marked: {student.full_name}',
-            'student': {
-                'name': student.full_name,
-                'reg_no': student.admission_number,
-                'class': f"{student.current_class.name} - {student.section.name}" if student.current_class else "",
-                'photo_url': student.profile_image.url if hasattr(student, 'profile_image') and student.profile_image else None
-            }
-        })
-
 
 class AttendanceAnalyticsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     """Attendance analytics dashboard"""
@@ -1341,10 +1253,10 @@ def verify_face_attendance(request):
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
     try:
+        import face_recognition
         import numpy as np
         import base64
         import cv2
-        import os
         from apps.hr.models import Staff
         
         data = json.loads(request.body)
@@ -1353,303 +1265,54 @@ def verify_face_attendance(request):
         if not image_data:
              return JsonResponse({'error': 'No image provided'}, status=400)
              
-        # Decode base64
-        try:
-            if ';base64,' in image_data:
-                format, imgstr = image_data.split(';base64,') 
-            else:
-                imgstr = image_data
-            nparr = np.frombuffer(base64.b64decode(imgstr), np.uint8)
-            unknown_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            if unknown_image is None:
-                 return JsonResponse({'error': 'Decoding failed'}, status=400)
-            unknown_gray = cv2.cvtColor(unknown_image, cv2.COLOR_BGR2GRAY)
-        except Exception as e:
-             return JsonResponse({'error': f'Image format error: {str(e)}'}, status=400)
+        # Decode base64 image
+        format, imgstr = image_data.split(';base64,') 
+        nparr = np.frombuffer(base64.b64decode(imgstr), np.uint8)
+        unknown_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
-        # Init Detector
-        orb = cv2.ORB_create(nfeatures=1000)
-        kp1, des1 = orb.detectAndCompute(unknown_gray, None)
+        # Convert to RGB (face_recognition uses RGB)
+        rgb_unknown_image = cv2.cvtColor(unknown_image, cv2.COLOR_BGR2RGB)
         
-        if des1 is None:
-            return JsonResponse({'match': False, 'message': 'No features detected'})
+        # Get face encodings for unknown image
+        unknown_encodings = face_recognition.face_encodings(rgb_unknown_image)
+        
+        if not unknown_encodings:
+            return JsonResponse({'match': False, 'message': 'No face detected'})
             
-        # Get Staff
+        unknown_encoding = unknown_encodings[0]
+        
+        # Get all active staff with profile images
         tenant = request.tenant
-        staff_list = Staff.objects.filter(
-            tenant=tenant, 
-            employment_status='ACTIVE'
-        ).select_related('user').prefetch_related('documents')
-        
-        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-        best_match_count = 0
-        best_staff = None
-        MATCH_THRESHOLD = 15
-        
-        valid_candidates = 0
+        staff_list = Staff.objects.filter(tenant=tenant, employment_status='ACTIVE').exclude(profile_image='')
         
         for staff in staff_list:
              try:
-                 image_paths = []
-                 # Priority 1: User Avatar
-                 if staff.user and staff.user.avatar and os.path.exists(staff.user.avatar.path):
-                     image_paths.append(staff.user.avatar.path)
-                 
-                 # Priority 2: Staff Document (PHOTOGRAPH)
-                 photo_doc = staff.documents.filter(document_type='PHOTOGRAPH').order_by('-created_at').first()
-                 if photo_doc and photo_doc.file and os.path.exists(photo_doc.file.path):
-                     image_paths.append(photo_doc.file.path)
-                     
-                 if not image_paths: continue
-                 
-                 valid_candidates += 1
-                 
-                 # Check against available images
-                 local_best_score = 0
-                 
-                 for img_path in image_paths:
-                     known_image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-                     if known_image is None: continue
-                     
-                     kp2, des2 = orb.detectAndCompute(known_image, None)
-                     if des2 is not None:
-                         matches = bf.match(des1, des2)
-                         # Count close matches
-                         good_matches = [m for m in matches if m.distance < 50]
-                         if len(good_matches) > local_best_score:
-                             local_best_score = len(good_matches)
-                 
-                 if local_best_score > best_match_count and local_best_score >= MATCH_THRESHOLD:
-                     best_match_count = local_best_score
-                     best_staff = staff
-                     
+                # Optimized: ideally we cache encodings, but for now we load from file
+                # Check path exists first
+                if not staff.profile_image: continue
+                
+                known_image = face_recognition.load_image_file(staff.profile_image.path)
+                known_encodings = face_recognition.face_encodings(known_image)
+                
+                if known_encodings:
+                    known_encoding = known_encodings[0]
+                    results = face_recognition.compare_faces([known_encoding], unknown_encoding, tolerance=0.5)
+                    
+                    if results[0]:
+                         return JsonResponse({
+                             'match': True,
+                             'staff_id': staff.id,
+                             'name': staff.full_name,
+                             'employee_id': staff.employee_id,
+                             'message': f'Welcome {staff.full_name}'
+                         })
              except Exception as e:
-                 print(f"Error checking staff {staff.id}: {e}")
+                 print(f"Error processing staff {staff.id}: {e}")
                  continue
                  
-        if best_staff:
-             # AUTO SAVE ATTENDANCE
-             try:
-                 from apps.hr.models import StaffAttendance
-                 today = timezone.now().date()
-                 
-                 # Using the newly created StaffAttendance model
-                 # Make sure defaults match the model fields in apps/hr/models.py
-                 att, created = StaffAttendance.objects.update_or_create(
-                     staff=best_staff,
-                     date=today,
-                     defaults={
-                         'status': 'PRESENT',
-                         'marked_by': request.user if request.user.is_authenticated else None,
-                         'remarks': 'Marked via Face Recognition',
-                         # 'tenant': request.tenant # StaffAttendance model might NOT have tenant field if it's not TenantMixin or if handled differently.
-                         # Checking model definition: class StaffAttendance(BaseModel). BaseModel usually has tenant if using django-tenants.
-                         # But let's check BaseModel. 
-                         # Actually apps.hr.models usually inherit from BaseModel which inherits from TenantMixin?
-                         # Let's assume tenant is handled by middleware or automatic context if models.py doesn't show it explicitly but it likely inherits.
-                         # IMPORTANT: Line 535 in hr/models.py shows StaffAttendance(BaseModel).
-                         # I should check BaseModel definition to be safe.
-                         # But for now I'll include it if safer, or omit if context handles it. 
-                         # In StudentAttendance, I included it.
-                     }
-                 )
-             except Exception as e:
-                 print(f"Error saving staff attendance: {e}")
-                 
-             # Success Response
-             image_url = ""
-             if best_staff.user and best_staff.user.avatar:
-                 image_url = best_staff.user.avatar.url
-             elif best_staff.documents.exists():
-                 d = best_staff.documents.filter(document_type='PHOTOGRAPH').first()
-                 if d and d.file: image_url = d.file.url
-                 
-             return JsonResponse({
-                 'match': True,
-                 'staff_id': best_staff.id,
-                 'name': best_staff.full_name,
-                 'employee_id': best_staff.employee_id,
-                 'image_url': image_url,
-                 'message': f'Welcome {best_staff.full_name}'
-             })
-
-        if valid_candidates == 0:
-            return JsonResponse({'match': False, 'error': 'No staff photos found for comparison.'})
-
         return JsonResponse({'match': False, 'message': 'Face not recognized'})
 
     except ImportError:
-        return JsonResponse({'error': 'OpenCV library not installed'}, status=501)
+        return JsonResponse({'error': 'Face recognition library not installed'}, status=501)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
-@csrf_exempt
-def verify_student_face_attendance(request):
-    """API to verify face against student database using OpenCV ORB (No dlib required)"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-    try:
-        import numpy as np
-        import base64
-        import cv2
-        import os
-        from apps.students.models import Student
-        
-        data = json.loads(request.body)
-        image_data = data.get('image')
-        candidate_ids = data.get('candidate_ids', [])
-        
-        if not image_data:
-             return JsonResponse({'error': 'No image provided'}, status=400)
-             
-        # Decode base64 image
-        try:
-            # Debug: Check format
-            print(f"DEBUG Image Data (First 50): {image_data[:50]}")
-            
-            if ';base64,' in image_data:
-                format, imgstr = image_data.split(';base64,') 
-            else:
-                imgstr = image_data
-                
-            nparr = np.frombuffer(base64.b64decode(imgstr), np.uint8)
-            unknown_image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            
-            if unknown_image is None:
-                print("DEBUG: cv2.imdecode returned None")
-                return JsonResponse({'error': 'Coordinate decoding failed'}, status=400)
-                
-            # Convert to Gray for ORB
-            unknown_gray = cv2.cvtColor(unknown_image, cv2.COLOR_BGR2GRAY)
-        except Exception as e:
-            print(f"DEBUG Error: {str(e)}")
-            return JsonResponse({'error': f'Invalid image format: {str(e)}'}, status=400)
-            
-        # Initialize ORB detector
-        orb = cv2.ORB_create(nfeatures=1000)
-        
-        # Detect keypoints and descriptors
-        kp1, des1 = orb.detectAndCompute(unknown_gray, None)
-        
-        if des1 is None:
-             return JsonResponse({'match': False, 'message': 'No features detected in frame'})
-
-        # Get candidates
-        tenant = request.tenant
-        students_query = Student.objects.filter(
-            tenant=tenant, 
-            status='ACTIVE'
-        ).select_related('user').prefetch_related('documents')
-        
-        if candidate_ids:
-            students_query = students_query.filter(id__in=candidate_ids)
-            
-        student_list = list(students_query)
-        
-        # Matcher
-        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-        best_match_count = 0
-        best_student = None
-        
-        # Threshold: Number of "Good" feature matches needed
-        MATCH_THRESHOLD = 15 
-        
-        valid_candidates_with_images = 0
-        
-        for student in student_list:
-             try:
-                image_path = None
-                
-                # Priority 1: User Avatar
-                if student.user and student.user.avatar and os.path.exists(student.user.avatar.path):
-                    image_path = student.user.avatar.path
-                
-                # Priority 2: Student Document (PHOTO)
-                if not image_path:
-                    photo_doc = student.documents.filter(doc_type='PHOTO').order_by('-created_at').first()
-                    if photo_doc and photo_doc.file and os.path.exists(photo_doc.file.path):
-                        image_path = photo_doc.file.path
-                
-                if not image_path: 
-                    continue
-                    
-                valid_candidates_with_images += 1
-                
-                # Read file directly using cv2
-                known_image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-                if known_image is None: continue
-                
-                kp2, des2 = orb.detectAndCompute(known_image, None)
-                
-                if des2 is not None:
-                    matches = bf.match(des1, des2)
-                    matches = sorted(matches, key=lambda x: x.distance)
-                    
-                    # Count top matches
-                    good_matches = [m for m in matches if m.distance < 50]
-                    score = len(good_matches)
-
-                    if score > best_match_count and score >= MATCH_THRESHOLD:
-                        best_match_count = score
-                        best_student = student
-                        
-             except Exception as e:
-                 print(f"Error processing student {student.id}: {e}")
-                 continue
-        
-        if best_student:
-             # Determine which image URL to show
-             image_url = ""
-             if best_student.user and best_student.user.avatar:
-                 image_url = best_student.user.avatar.url
-             else:
-                 doc = best_student.documents.filter(doc_type='PHOTO').order_by('-created_at').first()
-                 if doc and doc.file:
-                     image_url = doc.file.url
-            
-             # AUTO-MARK ATTENDANCE
-             # ----------------------------------------------------
-             try:
-                 from apps.academics.models import StudentAttendance
-                 
-                 today = timezone.now().date()
-                 
-                 # Create or Update attendance record
-                 attendance, created = StudentAttendance.objects.update_or_create(
-                     student=best_student,
-                     date=today,
-                     session='FULL_DAY', # Default session
-                     defaults={
-                         'status': 'PRESENT',
-                         'class_name': best_student.current_class,
-                         'section': best_student.section,
-                         'marked_by': request.user if request.user.is_authenticated else None,
-                         'remarks': 'Marked via Face Recognition',
-                         'tenant': request.tenant
-                     }
-                 )
-             except Exception as e:
-                 print(f"Error saving attendance for {best_student.id}: {e}")
-                 # We still return success for matching, but maybe warn?
-                 # ideally we log this error.
-
-             return JsonResponse({
-                 'match': True,
-                 'student_id': best_student.id,
-                 'name': best_student.full_name,
-                 'roll_number': best_student.roll_number,
-                 'admission_number': best_student.admission_number,
-                 'image_url': image_url,
-                 'message': f'Verified & Marked: {best_student.full_name}'
-             })
-             
-        if valid_candidates_with_images == 0:
-            return JsonResponse({'match': False, 'error': 'No profile images or documents found for any loaded students.'})
-                 
-        return JsonResponse({'match': False, 'message': 'No matching student found'})
-
-    except ImportError:
-        return JsonResponse({'error': 'OpenCV library not installed'}, status=501)
-    except Exception as e:
-        return JsonResponse({'error': f"Processing error: {str(e)}"}, status=500)

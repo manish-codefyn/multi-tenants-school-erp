@@ -40,5 +40,9 @@
         {% if perms.academics.view_timetable %}
         <li> <a href="{% url 'academics:timetable_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Timetable" %}</a></li>
         {% endif %}
+
+        {% if perms.academics.view_attendance %}
+        <li> <a href="{% url 'attendance:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Attendance" %}</a></li>
+        {% endif %}
     </ul>
 </li>
