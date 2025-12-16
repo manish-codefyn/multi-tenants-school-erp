@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+{% load i18n humanize %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Leave Analysis Report</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+            @frame footer_frame {           /* Static Frame */
+                -pdf-frame-content: footerContent;
+                bottom: 0cm;
+                margin-left: 1cm;
+                margin-right: 1cm;
+                height: 1cm;
+            }
+        }
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+        h1 { font-size: 18pt; color: #4e73df; margin-bottom: 2px; }
+        h2 { font-size: 14pt; margin-top: 15px; margin-bottom: 5px; color: #555; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th { background-color: #f8f9fc; color: #4e73df; text-align: left; padding: 6px; border: 1px solid #e3e6f0; font-size: 9pt; }
+        td { padding: 6px; border: 1px solid #e3e6f0; font-size: 9pt; vertical-align: top; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .badge { padding: 2px 6px; border-radius: 4px; color: white; display: inline-block; font-size: 8pt; }
+        .bg-success { background-color: #1cc88a; color: white; }
+        .bg-warning { background-color: #f6c23e; color: black; }
+        .bg-danger { background-color: #e74a3b; color: white; }
+        .header-info { margin-bottom: 20px; font-size: 9pt; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{% trans "Leave Analysis Report" %}</h1>
+        <div class="header-info">
+            <strong>{% trans "Year" %}:</strong> {{ selected_year }} |
+            <strong>{% trans "Generated On" %}:</strong> {{ generated_at|date:"F j, Y H:i" }} |
+            <strong>{% trans "Report Type" %}:</strong> {% trans "Full Analysis" %}
+        </div>
+    </div>
+
+    <!-- Summary (Optional if we want to calculate aggregates in view) -->
+
+    <!-- Leave Type Analysis -->
+    <h2>{% trans "Leave Type Analysis" %}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans "Leave Type" %}</th>
+                <th class="text-center">{% trans "Entitled" %}</th>
+                <th class="text-center">{% trans "Used" %}</th>
+                <th class="text-center">{% trans "Available" %}</th>
+                <th class="text-center">{% trans "Utilization" %}</th>
+                <th class="text-center">{% trans "Apps" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in leave_type_stats %}
+            <tr>
+                <td>{{ stat.leave_type }}</td>
+                <td class="text-center">{{ stat.total_entitled }}</td>
+                <td class="text-center">{{ stat.total_used }}</td>
+                <td class="text-center">{{ stat.available }}</td>
+                <td class="text-center">{{ stat.utilization_rate|floatformat:1 }}%</td>
+                <td class="text-center">{{ stat.applications }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center">{% trans "No data available" %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Monthly Trend -->
+    <h2>{% trans "Monthly Trend" %}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans "Month" %}</th>
+                <th class="text-center">{% trans "Applications" %}</th>
+                <th class="text-center">{% trans "Total Days" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in monthly_data %}
+            <tr>
+                <td>{{ data.month }}</td>
+                <td class="text-center">{{ data.applications }}</td>
+                <td class="text-center">{{ data.days }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center">{% trans "No data available" %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Department Utilization -->
+    <h2>{% trans "Department Utilization" %}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans "Department" %}</th>
+                <th class="text-center">{% trans "Staff" %}</th>
+                <th class="text-center">{% trans "Apps" %}</th>
+                <th class="text-center">{% trans "Days Taken" %}</th>
+                <th class="text-center">{% trans "Utilization" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in dept_stats %}
+            <tr>
+                <td>{{ stat.department }}</td>
+                <td class="text-center">{{ stat.staff_count }}</td>
+                <td class="text-center">{{ stat.applications }}</td>
+                <td class="text-center">{{ stat.days }}</td>
+                <td class="text-center">{{ stat.utilization_rate|floatformat:1 }}%</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center">{% trans "No data available" %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div id="footerContent">
+        <div style="text-align: right; color: #888;">
+            {% trans "Page" %} <pdf:pagenumber> {% trans "of" %} <pdf:pagecount>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Holidays" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+        {% url 'hr:holiday_create' as create_url %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Holidays") current_text=_("Holidays") action_url=create_url action_text=_("Add Holiday") %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="holidayTable" class="table table-hover align-middle mb-0" data-datatable data-export-columns="[0, 1, 2, 3]">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">{% trans "Occasion" %}</th>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Recurring" %}</th>
+                                <th class="text-end pe-4">{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for holiday in holidays %}
+                            <tr>
+                                <td class="ps-4 fw-bold">{{ holiday.name }}</td>
+                                <td>{{ holiday.date|date:"D, M d, Y" }}</td>
+                                <td>
+                                    <span class="badge bg-{% if holiday.is_recurring %}info{% else %}secondary{% endif %} bg-opacity-10 text-{% if holiday.is_recurring %}info{% else %}secondary{% endif %} border">
+                                        {% if holiday.is_recurring %}{% trans "Recurring" %}{% else %}{% trans "One-time" %}{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if holiday.is_recurring %}
+                                        <i class="bx bx-check-circle text-success"></i>
+                                    {% else %}
+                                        <i class="bx bx-times-circle text-muted"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a href="{% url 'hr:holiday_update' holiday.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                         <a href="{% url 'hr:holiday_delete' holiday.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="{% trans 'Delete' %}">
+                                            <i class="bx bx-trash-alt"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-4 text-muted">{% trans "No holidays defined." %}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

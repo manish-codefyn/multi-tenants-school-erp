@@ -1,0 +1,190 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Salary Analysis Report" %}{% endblock %}
+
+{% block extra_css %}
+<!-- DataTables -->
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Salary Analysis" %}</h1>
+        <form action="{% url 'hr:api_report_generate' %}" method="post" target="_blank">
+            {% csrf_token %}
+            <input type="hidden" name="report_type" value="salary">
+            <input type="hidden" name="format" value="pdf">
+            <button type="submit" class="btn btn-primary shadow-sm">
+                <i class="bx bxs-file-pdf me-2"></i>{% trans "Download Full Report" %}
+            </button>
+        </form>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <!-- Total Salary -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow h-100 py-2 bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">{% trans "Total Monthly Salary" %}</div>
+                            <div class="h3 mb-0 font-weight-bold">{{ total_salary|floatformat:0|intcomma }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-money fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Salary -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow h-100 py-2 bg-gradient-success text-white">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">{% trans "Average Salary" %}</div>
+                            <div class="h3 mb-0 font-weight-bold">{{ avg_salary|floatformat:0|intcomma }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-bar-chart-alt-2 fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Median Salary -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow h-100 py-2 bg-gradient-info text-white">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">{% trans "Median Salary" %}</div>
+                            <div class="h3 mb-0 font-weight-bold">{{ median_salary|floatformat:0|intcomma }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-slider fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Max Salary -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow h-100 py-2 bg-gradient-warning text-white">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">{% trans "Maximum Salary" %}</div>
+                            <div class="h3 mb-0 font-weight-bold">{{ max_salary|floatformat:0|intcomma }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-trending-up fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Department Stats -->
+        <div class="col-lg-12 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Salary by Department" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="deptTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Department" %}</th>
+                                    <th>{% trans "Staff Count" %}</th>
+                                    <th>{% trans "Total Salary" %}</th>
+                                    <th>{% trans "Avg Salary" %}</th>
+                                    <th>{% trans "Min Salary" %}</th>
+                                    <th>{% trans "Max Salary" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in dept_salary_stats %}
+                                <tr>
+                                    <td>{{ stat.department }}</td>
+                                    <td>{{ stat.staff_count }}</td>
+                                    <td>{{ stat.total_salary|floatformat:2|intcomma }}</td>
+                                    <td>{{ stat.avg_salary|floatformat:2|intcomma }}</td>
+                                    <td>{{ stat.min_salary|floatformat:2|intcomma }}</td>
+                                    <td>{{ stat.max_salary|floatformat:2|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Designation Stats -->
+        <div class="col-lg-12 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Salary by Designation" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="desigTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Designation" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Staff Count" %}</th>
+                                    <th>{% trans "Avg Salary" %}</th>
+                                    <th>{% trans "Role Range" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in desig_salary_stats %}
+                                <tr>
+                                    <td>{{ stat.designation }}</td>
+                                    <td>{{ stat.category }}</td>
+                                    <td>{{ stat.staff_count }}</td>
+                                    <td>{{ stat.avg_salary|floatformat:2|intcomma }}</td>
+                                    <td>{{ stat.designation_min|floatformat:0|intcomma }} - {{ stat.designation_max|floatformat:0|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+<script>
+    $(document).ready(function() {
+        // Init tables
+        if (typeof initDataTable === 'function') {
+            initDataTable('deptTable', {
+                title: '{% trans "Department Salary Analysis" %}',
+                pageLength: 10
+            });
+            initDataTable('desigTable', {
+                title: '{% trans "Designation Salary Analysis" %}',
+                pageLength: 10
+            });
+        }
+    });
+</script>
+{% endblock %}

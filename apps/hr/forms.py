@@ -6,11 +6,58 @@ from .models import (
     StaffAttendance, LeaveType, LeaveApplication, LeaveBalance,
     SalaryStructure, Payroll, Promotion, EmploymentHistory,
     TrainingProgram, TrainingParticipation, PerformanceReview,
-    Recruitment, JobApplication
+    Recruitment, JobApplication, Qualification, Holiday, WorkSchedule
 )
-from apps.core.forms import BaseForm
+from apps.core.forms import BaseForm, TenantAwareModelForm
+from apps.core.utils.form_helpers import DateInput, PhoneInput, SelectWithSearch, SelectMultipleWithSearch
 
-class DepartmentForm(BaseForm):
+
+class QualificationForm(TenantAwareModelForm):
+    class Meta:
+        model = Qualification
+        fields = ['degree', 'specialization', 'institution', 'year']
+        widgets = {
+            'year': DateInput(),
+        }
+
+class HolidayForm(TenantAwareModelForm):
+    class Meta:
+        model = Holiday
+        fields = ['name', 'date', 'is_recurring', 'description']
+        widgets = {
+            'date': DateInput(),
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class WorkScheduleForm(TenantAwareModelForm):
+    working_days = forms.MultipleChoiceField(
+        choices=[
+            (0, _("Monday")),
+            (1, _("Tuesday")),
+            (2, _("Wednesday")),
+            (3, _("Thursday")),
+            (4, _("Friday")),
+            (5, _("Saturday")),
+            (6, _("Sunday")),
+        ],
+        widget=forms.CheckboxSelectMultiple,
+        label=_("Working Days")
+    )
+
+    class Meta:
+        model = WorkSchedule
+        fields = ['name', 'start_time', 'end_time', 'working_days', 'is_default']
+        widgets = {
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time'}),
+        }
+
+    def clean_working_days(self):
+        data = self.cleaned_data['working_days']
+        return [int(day) for day in data]
+
+
+class DepartmentForm(TenantAwareModelForm):
     class Meta:
         model = Department
         fields = ['name', 'code', 'description', 'head_of_department', 'email', 'phone', 'location']
@@ -18,24 +65,31 @@ class DepartmentForm(BaseForm):
             'description': forms.Textarea(attrs={'rows': 3}),
         }
 
-class DesignationForm(BaseForm):
+class DesignationForm(TenantAwareModelForm):
     class Meta:
         model = Designation
-        fields = [
-             'title', 'code', 'category', 'description', 'grade',
-            'min_salary', 'max_salary', 'qualifications',
-            'experience_required', 'reports_to'
+        exclude = [
+           'code'
         ]
+        fields = [
+            'title','category', 'description', 'grade',
+            'min_salary', 'max_salary', 'qualifications',
+            'experience_required', 'reports_to' ]
+        
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
-            'qualifications': forms.Textarea(attrs={'rows': 3}),
+         
         }
 
-class StaffForm(BaseForm):
+class StaffForm(TenantAwareModelForm):
+    first_name = forms.CharField(max_length=150, required=True, label=_("First Name"))
+    last_name = forms.CharField(max_length=150, required=True, label=_("Last Name"))
+
     class Meta:
         model = Staff
         fields = [
-             'user', 'date_of_birth', 'gender', 'blood_group',
+            'first_name', 'last_name',
+            'date_of_birth', 'gender', 'blood_group',
             'marital_status', 'nationality', 'personal_email', 'personal_phone',
             'emergency_contact_name', 'emergency_contact_relation', 'emergency_contact_phone',
             'department', 'designation', 'employment_type', 'employment_status',
@@ -46,15 +100,68 @@ class StaffForm(BaseForm):
             'work_location', 'work_phone', 'work_email'
         ]
         widgets = {
-            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
-            'joining_date': forms.DateInput(attrs={'type': 'date'}),
-            'confirmation_date': forms.DateInput(attrs={'type': 'date'}),
-            'contract_end_date': forms.DateInput(attrs={'type': 'date'}),
-            'retirement_date': forms.DateInput(attrs={'type': 'date'}),
-            'qualifications': forms.Textarea(attrs={'rows': 3}),
+            'date_of_birth': DateInput(),
+            'joining_date': DateInput(),
+            'confirmation_date': DateInput(),
+            'contract_end_date': DateInput(),
+            'retirement_date': DateInput(),
+            'qualifications': SelectMultipleWithSearch(),
+            'department': SelectWithSearch(),
+            'designation': SelectWithSearch(),
+            'personal_phone': PhoneInput(),
+            'emergency_contact_phone': PhoneInput(),
+            'work_phone': PhoneInput(),
         }
 
-class StaffAddressForm(BaseForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['teaching_experience'].required = False
+        self.fields['total_experience'].required = False
+        self.fields['basic_salary'].required = False
+
+    def clean_teaching_experience(self):
+        data = self.cleaned_data.get('teaching_experience')
+        return data if data is not None else 0
+
+    def clean_total_experience(self):
+        data = self.cleaned_data.get('total_experience')
+        return data if data is not None else 0
+
+    def clean_basic_salary(self):
+        data = self.cleaned_data.get('basic_salary')
+        return data if data is not None else 0.00
+
+    def save(self, commit=True):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        # If instance doesn't have a user yet, create one
+        if not self.instance.user_id:
+            email = self.cleaned_data['personal_email']
+            first_name = self.cleaned_data['first_name']
+            last_name = self.cleaned_data['last_name']
+            
+            # Check if user exists
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'username': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'role': 'staff', # Default role
+                    'is_active': True,
+                    'tenant': self.tenant # TenantAwareModelForm sets this
+                }
+            )
+            if created:
+                user.set_password('Staff@123') # Initial password
+                user.save()
+            
+            self.instance.user = user
+        
+        return super().save(commit=commit)
+
+class StaffAddressForm(TenantAwareModelForm):
     class Meta:
         model = StaffAddress
         fields = [
@@ -66,7 +173,7 @@ class StaffAddressForm(BaseForm):
             'address_line2': forms.Textarea(attrs={'rows': 2}),
         }
 
-class StaffDocumentForm(BaseForm):
+class StaffDocumentForm(TenantAwareModelForm):
     class Meta:
         model = StaffDocument
         fields = [
@@ -79,7 +186,7 @@ class StaffDocumentForm(BaseForm):
             'description': forms.Textarea(attrs={'rows': 2}),
         }
 
-class AttendanceForm(BaseForm):
+class AttendanceForm(TenantAwareModelForm):
     class Meta:
         model = StaffAttendance
         fields = [
@@ -93,7 +200,7 @@ class AttendanceForm(BaseForm):
             'remarks': forms.Textarea(attrs={'rows': 2}),
         }
 
-class LeaveTypeForm(BaseForm):
+class LeaveTypeForm(TenantAwareModelForm):
     class Meta:
         model = LeaveType
         fields = [
@@ -106,7 +213,7 @@ class LeaveTypeForm(BaseForm):
             'description': forms.Textarea(attrs={'rows': 3}),
         }
 
-class LeaveApplicationForm(BaseForm):
+class LeaveApplicationForm(TenantAwareModelForm):
     class Meta:
         model = LeaveApplication
         fields = [
@@ -122,7 +229,7 @@ class LeaveApplicationForm(BaseForm):
             'handover_notes': forms.Textarea(attrs={'rows': 2}),
         }
 
-class LeaveBalanceForm(BaseForm):
+class LeaveBalanceForm(TenantAwareModelForm):
     class Meta:
         model = LeaveBalance
         fields = [
@@ -130,7 +237,7 @@ class LeaveBalanceForm(BaseForm):
             'used_days', 'carried_forward', 'adjusted_days'
         ]
 
-class SalaryStructureForm(BaseForm):
+class SalaryStructureForm(TenantAwareModelForm):
     class Meta:
         model = SalaryStructure
         fields = [
@@ -143,7 +250,7 @@ class SalaryStructureForm(BaseForm):
             'components': forms.Textarea(attrs={'rows': 5}),
         }
 
-class PayrollForm(BaseForm):
+class PayrollForm(TenantAwareModelForm):
     class Meta:
         model = Payroll
         fields = [
@@ -159,7 +266,7 @@ class PayrollForm(BaseForm):
             'deductions': forms.Textarea(attrs={'rows': 3}),
         }
 
-class PromotionForm(BaseForm):
+class PromotionForm(TenantAwareModelForm):
     class Meta:
         model = Promotion
         fields = [
@@ -173,19 +280,18 @@ class PromotionForm(BaseForm):
             'remarks': forms.Textarea(attrs={'rows': 2}),
         }
 
-class EmploymentHistoryForm(BaseForm):
+class EmploymentHistoryForm(TenantAwareModelForm):
     class Meta:
         model = EmploymentHistory
         fields = [
-             'staff', 'action', 'effective_date', 'details', 'description'
+             'staff', 'action', 'effective_date', 'description'
         ]
         widgets = {
             'effective_date': forms.DateInput(attrs={'type': 'date'}),
-            'details': forms.Textarea(attrs={'rows': 3}),
             'description': forms.Textarea(attrs={'rows': 2}),
         }
 
-class TrainingProgramForm(BaseForm):
+class TrainingProgramForm(TenantAwareModelForm):
     class Meta:
         model = TrainingProgram
         fields = [
@@ -200,7 +306,7 @@ class TrainingProgramForm(BaseForm):
             'description': forms.Textarea(attrs={'rows': 3}),
         }
 
-class TrainingParticipationForm(BaseForm):
+class TrainingParticipationForm(TenantAwareModelForm):
     class Meta:
         model = TrainingParticipation
         fields = [
@@ -214,11 +320,11 @@ class TrainingParticipationForm(BaseForm):
             'skills_acquired': forms.Textarea(attrs={'rows': 2}),
         }
 
-class PerformanceReviewForm(BaseForm):
+class PerformanceReviewForm(TenantAwareModelForm):
     class Meta:
         model = PerformanceReview
         fields = [
-             'staff', 'review_type', 'review_period_start', 'review_period_end',
+             'staff', 'review_type', 'status', 'review_period_start', 'review_period_end',
             'review_date', 'job_knowledge_rating', 'work_quality_rating',
             'productivity_rating', 'teamwork_rating', 'communication_rating',
             'attendance_rating', 'strengths', 'areas_for_improvement',
@@ -233,7 +339,7 @@ class PerformanceReviewForm(BaseForm):
             'goals_next_period': forms.Textarea(attrs={'rows': 3}),
         }
 
-class RecruitmentForm(BaseForm):
+class RecruitmentForm(TenantAwareModelForm):
     class Meta:
         model = Recruitment
         fields = [
@@ -253,7 +359,7 @@ class RecruitmentForm(BaseForm):
             'required_qualifications': forms.Textarea(attrs={'rows': 3}),
         }
 
-class JobApplicationForm(BaseForm):
+class JobApplicationForm(TenantAwareModelForm):
     class Meta:
         model = JobApplication
         fields = [
@@ -264,4 +370,30 @@ class JobApplicationForm(BaseForm):
         widgets = {
             'cover_letter': forms.Textarea(attrs={'rows': 4}),
             'notes': forms.Textarea(attrs={'rows': 3}),
+
         }
+
+class PublicJobApplicationForm(TenantAwareModelForm):
+    class Meta:
+        model = JobApplication
+        fields = [
+             'recruitment', 'applicant_name', 'email', 'phone',
+            'cover_letter', 'resume', 'expected_salary',
+            'notice_period'
+        ]
+        widgets = {
+            'cover_letter': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class StaffImportForm(forms.Form):
+    file = forms.FileField(
+        label=_("Import File"),
+        help_text=_("Upload CSV or Excel file containing staff records.")
+    )
+
+    def clean_file(self):
+        file = self.cleaned_data['file']
+        ext = file.name.split('.')[-1].lower()
+        if ext not in ['csv', 'xls', 'xlsx']:
+            raise forms.ValidationError(_("Unsupported file format. Please upload CSV or Excel."))
+        return file

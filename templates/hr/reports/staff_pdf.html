@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Staff Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+        h1 {
+            color: #4e73df;
+            border-bottom: 2px solid #4e73df;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+            font-size: 14pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fc;
+            color: #4e73df;
+            font-weight: bold;
+        }
+        .stats-summary {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-left: 4px solid #4e73df;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>Staff Report</h1>
+    <div class="stats-summary">
+        <strong>Total Active Staff:</strong> {{ total_staff }}
+    </div>
+
+    <!-- Department Statistics -->
+    <h2>Department Distribution</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Department</th>
+                <th class="text-center">Count</th>
+                <th class="text-right">Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in dept_stats %}
+            <tr>
+                <td>{{ stat.department }}</td>
+                <td class="text-center">{{ stat.count }}</td>
+                <td class="text-right">{{ stat.percentage|floatformat:1 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Designation Statistics -->
+    <h2>Designation Distribution</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Designation</th>
+                <th class="text-center">Count</th>
+                <th class="text-right">Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in desig_stats %}
+            <tr>
+                <td>{{ stat.designation }}</td>
+                <td class="text-center">{{ stat.count }}</td>
+                <td class="text-right">{{ stat.percentage|floatformat:1 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Age Demographics -->
+    <h2>Age Demographics</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Age Group</th>
+                <th class="text-center">Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group, count in age_groups.items %}
+            <tr>
+                <td>{{ group }}</td>
+                <td class="text-center">{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Service Years -->
+    <h2>Years of Service</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Duration</th>
+                <th class="text-center">Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group, count in service_years.items %}
+            <tr>
+                <td>{{ group }}</td>
+                <td class="text-center">{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 30px; font-size: 8pt; color: #777; border-top: 1px solid #ddd; padding-top: 10px;">
+        Generated on {% now "F j, Y H:i" %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+{% load i18n humanize %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Salary Analysis Report</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+            @frame footer_frame {           /* Static Frame */
+                -pdf-frame-content: footerContent;
+                bottom: 0cm;
+                margin-left: 1cm;
+                margin-right: 1cm;
+                height: 1cm;
+            }
+        }
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+        h1 { font-size: 18pt; color: #4e73df; margin-bottom: 2px; }
+        h2 { font-size: 14pt; margin-top: 15px; margin-bottom: 5px; color: #555; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        th { background-color: #f8f9fc; color: #4e73df; text-align: left; padding: 6px; border: 1px solid #e3e6f0; font-size: 9pt; }
+        td { padding: 6px; border: 1px solid #e3e6f0; font-size: 9pt; vertical-align: top; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        
+        /* KPI Cards Simulation for PDF */
+        .kpi-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .kpi-box {
+            width: 23%;
+            float: left;
+            margin-right: 2%;
+            background-color: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .kpi-title { font-size: 8pt; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 5px; }
+        .kpi-value { font-size: 14pt; font-weight: bold; color: #333; }
+        .header-info { margin-bottom: 20px; font-size: 9pt; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{% trans "Salary Analysis Report" %}</h1>
+        <div class="header-info">
+            <strong>{% trans "Generated On" %}:</strong> {{ generated_at|date:"F j, Y H:i" }} |
+            <strong>{% trans "Total Staff" %}:</strong> {{ stats.staff_count }}
+        </div>
+    </div>
+
+    <!-- Summary KPIs -->
+    <div class="kpi-container">
+        <div class="kpi-box">
+            <div class="kpi-title">{% trans "Total Monthly Salary" %}</div>
+            <div class="kpi-value text-primary">{{ stats.total_salary|floatformat:2|intcomma }}</div>
+        </div>
+        <div class="kpi-box">
+            <div class="kpi-title text-success">{% trans "Average Salary" %}</div>
+            <div class="kpi-value">{{ stats.avg_salary|floatformat:2|intcomma }}</div>
+        </div>
+        <div class="kpi-box">
+            <div class="kpi-title text-info">{% trans "Median Salary" %}</div>
+            <div class="kpi-value">{{ stats.median_salary|floatformat:2|intcomma }}</div>
+        </div>
+        <div class="kpi-box" style="margin-right: 0;">
+            <div class="kpi-title text-warning">{% trans "Maximum Salary" %}</div>
+             <div class="kpi-value">{{ stats.max_salary|floatformat:2|intcomma }}</div>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <!-- Department Analysis -->
+    <h2>{% trans "Salary by Department" %}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans "Department" %}</th>
+                <th class="text-center">{% trans "Staff" %}</th>
+                <th class="text-right">{% trans "Total Salary" %}</th>
+                <th class="text-right">{% trans "Avg Salary" %}</th>
+                <th class="text-right">{% trans "Min" %}</th>
+                <th class="text-right">{% trans "Max" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in dept_salary_stats %}
+            <tr>
+                <td>{{ stat.department }}</td>
+                <td class="text-center">{{ stat.staff_count }}</td>
+                <td class="text-right">{{ stat.total_salary|floatformat:2|intcomma }}</td>
+                <td class="text-right">{{ stat.avg_salary|floatformat:2|intcomma }}</td>
+                <td class="text-right">{{ stat.min_salary|floatformat:2|intcomma }}</td>
+                <td class="text-right">{{ stat.max_salary|floatformat:2|intcomma }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center">{% trans "No data available" %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Designation Analysis -->
+    <h2>{% trans "Salary by Designation" %}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans "Designation" %}</th>
+                <th>{% trans "Category" %}</th>
+                <th class="text-center">{% trans "Staff" %}</th>
+                <th class="text-right">{% trans "Avg Salary" %}</th>
+                <th class="text-right">{% trans "Role Range" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in desig_salary_stats %}
+            <tr>
+                <td>{{ stat.designation }}</td>
+                <td>{{ stat.category }}</td>
+                <td class="text-center">{{ stat.staff_count }}</td>
+                <td class="text-right">{{ stat.avg_salary|floatformat:2|intcomma }}</td>
+                <td class="text-right">{{ stat.designation_min|floatformat:0|intcomma }} - {{ stat.designation_max|floatformat:0|intcomma }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center">{% trans "No data available" %}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Footer -->
+    <div id="footerContent">
+        <div style="text-align: right; color: #888;">
+            {% trans "Page" %} <pdf:pagenumber> {% trans "of" %} <pdf:pagecount>
+        </div>
+    </div>
+</body>
+</html>

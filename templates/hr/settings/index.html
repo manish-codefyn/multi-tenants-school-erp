@@ -1,37 +1,102 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}HR Settings{% endblock %}
+{% block title %}{% trans "HR Settings" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">HR Settings</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item active">Settings</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="container-fluid py-4">
+    <h1 class="h3 mb-4 text-gray-800">{% trans "HR Settings" %}</h1>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <div class="mb-4">
-                        <i class="bx bx-cog text-muted display-4"></i>
+    <div class="row g-4">
+        <!-- Configuration Cards -->
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'hr:department_list' %}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0 hover-lift">
+                    <div class="card-body text-center py-5">
+                        <div class="icon-circle bg-primary-subtle text-primary mb-3 mx-auto" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bx bx-building fa-2x"></i>
+                        </div>
+                        <h5 class="text-dark">{% trans "Departments" %}</h5>
+                        <p class="text-muted small mb-0">{% trans "Manage company departments and structure" %}</p>
+                        <div class="mt-3 badge bg-light text-dark">{{ department_count }} {% trans "Departments" %}</div>
                     </div>
-                    <h4>HR Configuration</h4>
-                    <p class="text-muted mb-4">This feature is coming soon. You will be able to configure HR module settings, notifications, and policies here.</p>
-                    <a href="{% url 'hr:dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
                 </div>
-            </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'hr:designation_list' %}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0 hover-lift">
+                    <div class="card-body text-center py-5">
+                        <div class="icon-circle bg-success-subtle text-success mb-3 mx-auto" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bx bx-id-card fa-2x"></i>
+                        </div>
+                        <h5 class="text-dark">{% trans "Designations" %}</h5>
+                         <p class="text-muted small mb-0">{% trans "Manage job titles and hierarchy" %}</p>
+                         <div class="mt-3 badge bg-light text-dark">{{ designation_count }} {% trans "Designations" %}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'hr:leavetype_list' %}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0 hover-lift">
+                     <div class="card-body text-center py-5">
+                        <div class="icon-circle bg-warning-subtle text-warning mb-3 mx-auto" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bx bx-calendar-check fa-2x"></i>
+                        </div>
+                        <h5 class="text-dark">{% trans "Leave Types" %}</h5>
+                         <p class="text-muted small mb-0">{% trans "Configure leave policies and entitlements" %}</p>
+                          <div class="mt-3 badge bg-light text-dark">{{ leave_type_count }} {% trans "Types" %}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'hr:holiday_list'|default:'#' %}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0 hover-lift">
+                     <div class="card-body text-center py-5">
+                        <div class="icon-circle bg-info-subtle text-info mb-3 mx-auto" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bx bx-calendar-check fa-2x"></i>
+                        </div>
+                        <h5 class="text-dark">{% trans "Holidays" %}</h5>
+                         <p class="text-muted small mb-0">{% trans "Set up public and company holidays" %}</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+             <a href="{% url 'hr:tax_config' %}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0 hover-lift">
+                     <div class="card-body text-center py-5">
+                        <div class="icon-circle bg-danger-subtle text-danger mb-3 mx-auto" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bx bx-calculator fa-2x"></i>
+                        </div>
+                        <h5 class="text-dark">{% trans "Tax Configuration" %}</h5>
+                         <p class="text-muted small mb-0">{% trans "Configure tax brackets and rules" %}</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'hr:pf_esi_config' %}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 border-0 hover-lift">
+                     <div class="card-body text-center py-5">
+                         <div class="icon-circle bg-primary-subtle text-primary mb-3 mx-auto" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="bx bx-city fa-2x"></i>
+                        </div>
+                        <h5 class="text-dark">{% trans "PF & ESI" %}</h5>
+                         <p class="text-muted small mb-0">{% trans "Manage Provident Fund and ESI settings" %}</p>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 </div>
+
+
 {% endblock %}

@@ -13,11 +13,14 @@ urlpatterns = [
     # ==================== STAFF MANAGEMENT ====================
     path('staff/', include([
         path('', login_required(views.StaffListView.as_view()), name='staff_list'),
+        path('import/', login_required(views.StaffImportView.as_view()), name='staff_import'),
+        path('import/sample/', login_required(views.StaffImportSampleView.as_view()), name='staff_import_sample'),
         path('create/', login_required(views.StaffCreateView.as_view()), name='staff_create'),
         path('<uuid:pk>/', include([
             path('', login_required(views.StaffDetailView.as_view()), name='staff_detail'),
             path('edit/', login_required(views.StaffUpdateView.as_view()), name='staff_update'),
             path('delete/', login_required(views.StaffDeleteView.as_view()), name='staff_delete'),
+            path('id-card/', login_required(views.StaffIDCardView.as_view()), name='staff_id_card'),
             
             # Staff-specific sub-pages
             path('attendance/', login_required(views.StaffAttendanceView.as_view()), name='staff_attendance'),
@@ -48,6 +51,16 @@ urlpatterns = [
             path('', login_required(views.DesignationDetailView.as_view()), name='designation_detail'),
             path('edit/', login_required(views.DesignationUpdateView.as_view()), name='designation_update'),
             path('delete/', login_required(views.DesignationDeleteView.as_view()), name='designation_delete'),
+        ])),
+    ])),
+    
+    # ==================== QUALIFICATION MANAGEMENT ====================
+    path('qualifications/', include([
+        path('', login_required(views.QualificationListView.as_view()), name='qualification_list'),
+        path('create/', login_required(views.QualificationCreateView.as_view()), name='qualification_create'),
+        path('<uuid:pk>/', include([
+            path('edit/', login_required(views.QualificationUpdateView.as_view()), name='qualification_update'),
+            path('delete/', login_required(views.QualificationDeleteView.as_view()), name='qualification_delete'),
         ])),
     ])),
     
@@ -128,6 +141,7 @@ urlpatterns = [
                 path('shortlist/', login_required(views.JobApplicationShortlistView.as_view()), name='jobapplication_shortlist'),
                 path('interview/', login_required(views.JobApplicationInterviewView.as_view()), name='jobapplication_interview'),
                 path('offer/', login_required(views.JobApplicationOfferView.as_view()), name='jobapplication_offer'),
+                path('reject/', login_required(views.JobApplicationRejectView.as_view()), name='jobapplication_reject'),
             ])),
         ])),
     ])),
@@ -185,6 +199,7 @@ urlpatterns = [
     # ==================== REPORTS & ANALYTICS ====================
     path('reports/', include([
         path('staff/', login_required(views.StaffReportView.as_view()), name='report_staff'),
+        path('staff/pdf/', login_required(views.StaffReportPDFView.as_view()), name='report_staff_pdf'),
         path('attendance/', login_required(views.AttendanceReportView.as_view()), name='report_attendance'),
         path('leave/', login_required(views.LeaveReportView.as_view()), name='report_leave'),
         path('turnover/', login_required(views.TurnoverReportView.as_view()), name='report_turnover'),
@@ -228,7 +243,12 @@ urlpatterns = [
         path('', login_required(views.HRSettingsView.as_view()), name='hr_settings'),
         path('holidays/', login_required(views.HolidayListView.as_view()), name='holiday_list'),
         path('holidays/create/', login_required(views.HolidayCreateView.as_view()), name='holiday_create'),
+        path('holidays/<uuid:pk>/edit/', login_required(views.HolidayUpdateView.as_view()), name='holiday_update'),
+        path('holidays/<uuid:pk>/delete/', login_required(views.HolidayDeleteView.as_view()), name='holiday_delete'),
         path('work-schedule/', login_required(views.WorkScheduleView.as_view()), name='work_schedule'),
+        path('work-schedule/create/', login_required(views.WorkScheduleCreateView.as_view()), name='work_schedule_create'),
+        path('work-schedule/<uuid:pk>/edit/', login_required(views.WorkScheduleUpdateView.as_view()), name='work_schedule_update'),
+        path('work-schedule/<uuid:pk>/delete/', login_required(views.WorkScheduleDeleteView.as_view()), name='work_schedule_delete'),
         path('tax-config/', login_required(views.TaxConfigView.as_view()), name='tax_config'),
         path('pf-esi/', login_required(views.PFESIConfigView.as_view()), name='pf_esi_config'),
     ])),

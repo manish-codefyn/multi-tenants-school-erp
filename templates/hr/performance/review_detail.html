@@ -1,114 +1,120 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n crispy_forms_tags %}
 
-{% block title %}Review - {{ object.staff.full_name }}{% endblock %}
+{% block title %}{% trans "Performance Review" %} - {{ performance_review.staff.full_name }} - {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Performance Review</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:performancereview_list' %}">Performance</a></li>
-                        <li class="breadcrumb-item active">Detail</li>
-                    </ol>
-                </div>
-            </div>
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:performancereview_update' performance_review.pk %}" class="btn btn-outline-primary">
+                <i class="bx bx-edit me-2"></i>{% trans "Edit Review" %}
+            </a>
+            <a href="{% url 'hr:performancereview_list' %}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-2"></i>{% trans "Back" %}
+            </a>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Review Content</h5>
-                    <span class="badge {% if object.rating >= 4 %}bg-success{% elif object.rating >= 3 %}bg-info{% elif object.rating >= 2 %}bg-warning{% else %}bg-danger{% endif %} fs-12">
-                        Rating: {{ object.rating }}/5
-                    </span>
+        <!-- Review Overview -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Review Overview" %}</h6>
                 </div>
                 <div class="card-body">
-                    <div class="mb-4">
-                        <h6 class="fw-semibold text-uppercase">Goals & Objectives</h6>
-                        <p class="text-muted">{{ object.goals|linebreaks|default:"No goals specified." }}</p>
+                    <div class="text-center mb-4">
+                        <div class="mb-2">
+                            {% if performance_review.staff.profile_image %}
+                                <img src="{{ performance_review.staff.profile_image.url }}" class="rounded-circle" width="100" height="100" alt="{{ performance_review.staff.full_name }}">
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
+                                    <span class="h1 text-secondary m-0">{{ performance_review.staff.initials }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <h5 class="mb-0">{{ performance_review.staff.full_name }}</h5>
+                        <small class="text-muted">{{ performance_review.staff.department.name }} - {{ performance_review.staff.designation.name }}</small>
                     </div>
                     
-                    <div class="mb-4">
-                        <h6 class="fw-semibold text-uppercase">Achievements</h6>
-                        <p class="text-muted">{{ object.achievements|linebreaks|default:"No achievements recorded." }}</p>
-                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="text-muted">{% trans "Review Period" %}</span>
+                            <span class="fw-bold">{{ performance_review.review_period }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="text-muted">{% trans "Review Date" %}</span>
+                            <span>{{ performance_review.review_date }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="text-muted">{% trans "Reviewer" %}</span>
+                            <span>{{ performance_review.reviewed_by.get_full_name }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="text-muted">{% trans "Status" %}</span>
+                            <span class="badge {% if performance_review.status == 'COMPLETED' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ performance_review.get_status_display }}
+                            </span>
+                        </li>
+                    </ul>
                     
-                    <div class="mb-4">
-                        <h6 class="fw-semibold text-uppercase">Areas for Improvement</h6>
-                        <p class="text-muted">{{ object.areas_for_improvement|linebreaks|default:"None specified." }}</p>
+                    <div class="mt-4 text-center">
+                        <h6 class="text-uppercase text-muted small">{% trans "Overall Score" %}</h6>
+                        <div class="display-4 fw-bold {% if performance_review.overall_rating >= 8 %}text-success{% elif performance_review.overall_rating >= 5 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ performance_review.overall_rating }}<span class="fs-4 text-muted">/10</span>
+                        </div>
                     </div>
-                    
-                    <div class="mb-4">
-                        <h6 class="fw-semibold text-uppercase">Reviewer Comments</h6>
-                        <p class="text-muted">{{ object.comments|linebreaks|default:"No comments." }}</p>
-                    </div>
-                </div>
-                <div class="card-footer d-flex justify-content-end gap-2">
-                    <a href="{% url 'hr:performancereview_list' %}" class="btn btn-light">Back to List</a>
-                    
-                    {% if perms.hr.change_performancereview %}
-                    <a href="{% url 'hr:performancereview_update' object.pk %}" class="btn btn-primary">Edit</a>
-                    {% endif %}
                 </div>
             </div>
         </div>
-        
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Review Info</h5>
+
+        <!-- Detailed Evaluation -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Feedback & Goals" %}</h6>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-borderless mb-0">
-                            <tbody>
-                                <tr>
-                                    <th class="ps-0" scope="row">Staff :</th>
-                                    <td class="text-muted">{{ object.staff.full_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Reviewer :</th>
-                                    <td class="text-muted">{{ object.reviewer.get_full_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Period :</th>
-                                    <td class="text-muted">
-                                        {{ object.review_period_start }} to {{ object.review_period_end }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Date :</th>
-                                    <td class="text-muted">{{ object.review_date }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Status :</th>
-                                    <td>
-                                        {% if object.status == 'DRAFT' %}
-                                            <span class="badge bg-secondary">Draft</span>
-                                        {% elif object.status == 'SUBMITTED' %}
-                                            <span class="badge bg-info">Submitted</span>
-                                        {% elif object.status == 'ACKNOWLEDGED' %}
-                                            <span class="badge bg-success">Acknowledged</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <h6 class="fw-bold text-dark mb-2">{% trans "Strengths" %}</h6>
+                    <div class="bg-light p-3 rounded mb-4">
+                        {{ performance_review.strengths|linebreaks|default:"No strengths recorded." }}
                     </div>
+
+                    <h6 class="fw-bold text-dark mb-2">{% trans "Areas for Improvement" %}</h6>
+                    <div class="bg-light p-3 rounded mb-4">
+                        {{ performance_review.areas_for_improvement|linebreaks|default:"No areas for improvement recorded." }}
+                    </div>
+
+                    <h6 class="fw-bold text-dark mb-2">{% trans "Goals for Next Period" %}</h6>
+                    <div class="bg-light p-3 rounded mb-4">
+                        {{ performance_review.goals_next_period|linebreaks|default:"No goals records." }}
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    {% if can_acknowledge %}
+                    <form method="post" action="{% url 'hr:performance_acknowledge' performance_review.pk %}">
+                        {% csrf_token %}
+                        <div class="alert alert-info d-flex align-items-center mb-3">
+                            <i class="bx bx-info-circle me-3 fs-3"></i>
+                            <div>
+                                <strong>{% trans "Employee Acknowledgment Required" %}</strong><br>
+                                {% trans "Please review your performance evaluation and acknowledge it." %}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bx bx-check-circle me-2"></i>{% trans "Acknowledge Review" %}
+                        </button>
+                    </form>
+                    {% endif %}
                     
-                    {% if object.status == 'SUBMITTED' and user == object.staff.user %}
-                    <div class="mt-4">
-                        <form method="post" action="{% url 'hr:performancereview_acknowledge' object.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success w-100">Acknowledge Review</button>
-                        </form>
+                    {% if performance_review.employee_acknowledged %}
+                    <div class="text-success small">
+                        <i class="bx bx-check me-1"></i> {% trans "Acknowledged by Employee on" %} {{ performance_review.acknowledged_at }}
                     </div>
                     {% endif %}
                 </div>

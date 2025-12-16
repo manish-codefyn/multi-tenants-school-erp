@@ -1,106 +1,71 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Performance Reviews{% endblock %}
+{% block title %}{% trans "Performance Reviews" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Performance Reviews</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item active">Performance</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Performance Reviews" %}</h1>
+        <a href="{% url 'hr:performancereview_create' %}" class="btn btn-primary shadow-sm">
+            <i class="bx bx-plus me-2"></i>{% trans "New Review" %}
+        </a>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Reviews List</h5>
-                    {% if perms.hr.add_performancereview %}
-                    <a href="{% url 'hr:performancereview_create' %}" class="btn btn-primary btn-sm">
-                        <i class="bx bx-plus me-1"></i> New Review
-                    </a>
-                    {% endif %}
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Staff</th>
-                                    <th>Review Period</th>
-                                    <th>Reviewer</th>
-                                    <th>Rating</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for review in reviews %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'hr:performancereview_detail' review.pk %}" class="fw-medium">{{ review.staff.full_name }}</a>
-                                    </td>
-                                    <td>{{ review.review_period_start }} to {{ review.review_period_end }}</td>
-                                    <td>{{ review.reviewer.get_full_name }}</td>
-                                    <td>
-                                        {% if review.rating %}
-                                            <span class="badge {% if review.rating >= 4 %}bg-success{% elif review.rating >= 3 %}bg-info{% elif review.rating >= 2 %}bg-warning{% else %}bg-danger{% endif %}">
-                                                {{ review.rating }}/5
-                                            </span>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if review.status == 'DRAFT' %}
-                                            <span class="badge bg-secondary">Draft</span>
-                                        {% elif review.status == 'SUBMITTED' %}
-                                            <span class="badge bg-info">Submitted</span>
-                                        {% elif review.status == 'ACKNOWLEDGED' %}
-                                            <span class="badge bg-success">Acknowledged</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="dropdown d-inline-block">
-                                            <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="ri-more-fill align-middle"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li><a class="dropdown-item" href="{% url 'hr:performancereview_detail' review.pk %}"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                {% if perms.hr.change_performancereview %}
-                                                <li><a class="dropdown-item" href="{% url 'hr:performancereview_update' review.pk %}"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                {% endif %}
-                                                {% if perms.hr.delete_performancereview %}
-                                                <li>
-                                                    <a class="dropdown-item remove-item-btn" href="{% url 'hr:performancereview_delete' review.pk %}">
-                                                        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="6" class="text-center">No performance reviews found.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+             <div class="table-responsive">
+                <table id="performanceTable" class="table table-hover align-middle mb-0" data-datatable data-export-columns="0,1,2,3,4">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Employee" %}</th>
+                            <th>{% trans "Reviewer" %}</th>
+                            <th>{% trans "Period" %}</th>
+                            <th>{% trans "Score" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review in performance_reviews %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'hr:performancereview_detail' review.pk %}" class="text-decoration-none">{{ review.staff.full_name }}</a>
+                            </td>
+                            <td>{{ review.reviewed_by.get_full_name }}</td>
+                            <td>{{ review.get_period_display }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ review.overall_rating }}/10</span>
+                            </td>
+                             <td>
+                                <span class="badge {% if review.status == 'COMPLETED' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ review.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'hr:performancereview_update' review.pk %}" class="btn btn-icon btn-sm btn-light">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+<script>
+    $(document).ready(function() {
+        console.log("Performance table init"); // Debug
+    });
+</script>
 {% endblock %}

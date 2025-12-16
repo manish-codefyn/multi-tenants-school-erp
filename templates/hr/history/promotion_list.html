@@ -1,86 +1,77 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Promotions{% endblock %}
+{% block title %}{% trans "Promotions" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Promotions</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item active">Promotions</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Staff Promotions" %}</h1>
+        <a href="{% url 'hr:promotion_create' %}" class="btn btn-primary">
+            <i class="bx bx-plus me-2"></i>{% trans "Promote Staff" %}
+        </a>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Promotion Records</h5>
-                    {% if perms.hr.add_promotion %}
-                    <a href="{% url 'hr:promotion_create' %}" class="btn btn-primary btn-sm">
-                        <i class="bx bx-plus me-1"></i> Add Promotion
-                    </a>
-                    {% endif %}
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Staff</th>
-                                    <th>Old Designation</th>
-                                    <th>New Designation</th>
-                                    <th>Promotion Date</th>
-                                    <th>Approved By</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for promotion in promotions %}
-                                <tr>
-                                    <td>{{ promotion.staff.full_name }}</td>
-                                    <td>{{ promotion.old_designation.title }}</td>
-                                    <td>{{ promotion.new_designation.title }}</td>
-                                    <td>{{ promotion.promotion_date }}</td>
-                                    <td>{{ promotion.approved_by.get_full_name }}</td>
-                                    <td>
-                                        <div class="dropdown d-inline-block">
-                                            <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="ri-more-fill align-middle"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                {% if perms.hr.change_promotion %}
-                                                <li><a class="dropdown-item" href="{% url 'hr:promotion_update' promotion.pk %}"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                {% endif %}
-                                                {% if perms.hr.delete_promotion %}
-                                                <li>
-                                                    <a class="dropdown-item remove-item-btn" href="{% url 'hr:promotion_delete' promotion.pk %}">
-                                                        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="6" class="text-center">No promotion records found.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Staff Name" %}</th>
+                            <th>{% trans "Previous Designation" %}</th>
+                            <th>{% trans "New Designation" %}</th>
+                            <th>{% trans "Promotion Date" %}</th>
+                            <th>{% trans "Approved By" %}</th>
+                            <th class="text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for promotion in promotions %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'hr:staff_detail' promotion.staff.pk %}" class="text-decoration-none fw-bold">
+                                    {{ promotion.staff.full_name }}
+                                </a>
+                            </td>
+                            <td>{{ promotion.previous_designation.title }}</td>
+                            <td>
+                                <span class="badge bg-success-subtle text-success">
+                                    {{ promotion.new_designation.title }}
+                                </span>
+                            </td>
+                            <td>{{ promotion.effective_date|date:"M d, Y" }}</td>
+                            <td>{{ promotion.approved_by.get_full_name }}</td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-light" type="button" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'hr:promotion_update' promotion.pk %}">
+                                                <i class="bx bx-edit me-2"></i>{% trans "Edit" %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'hr:promotion_delete' promotion.pk %}">
+                                                <i class="bx bx-trash me-2"></i>{% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">{% trans "No promotions found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            
+            {% include 'partials/pagination.html' %}
         </div>
     </div>
 </div>

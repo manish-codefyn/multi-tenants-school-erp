@@ -1,0 +1,96 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Mark Attendance" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Mark Attendance" %}</h1>
+        <a href="{% url 'hr:attendance_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to List" %}
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+             <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">{% trans "Select Date" %}</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date }}">
+                </div>
+                 <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">{% trans "Load Staff" %}</button>
+                 </div>
+            </form>
+        </div>
+    </div>
+
+    <form method="post" id="attendanceForm">
+        {% csrf_token %}
+        <input type="hidden" name="date" value="{{ selected_date }}">
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">{% trans "Staff Member" %}</th>
+                                <th>{% trans "Department" %}</th>
+                                <th width="200">{% trans "Status" %}</th>
+                                <th width="150">{% trans "Check In" %}</th>
+                                <th width="150">{% trans "Check Out" %}</th>
+                                <th>{% trans "Remarks" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for staff in staff_list %}
+                            <tr>
+                                <td class="ps-4">
+                                     <div class="d-flex align-items-center">
+                                         <div class="avatar avatar-sm me-2 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center">
+                                                {{ staff.user.first_name|first }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ staff.full_name }}</div>
+                                            <div class="small text-muted">{{ staff.employee_id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ staff.department.name|default:"-" }}</td>
+                                <td>
+                                    <select name="status_{{ staff.id }}" class="form-select form-select-sm">
+                                        {% for code, label in attendance_statuses %}
+                                        <option value="{{ code }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="time" name="check_in_{{ staff.id }}" class="form-control form-control-sm">
+                                </td>
+                                <td>
+                                    <input type="time" name="check_out_{{ staff.id }}" class="form-control form-control-sm">
+                                </td>
+                                <td>
+                                    <input type="text" name="remarks_{{ staff.id }}" class="form-control form-control-sm" placeholder="Optional">
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">{% trans "No active staff found for this date." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white py-3 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save me-2"></i>{% trans "Save Attendance" %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

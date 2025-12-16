@@ -1,0 +1,103 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Payslip - {{ payslip.month|date:"F Y" }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm" id="payslip">
+            <div class="card-body p-5">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <h3 class="fw-bold">{{ request.tenant.name }}</h3>
+                    <p class="text-muted mb-0">Payslip for the month of {{ payslip.month|date:"F Y" }}</p>
+                </div>
+
+                <!-- Staff Details -->
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <h6 class="text-uppercase text-muted small">Employee Details</h6>
+                        <div class="fw-bold">{{ payslip.staff.get_full_name }}</div>
+                        <div>{{ payslip.staff.email }}</div>
+                        <div class="text-muted small">
+                            {% for rel in payslip.staff.institute_relationships.all %}
+                                {% if rel.tenant == request.tenant %}
+                                    {{ rel.get_role_display }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h6 class="text-uppercase text-muted small">Payslip Details</h6>
+                        <div><strong>Slip ID:</strong> #{{ payslip.id|stringformat:"06d" }}</div>
+                        <div><strong>Generated:</strong> {{ payslip.generated_date|date:"d M, Y" }}</div>
+                        <div>
+                            <strong>Status:</strong> 
+                            <span class="badge bg-{% if payslip.status == 'paid' %}success{% else %}info{% endif %}">
+                                {{ payslip.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Earnings & Deductions -->
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="50%">Earnings</th>
+                                <th width="50%">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Basic Salary</td>
+                                <td class="text-end">{{ payslip.basic_salary }}</td>
+                            </tr>
+                            <tr>
+                                <td>Allowances (HRA, Transport, etc.)</td>
+                                <td class="text-end">{{ payslip.total_allowances }}</td>
+                            </tr>
+                            <tr class="table-light fw-bold">
+                                <td>Gross Earnings</td>
+                                <td class="text-end">{{ payslip.basic_salary|add:payslip.total_allowances }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="table table-bordered mt-3">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="50%">Deductions</th>
+                                <th width="50%">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Total Deductions (PF, Tax, etc.)</td>
+                                <td class="text-end">{{ payslip.total_deductions }}</td>
+                            </tr>
+                            <tr class="table-light fw-bold">
+                                <td>Total Deductions</td>
+                                <td class="text-end">{{ payslip.total_deductions }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Net Pay -->
+                <div class="alert alert-primary text-center mb-0">
+                    <h4 class="mb-0">Net Pay: {{ payslip.net_salary }}</h4>
+                    <small class="text-muted">(Amount in words: ...)</small>
+                </div>
+            </div>
+            <div class="card-footer bg-white text-center py-3 d-print-none">
+                <button onclick="window.print()" class="btn btn-outline-primary">
+                    <i class="bi bi-printer me-2"></i>Print Payslip
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

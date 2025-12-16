@@ -1,113 +1,67 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Salary Structures{% endblock %}
+{% block title %}{% trans "Salary Structures" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Salary Structures</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item active">Salary Structures</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Salary Structures" %}</h1>
+        <a href="{% url 'hr:salarystructure_create' %}" class="btn btn-primary">
+            <i class="bx bx-plus me-2"></i>{% trans "create Structure" %}
+        </a>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Staff Salary Structures</h5>
-                    {% if perms.hr.add_salarystructure %}
-                    <a href="{% url 'hr:salarystructure_create' %}" class="btn btn-primary btn-sm">
-                        <i class="bx bx-plus me-1"></i> Add Structure
-                    </a>
-                    {% endif %}
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Staff</th>
-                                    <th>Basic Salary</th>
-                                    <th>HRA</th>
-                                    <th>Allowances</th>
-                                    <th>Deductions</th>
-                                    <th>Net Salary</th>
-                                    <th>Effective From</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for structure in salary_structures %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if structure.staff.profile_picture %}
-                                                <img src="{{ structure.staff.profile_picture.url }}" alt="" class="avatar-xs rounded-circle me-2">
-                                            {% else %}
-                                                <div class="avatar-xs me-2">
-                                                    <span class="avatar-title rounded-circle bg-primary-subtle text-primary">
-                                                        {{ structure.staff.first_name|first }}{{ structure.staff.last_name|first }}
-                                                    </span>
-                                                </div>
-                                            {% endif %}
-                                            <div>
-                                                <h6 class="mb-0">{{ structure.staff.full_name }}</h6>
-                                                <small class="text-muted">{{ structure.staff.employee_id }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>{{ structure.basic_salary }}</td>
-                                    <td>{{ structure.hra }}</td>
-                                    <td>{{ structure.other_allowances }}</td>
-                                    <td>{{ structure.deductions }}</td>
-                                    <td class="fw-bold">{{ structure.net_salary }}</td>
-                                    <td>{{ structure.effective_from }}</td>
-                                    <td>
-                                        {% if structure.is_active %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="dropdown d-inline-block">
-                                            <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="ri-more-fill align-middle"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                {% if perms.hr.change_salarystructure %}
-                                                <li><a class="dropdown-item" href="{% url 'hr:salarystructure_update' structure.pk %}"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                {% endif %}
-                                                {% if perms.hr.delete_salarystructure %}
-                                                <li>
-                                                    <a class="dropdown-item remove-item-btn" href="{% url 'hr:salarystructure_delete' structure.pk %}">
-                                                        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="9" class="text-center">No salary structures found.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Basic Salary" %}</th>
+                            <th>{% trans "Components" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th class="text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for structure in salary_structures %}
+                        <tr>
+                            <td class="fw-bold">{{ structure.name }}</td>
+                            <td>{{ structure.basic_salary }}</td>
+                            <td>
+                                <!-- Loop through components if available -->
+                                <span class="badge bg-light text-dark border">{{ structure.components.count }} {% trans "Components" %}</span>
+                            </td>
+                            <td>{{ structure.description|truncatechars:50|default:"-" }}</td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-light" type="button" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'hr:salarystructure_update' structure.pk %}">
+                                                <i class="bx bx-edit me-2"></i>{% trans "Edit" %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'hr:salarystructure_delete' structure.pk %}">
+                                                <i class="bx bx-trash me-2"></i>{% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">{% trans "No salary structures found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

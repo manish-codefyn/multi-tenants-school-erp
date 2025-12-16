@@ -1,0 +1,178 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Payroll Detail{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Payroll Detail</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:payroll_list' %}">Payroll</a></li>
+                        <li class="breadcrumb-item active">Detail</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Salary Information</h5>
+                    <span class="badge {% if object.status == 'PAID' %}bg-success{% elif object.status == 'GENERATED' %}bg-info{% else %}bg-warning{% endif %} fs-12">
+                        {{ object.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Employee</p>
+                            <h5 class="fs-14 fw-bold">{{ object.staff.full_name }}</h5>
+                            <p class="text-muted mb-0">{{ object.staff.employee_id }}</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="text-muted mb-1">Salary Month</p>
+                            <h5 class="fs-14 fw-bold">{{ object.salary_month|date:"F Y" }}</h5>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-borderless">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Earnings</th>
+                                    <th class="text-end">Amount</th>
+                                    <th>Deductions</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Basic Salary</td>
+                                    <td class="text-end">{{ object.basic_salary }}</td>
+                                    <td>PF</td>
+                                    <td class="text-end">{{ object.pf_deduction }}</td>
+                                </tr>
+                                <tr>
+                                    <td>HRA</td>
+                                    <td class="text-end">{{ object.hra }}</td>
+                                    <td>Tax</td>
+                                    <td class="text-end">{{ object.tax_deduction }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Allowances</td>
+                                    <td class="text-end">{{ object.other_allowances }}</td>
+                                    <td>Other Deductions</td>
+                                    <td class="text-end">{{ object.other_deductions }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Bonus</td>
+                                    <td class="text-end">{{ object.bonus }}</td>
+                                    <td>Loan Repayment</td>
+                                    <td class="text-end">{{ object.loan_deduction|default:"0.00" }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Overtime</td>
+                                    <td class="text-end">{{ object.overtime_pay }}</td>
+                                    <td>LOP</td>
+                                    <td class="text-end">{{ object.lop_deduction|default:"0.00" }}</td>
+                                </tr>
+                                <tr class="border-top fw-bold">
+                                    <td>Total Earnings</td>
+                                    <td class="text-end">{{ object.gross_salary }}</td>
+                                    <td>Total Deductions</td>
+                                    <td class="text-end">{{ object.total_deductions }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="row mt-4 justify-content-end">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Net Salary</h5>
+                                        <h4 class="mb-0 text-primary">{{ object.net_salary }}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-end gap-2">
+                    <a href="{% url 'hr:payroll_list' %}" class="btn btn-light">Back to List</a>
+                    <a href="{% url 'hr:payroll_payslip' object.pk %}" class="btn btn-info" target="_blank">
+                        <i class="bx bx-printer me-1"></i> Print Payslip
+                    </a>
+                    
+                    {% if object.status == 'GENERATED' %}
+                        {% if perms.hr.change_payroll %}
+                        <a href="{% url 'hr:payroll_update' object.pk %}" class="btn btn-primary">Edit</a>
+                        {% endif %}
+                        
+                        {% if perms.hr.approve_payroll %}
+                        <form method="post" action="{% url 'hr:payroll_approve' object.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">Approve & Pay</button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Payment Details</h5>
+                </div>
+                <div class="card-body">
+                    {% if object.payment_date %}
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Payment Date</p>
+                        <h6 class="fw-semibold">{{ object.payment_date }}</h6>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Payment Method</p>
+                        <h6 class="fw-semibold">{{ object.get_payment_method_display|default:"-" }}</h6>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">Transaction Ref</p>
+                        <h6 class="fw-semibold">{{ object.transaction_ref|default:"-" }}</h6>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">Payment not yet processed.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between border-bottom py-2">
+                        <span>Total Days</span>
+                        <span class="fw-medium">{{ object.total_days }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom py-2">
+                        <span>Present Days</span>
+                        <span class="fw-medium">{{ object.present_days }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span>LOP Days</span>
+                        <span class="fw-medium text-danger">{{ object.lop_days }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

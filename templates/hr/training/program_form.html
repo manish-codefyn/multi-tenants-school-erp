@@ -1,39 +1,29 @@
 {% extends 'layouts/dashboard.html' %}
-{% load crispy_forms_tags %}
+{% load i18n crispy_forms_tags %}
 
-{% block title %}{% if form.instance.pk %}Edit Training Program{% else %}Add Training Program{% endif %}{% endblock %}
+{% block title %}{% if object %}{% trans "Edit Training Program" %}{% else %}{% trans "Add Training Program" %}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">{% if form.instance.pk %}Edit Training Program{% else %}Add Training Program{% endif %}</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:trainingprogram_list' %}">Training</a></li>
-                        <li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Add{% endif %}</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Program Details</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
+        <div class="col-md-8 col-lg-6">
+            {% if object %}
+                {% include "partials/breadcrumb.html" with page_title=_("Edit Training Program") parent_text=_("Training Programs") parent_url=request.resolver_match.app_name|add:":trainingprogram_list" current_text=_("Edit") %}
+            {% else %}
+                {% include "partials/breadcrumb.html" with page_title=_("Add Training Program") parent_text=_("Training Programs") parent_url=request.resolver_match.app_name|add:":trainingprogram_list" current_text=_("Add") %}
+            {% endif %}
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
                         {% csrf_token %}
                         {{ form|crispy }}
                         
-                        <div class="mt-4 d-flex justify-content-end gap-2">
-                            <a href="{% url 'hr:trainingprogram_list' %}" class="btn btn-light">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Save Program</button>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'hr:trainingprogram_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bx bx-save me-2"></i>{% trans "Save Program" %}
+                            </button>
                         </div>
                     </form>
                 </div>

@@ -1,0 +1,135 @@
+
+{% load i18n %}
+
+<li>
+    <a href="{% url 'hr:dashboard' %}">
+        <div class="parent-icon"><i class="bx bx-home-alt"></i></div>
+        <div class="menu-title">{% trans "HR Dashboard" %}</div>
+    </a>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-user-pin"></i></div>
+        <div class="menu-title">{% trans "Staff Management" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:staff_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "All Staff" %}</a></li>
+        <li> <a href="{% url 'hr:staff_create' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Add Staff" %}</a></li>
+        <li> <a href="{% url 'hr:department_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Departments" %}</a></li>
+        <li> <a href="{% url 'hr:designation_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Designations" %}</a></li>
+        <li> <a href="{% url 'hr:qualification_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Qualifications" %}</a></li>
+        <li> <a href="{% url 'hr:staffdocument_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Documents" %}</a></li>
+        <li> <a href="{% url 'hr:staffaddress_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Addresses" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-time-five"></i></div>
+        <div class="menu-title">{% trans "Staff Attendance" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:attendance_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Attendance Logs" %}</a></li>
+        <li> <a href="{% url 'hr:attendance_mark' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Mark Attendance" %}</a></li>
+        <li> <a href="{% url 'hr:attendance_daily' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Daily Report" %}</a></li>
+        <li> <a href="{% url 'hr:attendance_monthly' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Monthly Report" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-calendar-exclamation"></i></div>
+        <div class="menu-title">{% trans "Leave Management" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:leave_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Leave Applications" %}</a></li>
+        <li> <a href="{% url 'hr:leave_apply' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Apply Leave" %}</a></li>
+        <li> <a href="{% url 'hr:leavebalance_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Leave Balances" %}</a></li>
+        <li> <a href="{% url 'hr:leavetype_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Leave Types" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-money"></i></div>
+        <div class="menu-title">{% trans "Payroll" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:payroll_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Payroll Processing" %}</a></li>
+        <li> <a href="{% url 'hr:payroll_generate' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Generate Payroll" %}</a></li>
+        <li> <a href="{% url 'hr:salarystructure_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Salary Structures" %}</a></li>
+        <li> <a href="{% url 'hr:payroll_report_monthly' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Monthly Report" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-briefcase"></i></div>
+        <div class="menu-title">{% trans "Recruitment" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:recruitment_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Job Openings" %}</a></li>
+        <li> <a href="{% url 'hr:jobapplication_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Applications" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-trending-up"></i></div>
+        <div class="menu-title">{% trans "Performance" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:performancereview_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Reviews" %}</a></li>
+        <li> <a href="{% url 'hr:performancegoal_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Goals" %}</a></li>
+        <li> <a href="{% url 'hr:performancetemplate_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Templates" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-history"></i></div>
+        <div class="menu-title">{% trans "History & Logs" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:employmenthistory_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "History" %}</a></li>
+        <li> <a href="{% url 'hr:promotion_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Promotions" %}</a></li>
+        <li> <a href="{% url 'hr:transfer_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Transfers" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-book-reader"></i></div>
+        <div class="menu-title">{% trans "Training" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:trainingprogram_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Programs" %}</a></li>
+        <li> <a href="{% url 'hr:trainingparticipation_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Participations" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-bar-chart-alt-2"></i></div>
+        <div class="menu-title">{% trans "Reports" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:report_staff' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Staff Reports" %}</a></li>
+        <li> <a href="{% url 'hr:report_attendance' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Attendance Reports" %}</a></li>
+        <li> <a href="{% url 'hr:report_leave' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Leave Reports" %}</a></li>
+        <li> <a href="{% url 'hr:report_salary' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Salary Analysis" %}</a></li>
+    </ul>
+</li>
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-cog"></i></div>
+        <div class="menu-title">{% trans "Settings" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'hr:hr_settings' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "General Settings" %}</a></li>
+        <li> <a href="{% url 'hr:holiday_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Holidays" %}</a></li>
+        <li> <a href="{% url 'hr:work_schedule' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Work Schedule" %}</a></li>
+    </ul>
+</li>

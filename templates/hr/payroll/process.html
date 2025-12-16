@@ -1,63 +1,23 @@
 {% extends 'layouts/dashboard.html' %}
-{% load crispy_forms_tags %}
+{% load i18n static %}
 
-{% block title %}Process Payroll{% endblock %}
+{% block title %}{% trans "Process Payroll" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Process Payroll</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:payroll_list' %}">Payroll</a></li>
-                        <li class="breadcrumb-item active">Process</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Process Payroll" %}</h1>
+        <a href="{% url 'hr:payroll_list' %}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-2"></i>{% trans "Back to List" %}
+        </a>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Select Payroll Period</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="month" class="form-label">Month</label>
-                            <input type="month" class="form-control" id="month" name="month" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="department" class="form-label">Department (Optional)</label>
-                            <select class="form-select" id="department" name="department">
-                                <option value="">All Departments</option>
-                                {% for dept in departments %}
-                                <option value="{{ dept.pk }}">{{ dept.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <div class="form-text">Leave blank to process for all departments.</div>
-                        </div>
-                        
-                        <div class="alert alert-info" role="alert">
-                            <i class="bx bx-info-circle me-2"></i> Payroll processing will generate salary records for all eligible active staff members based on their current salary structure and attendance.
-                        </div>
-                        
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="{% url 'hr:payroll_list' %}" class="btn btn-light">Cancel</a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bx bx-cog me-1"></i> Process Payroll
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <!-- Processing Logic Implementation Placeholder -->
+    <div class="card shadow mb-4">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-cog bx-spin fs-1 text-primary mb-3"></i>
+            <h3>{% trans "Bulk Processing" %}</h3>
+            <p class="text-muted">{% trans "This feature allows processing multiple payroll records at once." %}</p>
         </div>
     </div>
 </div>

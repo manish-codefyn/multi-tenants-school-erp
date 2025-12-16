@@ -1,0 +1,69 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Work Schedules" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+
+        {% url 'hr:work_schedule_create' as create_url %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Work Schedules") current_text=_("Work Schedules") action_url=create_url action_text=_("Add Schedule") %}
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="workScheduleTable" class="table table-hover align-middle mb-0" data-datatable data-export-columns="[0, 1, 2, 3, 4]">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">{% trans "Schedule Name" %}</th>
+                                <th>{% trans "Start Time" %}</th>
+                                <th>{% trans "End Time" %}</th>
+                                <th>{% trans "Working Days" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th class="text-end pe-4">{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in schedules %}
+                            <tr>
+                                <td class="ps-4 fw-bold">{{ schedule.name }}</td>
+                                <td>{{ schedule.start_time|time:"H:i" }}</td>
+                                <td>{{ schedule.end_time|time:"H:i" }}</td>
+                                <td>
+                                    {% for day in schedule.working_days %}
+                                        <span class="badge bg-light text-dark border">{{ day|add:"0"|yesno:"Mon,Tue,Wed,Thu,Fri,Sat,Sun" }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if schedule.is_active %}
+                                        <span class="badge bg-success bg-opacity-10 text-white">{% trans "Active" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-white">{% trans "Inactive" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group">
+                                        <a href="{% url 'hr:work_schedule_update' schedule.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                        <a href="{% url 'hr:work_schedule_delete' schedule.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="{% trans 'Delete' %}">
+                                            <i class="bx bx-trash-alt"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+   
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

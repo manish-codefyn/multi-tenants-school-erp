@@ -1,0 +1,225 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static crispy_forms_tags %}
+
+{% block title %}{% trans "Import Staff" %}{% endblock %}
+
+{% block styles %}
+<style>
+    .import-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: linear-gradient(145deg, #ffffff, #f9f9f9);
+    }
+    .import-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .drop-zone {
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+        background-color: #e9ecef;
+        border-color: #0d6efd !important;
+        transform: scale(1.01);
+    }
+    .drop-zone i {
+        color: #6c757d;
+        transition: color 0.3s ease;
+    }
+    .drop-zone:hover i, .drop-zone.dragover i {
+        color: #0d6efd;
+    }
+    .instruction-icon {
+        background-color: #e7f1ff;
+        color: #0d6efd;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-right: 1rem;
+    }
+    .btn-upload {
+        background: linear-gradient(45deg, #0d6efd, #0b5ed7);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .btn-upload:hover {
+        background: linear-gradient(45deg, #0b5ed7, #0a58ca);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+    .step-badge {
+        width: 24px;
+        height: 24px;
+        background-color: #0d6efd;
+        color: white;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card import-card shadow-lg">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1 fw-bold text-primary">
+                            <i class="fas fa-file-import me-2"></i>{% trans "Import Staff" %}
+                        </h4>
+                        <p class="text-muted small mb-0">{% trans "Bulk upload staff records via CSV/Excel" %}</p>
+                    </div>
+                    <a href="{% url 'hr:staff_list' %}" class="btn btn-light btn-sm rounded-pill shadow-sm">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Steps -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="step-badge">1</span>
+                            <span class="fw-medium">{% trans "Download Template" %}</span>
+                        </div>
+                        <div class="ps-4 ms-2 border-start border-2 pb-3">
+                            <p class="text-muted small mb-2">{% trans "Get the standard format ensuring correct columns." %}</p>
+                            <a href="{% url 'hr:staff_import_sample' %}" class="btn btn-outline-success btn-sm rounded-pill">
+                                <i class="fas fa-download me-1"></i> {% trans "Download Sample File" %}
+                            </a>
+                        </div>
+
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="step-badge">2</span>
+                            <span class="fw-medium">{% trans "Prepare Data" %}</span>
+                        </div>
+                        <div class="ps-4 ms-2 border-start border-2 pb-3">
+                             <p class="text-muted small mb-0">
+                                {% trans "Required:" %} <span class="badge bg-light text-dark border">email</span> <span class="badge bg-light text-dark border">first_name</span>
+                            </p>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <span class="step-badge">3</span>
+                            <span class="fw-medium">{% trans "Upload File" %}</span>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" id="import-form">
+                        {% csrf_token %}
+                        
+                        <div class="drop-zone border-2 border-dashed p-5 text-center mb-4" id="drop-zone">
+                            <div class="mb-3">
+                                <i class="fas fa-cloud-upload-alt fa-3x"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1">{% trans "Drag & Drop file here" %}</h6>
+                            <p class="text-muted small mb-3">{% trans "or click to browse" %}</p>
+                            
+                            <input type="file" name="file" class="form-control" id="id_file" accept=".csv, .xlsx, .xls" required style="display: none;">
+                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4" onclick="document.getElementById('id_file').click()">
+                                {% trans "Select File" %}
+                            </button>
+                            
+                            <div id="file-info" class="mt-3 d-none animate__animated animate__fadeInUp">
+                                <div class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill">
+                                    <i class="fas fa-check-circle me-1"></i> <span id="file-name"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-upload btn-primary btn-lg text-uppercase fw-bold letter-spacing-1 rounded-pill shadow">
+                                <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                                <i class="fas fa-upload me-2"></i> {% trans "Start Import" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('id_file');
+        const fileInfo = document.getElementById('file-info');
+        const fileNameDisplay = document.getElementById('file-name');
+        const form = document.getElementById('import-form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        // Drag and Drop Events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover', 'border-primary');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover', 'border-primary');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                fileInput.files = files; // Update input if dropped
+                fileNameDisplay.textContent = file.name;
+                fileInfo.classList.remove('d-none');
+                
+                // Add success animation to dropzone
+                dropZone.classList.add('bg-success-subtle');
+                setTimeout(() => dropZone.classList.remove('bg-success-subtle'), 500);
+            }
+        }
+
+        // Form Submit Loading State
+        form.addEventListener('submit', function() {
+            if (form.checkValidity()) {
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.spinner-border').classList.remove('d-none');
+                submitBtn.querySelector('.fa-upload').classList.add('d-none');
+            }
+        });
+    });
+</script>
+{% endblock %}

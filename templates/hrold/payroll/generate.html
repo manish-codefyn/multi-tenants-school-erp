@@ -1,0 +1,37 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Generate Payroll{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <div class="mb-4">
+                    <i class="bi bi-cash-coin text-primary display-1"></i>
+                </div>
+                <h3 class="mb-3">Generate Monthly Payroll</h3>
+                <p class="text-muted mb-4">
+                    This will generate payslips for all active staff members with a defined salary structure.
+                    Existing payslips for the selected month will be skipped.
+                </p>
+                
+                <form method="post" class="d-inline-block w-100" style="max-width: 300px;">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Select Month</label>
+                        <input type="date" name="month" class="form-control" required>
+                        <div class="form-text">Select any date in the month</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            Generate Payslips
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

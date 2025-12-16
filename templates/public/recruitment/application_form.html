@@ -1,0 +1,69 @@
+{% extends "public/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+{% block title %}{% trans "Job Application" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-4 border-bottom">
+                    <h2 class="h4 mb-0 text-primary fw-bold text-center">{% trans "Job Application" %}</h2>
+                    <p class="text-center text-muted mb-0 mt-2">{% trans "Join our team and make a difference" %}</p>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">{% trans "Position Details" %}</h5>
+                            {{ form.recruitment|as_crispy_field }}
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">{% trans "Personal Information" %}</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.applicant_name|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.email|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.phone|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">{% trans "Professional Details" %}</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.expected_salary|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.notice_period|as_crispy_field }}
+                                </div>
+                                <div class="col-12 mb-3">
+                                    {{ form.resume|as_crispy_field }}
+                                </div>
+                                <div class="col-12 mb-3">
+                                    {{ form.cover_letter|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send me-2"></i>{% trans "Submit Application" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

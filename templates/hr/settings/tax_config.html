@@ -1,0 +1,52 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Tax Configuration" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Tax Configuration" %}</h1>
+        <a href="#" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus me-2"></i>{% trans "Add Tax Bracket" %}
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Min Income" %}</th>
+                            <th>{% trans "Max Income" %}</th>
+                            <th>{% trans "Tax Rate (%)" %}</th>
+                            <th>{% trans "Effective Date" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for config in tax_configs %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ config.name }}</td>
+                            <td>{{ config.min_income }}</td>
+                            <td>{{ config.max_income|default:"Unlimited" }}</td>
+                            <td>{{ config.tax_rate }}%</td>
+                            <td>{{ config.effective_date|date:"M d, Y" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="#" class="btn btn-icon btn-sm btn-light">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center py-4 text-muted">{% trans "No tax configurations found." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,39 +1,30 @@
 {% extends 'layouts/dashboard.html' %}
-{% load crispy_forms_tags %}
+{% load i18n crispy_forms_tags %}
 
-{% block title %}{% if form.instance.pk %}Edit Address{% else %}Add Address{% endif %}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">{% if form.instance.pk %}Edit Address{% else %}Add Address{% endif %}</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:address_list' %}">Addresses</a></li>
-                        <li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Add{% endif %}</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+        <a href="{% url 'hr:staffaddress_list' %}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-2"></i>{% trans "Back to List" %}
+        </a>
     </div>
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Address Details</h5>
-                </div>
+            <div class="card shadow mb-4">
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         {{ form|crispy }}
                         
-                        <div class="mt-4 d-flex justify-content-end gap-2">
-                            <a href="{% url 'hr:address_list' %}" class="btn btn-light">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Save Address</button>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'hr:staffaddress_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-2"></i>{% trans "Save Address" %}
+                            </button>
                         </div>
                     </form>
                 </div>

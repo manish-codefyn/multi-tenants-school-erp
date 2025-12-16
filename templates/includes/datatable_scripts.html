@@ -126,11 +126,17 @@ $(document).ready(function() {
         // Parse exportColumns if it exists
         let exportCols = null;
         if (exportColumns) {
-            try {
-                exportCols = JSON.parse(exportColumns);
-            } catch (e) {
-                console.error('Error parsing exportColumns:', e);
-                exportCols = null;
+            // Check if it's already an array
+            if (Array.isArray(exportColumns)) {
+                 exportCols = exportColumns;
+            } else if (typeof exportColumns === 'string') {
+                 // Try JSON parse first
+                 try {
+                     exportCols = JSON.parse(exportColumns);
+                 } catch (e) {
+                     // Fallback to comma separation
+                     exportCols = exportColumns.split(',').map(Number);
+                 }
             }
         }
         

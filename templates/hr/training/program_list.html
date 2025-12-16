@@ -1,106 +1,65 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Training Programs{% endblock %}
+{% block title %}{% trans "Training Programs" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Training Programs</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item active">Training</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="container-fluid py-4">
+{% include "partials/breadcrumb.html" with page_title=_("Training Programs") current_text=_("List") action_url=request.resolver_match.app_name|add:":trainingprogram_create" action_text=_("Add Program") %}
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Programs List</h5>
-                    {% if perms.hr.add_trainingprogram %}
-                    <a href="{% url 'hr:trainingprogram_create' %}" class="btn btn-primary btn-sm">
-                        <i class="bx bx-plus me-1"></i> Add Program
-                    </a>
-                    {% endif %}
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Trainer</th>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Status</th>
-                                    <th>Participants</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for program in training_programs %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'hr:trainingprogram_detail' program.pk %}" class="fw-medium">{{ program.title }}</a>
-                                    </td>
-                                    <td>{{ program.trainer }}</td>
-                                    <td>{{ program.start_date }}</td>
-                                    <td>{{ program.end_date }}</td>
-                                    <td>
-                                        {% if program.status == 'SCHEDULED' %}
-                                            <span class="badge bg-info">Scheduled</span>
-                                        {% elif program.status == 'ONGOING' %}
-                                            <span class="badge bg-primary">Ongoing</span>
-                                        {% elif program.status == 'COMPLETED' %}
-                                            <span class="badge bg-success">Completed</span>
-                                        {% elif program.status == 'CANCELLED' %}
-                                            <span class="badge bg-danger">Cancelled</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'hr:training_participants' program.pk %}" class="badge bg-soft-primary text-primary fs-12">
-                                            {{ program.participant_count|default:0 }} Participants
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <div class="dropdown d-inline-block">
-                                            <button class="btn btn-soft-secondary btn-sm dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="ri-more-fill align-middle"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li><a class="dropdown-item" href="{% url 'hr:trainingprogram_detail' program.pk %}"><i class="ri-eye-fill align-bottom me-2 text-muted"></i> View</a></li>
-                                                {% if perms.hr.change_trainingprogram %}
-                                                <li><a class="dropdown-item" href="{% url 'hr:trainingprogram_update' program.pk %}"><i class="ri-pencil-fill align-bottom me-2 text-muted"></i> Edit</a></li>
-                                                {% endif %}
-                                                {% if perms.hr.delete_trainingprogram %}
-                                                <li>
-                                                    <a class="dropdown-item remove-item-btn" href="{% url 'hr:trainingprogram_delete' program.pk %}">
-                                                        <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i> Delete
-                                                    </a>
-                                                </li>
-                                                {% endif %}
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="7" class="text-center">No training programs found.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table id="trainingTable" class="table table-hover align-middle mb-0" data-datatable data-export-columns="0,1,2,3">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Program Title" %}</th>
+                            <th>{% trans "Organizer" %}</th>
+                            <th>{% trans "Dates" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for program in training_programs %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'hr:trainingprogram_detail' program.pk %}" class="text-decoration-none">{{ program.title }}</a>
+                            </td>
+                            <td>{{ program.organizer }}</td>
+                            <td>{{ program.start_date|date:"M d" }} - {{ program.end_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {% if program.status == 'COMPLETED' %}bg-success{% elif program.status == 'SCHEDULED' %}bg-warning{% else %}bg-info{% endif %}">
+                                    {{ program.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'hr:trainingprogram_update' program.pk %}" class="btn btn-icon btn-sm btn-light">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <a href="{% url 'hr:trainingprogram_delete' program.pk %}" class="btn btn-icon btn-sm btn-light">
+                                   <i class="bx bx-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+<script>
+    $(document).ready(function() {
+        console.log("Training table init");
+    });
+</script>
 {% endblock %}

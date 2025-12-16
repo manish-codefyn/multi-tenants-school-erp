@@ -1,124 +1,82 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Salary Information - {{ staff.full_name }}{% endblock %}
+{% block title %}{% trans "Staff Salary Details" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Salary Information: {{ staff.full_name }}</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:staff_list' %}">Staff</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:staff_detail' staff.pk %}">{{ staff.full_name }}</a></li>
-                        <li class="breadcrumb-item active">Salary</li>
-                    </ol>
-                </div>
+<div class="container-fluid py-4">
+     <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+             <h1 class="h3 mb-1 text-gray-800">{{ staff.full_name }} - {% trans "Salary Details" %}</h1>
+             <p class="text-muted mb-0">{% trans "Employee ID:" %} {{ staff.employee_id }}</p>
+        </div>
+        <a href="{% url 'hr:staff_detail' staff.pk %}" class="btn btn-outline-secondary">
+            <i class="bx bx-left-arrow me-2"></i>{% trans "Back to Profile" %}
+        </a>
+    </div>
+
+    <!-- Current Payroll Status -->
+    {% if current_month_payroll %}
+    <div class="alert alert-success border-0 shadow-sm mb-4">
+        <div class="d-flex align-items-center">
+            <div class="me-3"><i class="fas fa-check-circle fa-2x"></i></div>
+            <div>
+                <h6 class="alert-heading fw-bold mb-0">{% trans "Salary Paid for" %} {{ current_month_payroll.salary_month|date:"F Y" }}</h6>
+                <p class="mb-0">{% trans "Net Pay:" %} <strong>{{ current_month_payroll.net_salary }}</strong></p>
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-xl-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Current Salary Structure</h5>
-                </div>
-                <div class="card-body">
-                    {% if salary_structure %}
-                        <div class="table-responsive">
-                            <table class="table table-borderless mb-0">
-                                <tbody>
-                                    <tr>
-                                        <th class="ps-0" scope="row">Basic Salary :</th>
-                                        <td class="text-muted">{{ salary_structure.basic_salary }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="ps-0" scope="row">HRA :</th>
-                                        <td class="text-muted">{{ salary_structure.hra }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="ps-0" scope="row">Allowances :</th>
-                                        <td class="text-muted">{{ salary_structure.other_allowances }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="ps-0" scope="row">Deductions :</th>
-                                        <td class="text-muted">{{ salary_structure.deductions }}</td>
-                                    </tr>
-                                    <tr class="border-top">
-                                        <th class="ps-0" scope="row">Net Salary :</th>
-                                        <td class="fw-bold">{{ salary_structure.net_salary }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th class="ps-0" scope="row">Effective From :</th>
-                                        <td class="text-muted">{{ salary_structure.effective_from }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <p class="text-muted mb-0">No active salary structure found.</p>
-                            {% if perms.hr.add_salarystructure %}
-                            <a href="{% url 'hr:salarystructure_create' %}?staff_id={{ staff.pk }}" class="btn btn-primary btn-sm mt-3">
-                                Create Structure
-                            </a>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                </div>
+    {% else %}
+    <div class="alert alert-warning border-0 shadow-sm mb-4">
+        <div class="d-flex align-items-center">
+            <div class="me-3"><i class="fas fa-exclamation-circle fa-2x"></i></div>
+            <div>
+                <h6 class="alert-heading fw-bold mb-0">{% trans "Pending for" %} {{ now|date:"F Y" }}</h6>
+                <p class="mb-0">{% trans "Payroll has not been processed for this month yet." %}</p>
             </div>
         </div>
+    </div>
+    {% endif %}
 
-        <div class="col-xl-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Payroll History</h5>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Salary History" %}</h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered dt-responsive nowrap table-striped align-middle" style="width:100%">
-                            <thead>
+                         <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th>Month</th>
-                                    <th>Basic</th>
-                                    <th>Allowances</th>
-                                    <th>Deductions</th>
-                                    <th>Net Salary</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
+                                    <th class="ps-4">{% trans "Month" %}</th>
+                                    <th>{% trans "Basic" %}</th>
+                                    <th>{% trans "Allowances" %}</th>
+                                    <th>{% trans "Deductions" %}</th>
+                                    <th>{% trans "Net Pay" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Payslip" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for payroll in payroll_records %}
+                                {% for pay in payroll_records %}
                                 <tr>
-                                    <td>{{ payroll.salary_month|date:"F Y" }}</td>
-                                    <td>{{ payroll.basic_salary }}</td>
-                                    <td>{{ payroll.total_allowances }}</td>
-                                    <td>{{ payroll.total_deductions }}</td>
-                                    <td>{{ payroll.net_salary }}</td>
+                                    <td class="ps-4">{{ pay.salary_month|date:"F Y" }}</td>
+                                    <td>{{ pay.basic_salary }}</td>
+                                    <td class="text-success">+{{ pay.total_allowances }}</td>
+                                    <td class="text-danger">-{{ pay.total_deductions }}</td>
+                                    <td class="fw-bold">{{ pay.net_salary }}</td>
                                     <td>
-                                        {% if payroll.status == 'PAID' %}
-                                            <span class="badge bg-success">Paid</span>
-                                        {% elif payroll.status == 'GENERATED' %}
-                                            <span class="badge bg-info">Generated</span>
-                                        {% elif payroll.status == 'PENDING' %}
-                                            <span class="badge bg-warning">Pending</span>
-                                        {% endif %}
+                                        <span class="badge {% if pay.status == 'PAID' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ pay.status }}
+                                        </span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'hr:payroll_payslip' payroll.pk %}" class="btn btn-sm btn-soft-primary">
-                                            <i class="bx bx-file"></i> Payslip
-                                        </a>
+                                        <a href="#" class="btn btn-sm btn-light">{% trans "Download" %}</a>
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr>
-                                    <td colspan="7" class="text-center">No payroll records found.</td>
-                                </tr>
+                                <tr><td colspan="7" class="text-center py-4 text-muted">{% trans "No salary history found." %}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -126,6 +84,25 @@
                 </div>
             </div>
         </div>
+         <div class="col-lg-4">
+             <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Summary" %}</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            {% trans "Total Paid (YTD)" %}
+                            <span class="fw-bold">{{ total_salary_paid }}</span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            {% trans "Average Monthly" %}
+                            <span class="fw-bold">{{ avg_monthly_salary|floatform:2 }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+         </div>
     </div>
 </div>
 {% endblock %}

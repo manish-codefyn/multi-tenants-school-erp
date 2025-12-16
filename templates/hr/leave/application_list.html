@@ -1,0 +1,105 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Leave Applications" %}{% endblock %}
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-content">
+        {% url 'hr:leave_apply' as apply_url %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Leave Applications") current_text=_("Leave Applications") action_url=apply_url action_text=_("Apply for Leave") %}
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded-3">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">{% trans "Status" %}</label>
+                    <select name="status" class="form-select">
+                        <option value="all">{% trans "All Statuses" %}</option>
+                        <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>{% trans "Pending" %}</option>
+                        <option value="APPROVED" {% if request.GET.status == 'APPROVED' %}selected{% endif %}>{% trans "Approved" %}</option>
+                         <option value="REJECTED" {% if request.GET.status == 'REJECTED' %}selected{% endif %}>{% trans "Rejected" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "Leave Type" %}</label>
+                     <!-- Assuming we have check leave types in context, if not standard input -->
+                     <input type="text" name="leave_type" class="form-control" value="{{ request.GET.leave_type }}" placeholder="Type ID">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-filter me-2"></i>{% trans "Filter" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="leaveTable" data-datatable data-export-columns="[0,1,2,3,4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Applicant" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Dates" %}</th>
+                            <th>{% trans "Days" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in leave_applications %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold">{{ leave.staff.full_name }}</div>
+                            </td>
+                            <td>{{ leave.leave_type.name }}</td>
+                            <td>
+                                {{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}
+                            </td>
+                            <td>{{ leave.total_days }}</td>
+                            <td>
+                                <span class="badge {% if leave.status == 'APPROVED' %}bg-success{% elif leave.status == 'REJECTED' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ leave.status }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'hr:leave_detail' leave.pk %}" class="btn btn-icon btn-sm btn-light">
+                                    <i class="bx bx-show"></i>
+                                </a>
+                                {% if leave.status == 'PENDING' %}
+                                <a href="{% url 'hr:leave_approve' leave.pk %}" class="btn btn-icon btn-sm btn-success-subtle text-success" title="Approve">
+                                    <i class="bx bx-check"></i>
+                                </a>
+                                <a href="{% url 'hr:leave_cancel' leave.pk %}" class="btn btn-icon btn-sm btn-danger-subtle text-danger" title="Reject">
+                                    <i class="bx bx-times"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <p>{% trans "No leave applications found." %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

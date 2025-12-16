@@ -12,7 +12,7 @@
             <div class="menu-title">Monitoring</div>
 
             {% if request.user.is_superuser %}
-                {% include 'tenants/partials/sub_menu.html' %}
+            {% include 'tenants/partials/sub_menu.html' %}
             {% endif %}
 
             {% include 'users/partials/sub_menu.html' %}
@@ -20,27 +20,28 @@
             {% include 'students/partials/sub_menu.html' %}
             {% include 'academics/partials/sub_menu.html' %}
             {% include 'attendance/partials/sub_menu.html' %}
-             {% include 'hr/partials/sub_menu.html' %}
+            {% include 'hr/partials/sub_menu.html' %}
+            {% include 'finance/partials/sub_menu.html' %}
             {% include 'library/partials/sub_menu.html' %}
             {% include 'hostel/partials/sub_menu.html' %}
             {% include 'transportation/partials/sub_menu.html' %}
             {% include 'inventory/partials/sub_menu.html' %}
-            {% include 'finance/partials/sub_menu.html' %}
            
+
             {% include 'security/partials/sub_menu.html' %}
         </a>
     </li>
 
-        <a href="javascript:;" class="has-arrow">
-            <div class="parent-icon"><i class="bx bx-line-chart"></i></div>
-            <div class="menu-title">Analytics</div>
-        </a>
-        <ul>
-            <li> <a href="{% url 'analytics:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>Dashboard</a>
-            </li>
-            <li> <a href="{% url 'analytics:report_list' %}"><i class="bx bx-right-arrow-alt"></i>Reports</a>
-            </li>
-        </ul>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-line-chart"></i></div>
+        <div class="menu-title">Analytics</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'analytics:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>Dashboard</a>
+        </li>
+        <li> <a href="{% url 'analytics:report_list' %}"><i class="bx bx-right-arrow-alt"></i>Reports</a>
+        </li>
+    </ul>
     </li>
 
 </ul>

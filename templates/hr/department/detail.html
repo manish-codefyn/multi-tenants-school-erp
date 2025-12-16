@@ -1,0 +1,96 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{{ department.name }} - {% trans "Department Details" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800">{{ department.name }}</h1>
+            <p class="text-muted mb-0">{% trans "Code:" %} {{ department.code }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:department_update' department.pk %}" class="btn btn-primary shadow-sm">
+                <i class="fas fa-edit me-2"></i>{% trans "Edit Department" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+         <div class="col-md-4">
+             <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Overview" %}</h6>
+                </div>
+                <div class="card-body">
+                    {% if department.head_of_department %}
+                    <div class="mb-3">
+                        <label class="small text-muted d-block">{% trans "Head of Department" %}</label>
+                        <div class="d-flex align-items-center mt-1">
+                             {% if department.head_of_department.user.avatar %}
+                                <img src="{{ department.head_of_department.user.avatar.url }}" class="rounded-circle me-2" width="32" height="32">
+                            {% endif %}
+                            <span class="fw-bold">{{ department.head_of_department.full_name }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                     <div class="mb-3">
+                        <label class="small text-muted d-block">{% trans "Parent Department" %}</label>
+                        <span class="fw-bold">{{ department.parent_department.name|default:"-" }}</span>
+                    </div>
+                     <div class="mb-0">
+                        <label class="small text-muted d-block">{% trans "Description" %}</label>
+                        <p class="mb-0">{{ department.description|linebreaks|default:"No description provided." }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Staff Members" %}</h6>
+                </div>
+                 <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Name" %}</th>
+                                    <th>{% trans "Designation" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Action" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for staff in department.staff_set.all %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">{{ staff.full_name }}</div>
+                                        <div class="small text-muted">{{ staff.email }}</div>
+                                    </td>
+                                    <td>{{ staff.designation.title }}</td>
+                                    <td>
+                                        {% if staff.employment_status == 'ACTIVE' %}
+                                            <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary-subtle text-secondary">{{ staff.employment_status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'hr:staff_detail' staff.pk %}" class="btn btn-sm btn-light">{% trans "View" %}</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">{% trans "No staff members in this department." %}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

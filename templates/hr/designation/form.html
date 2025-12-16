@@ -1,27 +1,33 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static crispy_forms_tags %}
+{% load i18n crispy_forms_tags %}
 
-{% block title %}Designation Form{% endblock %}
+{% block title %}{% if object %}{% trans "Edit Designation" %}{% else %}{% trans "Add Designation" %}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-xl-9 mx-auto">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="mb-4">Designation Details</h5>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div class="row">
-                        <div class="col-sm-3"></div>
-                        <div class="col-sm-9 text-secondary">
-                            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
-                            <a href="{% url 'hr:designation_list' %}" class="btn btn-light px-4">Cancel</a>
+
+        {% url 'hr:designation_list' as list_url %}
+        {% if object %}
+            {% include 'partials/breadcrumb.html' with page_title=_("Edit Designation") parent_text=_("Designations") parent_url=list_url current_text=_("Edit") %}
+        {% else %}
+            {% include 'partials/breadcrumb.html' with page_title=_("Add Designation") parent_text=_("Designations") parent_url=list_url current_text=_("Add") %}
+        {% endif %}
+        <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'hr:designation_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bx bx-save me-2"></i>{% trans "Save Designation" %}
+                            </button>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+ 
 {% endblock %}

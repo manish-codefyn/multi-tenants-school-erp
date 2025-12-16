@@ -1,38 +1,155 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Leave Report{% endblock %}
+{% block title %}{% trans "Leave Analysis Report" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Leave Report</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:report_staff' %}">Reports</a></li>
-                        <li class="breadcrumb-item active">Leave</li>
-                    </ol>
-                </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Leave Analysis" %} - {{ selected_year }}</h1>
+        <form action="{% url 'hr:api_report_generate' %}" method="post" target="_blank">
+            {% csrf_token %}
+            <input type="hidden" name="report_type" value="leave">
+            <input type="hidden" name="format" value="pdf">
+            <input type="hidden" name="parameters" value='{"year": {{ selected_year }}}'>
+            <button type="submit" class="btn btn-primary shadow-sm">
+                <i class="bx bxs-file-pdf me-2"></i>{% trans "Download Full Report" %}
+            </button>
+        </form>
+    </div>
+
+    <!-- Leave Type Stats -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Leave Type Analysis" %}</h6>
+        </div>
+        <div class="card-body">
+             <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0" id="leaveTypeTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>{% trans "Leave Type" %}</th>
+                            <th>{% trans "Total Entitled" %}</th>
+                            <th>{% trans "Total Used" %}</th>
+                            <th>{% trans "Available" %}</th>
+                            <th>{% trans "Utilization" %}</th>
+                            <th>{% trans "Applications" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                         {% for stat in leave_type_stats %}
+                        <tr>
+                            <td class="fw-bold">{{ stat.leave_type }}</td>
+                            <td>{{ stat.total_entitled }}</td>
+                            <td>{{ stat.total_used }}</td>
+                            <td>{{ stat.available }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                        <div class="progress-bar {% if stat.utilization_rate > 80 %}bg-danger{% elif stat.utilization_rate > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ stat.utilization_rate }}%">
+                                        </div>
+                                    </div>
+                                    <span class="small text-muted">{{ stat.utilization_rate|floatformat:1 }}%</span>
+                                </div>
+                            </td>
+                            <td>{{ stat.applications }}</td>
+                        </tr>
+                         {% endfor %}
+                    </tbody>
+                </table>
+             </div>
+        </div>
+    </div>
+
+    <!-- Monthly Trend -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+             <h6 class="m-0 font-weight-bold text-primary">{% trans "Monthly Trend" %}</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0" id="monthlyTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>{% trans "Month" %}</th>
+                            <th>{% trans "Applications" %}</th>
+                            <th>{% trans "Total Days" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in monthly_data %}
+                        <tr>
+                            <td>{{ data.month }}</td> <!-- You might want to format this int to Month Name if not done in view -->
+                            <td>{{ data.applications }}</td>
+                            <td>{{ data.days }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <div class="mb-4">
-                        <i class="bx bx-calendar-x text-muted display-4"></i>
-                    </div>
-                    <h4>Leave Analytics</h4>
-                    <p class="text-muted mb-4">This feature is coming soon. You will be able to view leave trends and balance reports here.</p>
-                    <a href="{% url 'hr:dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
-                </div>
-            </div>
+    <!-- Dept Stats -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Department Utilization" %}</h6>
+        </div>
+        <div class="card-body">
+             <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle mb-0" id="deptTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>{% trans "Department" %}</th>
+                            <th>{% trans "Staff Count" %}</th>
+                            <th>{% trans "Total Applications" %}</th>
+                            <th>{% trans "Days Taken" %}</th>
+                             <th>{% trans "Utilization" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                         {% for stat in dept_stats %}
+                        <tr>
+                            <td class="fw-bold">{{ stat.department }}</td>
+                            <td>{{ stat.staff_count }}</td>
+                            <td>{{ stat.applications }}</td>
+                            <td>{{ stat.days }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                        <div class="progress-bar {% if stat.utilization_rate > 80 %}bg-danger{% elif stat.utilization_rate > 50 %}bg-warning{% else %}bg-success{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ stat.utilization_rate }}%">
+                                        </div>
+                                    </div>
+                                    <span class="small text-muted">{{ stat.utilization_rate|floatformat:1 }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                         {% endfor %}
+                    </tbody>
+                </table>
+             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+<script>
+    $(document).ready(function() {
+        if (typeof initDataTable === 'function') {
+            initDataTable('deptTable', { title: '{% trans "Department Leave Utilization" %}' });
+            initDataTable('leaveTypeTable', { title: '{% trans "Leave Type Analysis" %}' });
+            initDataTable('monthlyTable', { title: '{% trans "Monthly Leave Trend" %}' });
+        }
+    });
+</script>
 {% endblock %}

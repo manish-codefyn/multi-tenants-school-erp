@@ -1,0 +1,113 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Staff Attendance" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Staff Attendance" %}</h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:attendance_mark' %}" class="btn btn-primary shadow-sm">
+                <i class="bx bx-check-square me-2"></i>{% trans "Mark Attendance" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded-3">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">{% trans "Date" %}</label>
+                    <input type="date" name="date" class="form-control" value="{{ filters.date|default:today|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">{% trans "Department" %}</label>
+                    <select name="department" class="form-select">
+                        <option value="all">{% trans "All Departments" %}</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if filters.department == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">{% trans "Status" %}</label>
+                    <select name="status" class="form-select">
+                        <option value="all">{% trans "All Statuses" %}</option>
+                        <option value="PRESENT" {% if filters.status == 'PRESENT' %}selected{% endif %}>{% trans "Present" %}</option>
+                        <option value="ABSENT" {% if filters.status == 'ABSENT' %}selected{% endif %}>{% trans "Absent" %}</option>
+                         <option value="LATE" {% if filters.status == 'LATE' %}selected{% endif %}>{% trans "Late" %}</option>
+                          <option value="LEAVE" {% if filters.status == 'LEAVE' %}selected{% endif %}>{% trans "On Leave" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-filter me-2"></i>{% trans "Filter" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="attendanceTable" data-datatable data-title="{% trans 'Staff Attendance' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th>{% trans "Staff Member" %}</th>
+                            <th>{% trans "Department" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Check In" %}</th>
+                            <th>{% trans "Check Out" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attendances %}
+                        <tr>
+                            <td class="ps-4">{{ att.date|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if att.staff.user.avatar %}
+                                        <img src="{{ att.staff.user.avatar.url }}" class="rounded-circle me-2" width="30" height="30">
+                                    {% else %}
+                                         <div class="avatar avatar-sm me-2 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                                {{ att.staff.user.first_name|first }}
+                                        </div>
+                                    {% endif %}
+                                    <span class="fw-bold">{{ att.staff.full_name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ att.staff.department.name|default:"-" }}</td>
+                            <td>
+                                <span class="badge {% if att.status == 'PRESENT' %}bg-success{% elif att.status == 'ABSENT' %}bg-danger{% elif att.status == 'LATE' %}bg-warning{% else %}bg-info{% endif %}">
+                                    {{ att.status }}
+                                </span>
+                            </td>
+                            <td>{{ att.check_in|time:"H:i"|default:"-" }}</td>
+                            <td>{{ att.check_out|time:"H:i"|default:"-" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'hr:attendance_update' att.pk %}" class="btn btn-icon btn-sm btn-light">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

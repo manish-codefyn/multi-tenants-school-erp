@@ -1,99 +1,97 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Department Payroll Report{% endblock %}
+{% block title %}{% trans "Department Payroll Report" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Department Payroll Report</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:payroll_list' %}">Payroll</a></li>
-                        <li class="breadcrumb-item active">Department Report</li>
-                    </ol>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Department Payroll" %} - {{ department.name }} ({{ selected_year }})</h1>
+        <button class="btn btn-primary shadow-sm" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>{% trans "Print Report" %}
+        </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">{% trans "Total Payout" %}</div>
+                    <div class="h3 mb-0 text-gray-800">{{ total_salary }}</div>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-success border-4">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">{% trans "Records Processed" %}</div>
+                    <div class="h3 mb-0 text-gray-800">{{ total_records }}</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <form method="get" class="row g-3 align-items-center">
-                        <div class="col-auto">
-                            <label for="month" class="col-form-label">Select Month:</label>
-                        </div>
-                        <div class="col-auto">
-                            <input type="month" class="form-control" id="month" name="month" value="{{ selected_month }}">
-                        </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-primary">View Report</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <h4>Department-wise Summary: {{ selected_month|date:"F Y" }}</h4>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Department</th>
-                                    <th>Employee Count</th>
-                                    <th>Total Basic</th>
-                                    <th>Total Allowances</th>
-                                    <th>Total Gross</th>
-                                    <th>Total Deductions</th>
-                                    <th>Total Net Salary</th>
-                                    <th>% of Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for dept in department_data %}
-                                <tr>
-                                    <td>{{ dept.name }}</td>
-                                    <td>{{ dept.employee_count }}</td>
-                                    <td>{{ dept.total_basic }}</td>
-                                    <td>{{ dept.total_allowances }}</td>
-                                    <td>{{ dept.total_gross }}</td>
-                                    <td>{{ dept.total_deductions }}</td>
-                                    <td class="fw-bold">{{ dept.total_net }}</td>
-                                    <td>
-                                        <div class="progress progress-sm">
-                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ dept.percentage }}%" aria-valuenow="{{ dept.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <small>{{ dept.percentage }}%</small>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="8" class="text-center">No payroll data found for this month.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                            <tfoot class="table-light fw-bold">
-                                <tr>
-                                    <td>Total</td>
-                                    <td>{{ total_employees }}</td>
-                                    <td>{{ total_basic }}</td>
-                                    <td>{{ total_allowances }}</td>
-                                    <td>{{ total_gross }}</td>
-                                    <td>{{ total_deductions }}</td>
-                                    <td>{{ total_net }}</td>
-                                    <td>100%</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
+     <!-- Monthly Breakdown -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Monthly Trends" %}</h6>
+        </div>
+        <div class="card-body p-0">
+             <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Month" %}</th>
+                            <th>{% trans "Staff Count" %}</th>
+                            <th>{% trans "Total Salary" %}</th>
+                             <th>{% trans "Avg Salary" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                         {% for month in monthly_data %}
+                        <tr>
+                            <td class="ps-4">{{ month.month_name }}</td>
+                            <td>{{ month.record_count }}</td>
+                            <td>{{ month.total_salary }}</td>
+                            <td>{{ month.avg_salary|floatform:2 }}</td>
+                        </tr>
+                         {% endfor %}
+                    </tbody>
+                </table>
+             </div>
+        </div>
+    </div>
+
+    <!-- Staff Breakdown -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Staff Summary" %}</h6>
+        </div>
+        <div class="card-body p-0">
+             <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Employee" %}</th>
+                            <th>{% trans "Months Paid" %}</th>
+                            <th>{% trans "Total Received" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                         {% for item in staff_data %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-bold">{{ item.staff.full_name }}</span>
+                                <div class="small text-muted">{{ item.staff.designation.title }}</div>
+                            </td>
+                            <td>{{ item.count }}</td>
+                            <td class="fw-bold">{{ item.total }}</td>
+                        </tr>
+                         {% endfor %}
+                    </tbody>
+                </table>
+             </div>
         </div>
     </div>
 </div>

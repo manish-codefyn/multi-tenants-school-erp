@@ -1,110 +1,163 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Staff Report{% endblock %}
+{% block title %}{% trans "Staff Reports" %}{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Staff Report</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:report_staff' %}">Reports</a></li>
-                        <li class="breadcrumb-item active">Staff</li>
-                    </ol>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Staff Analytical Reports" %}</h1>
+        <a href="{% url 'hr:report_staff_pdf' %}" class="btn btn-primary no-print">
+            <i class="bx bx-download me-2"></i>{% trans "Download PDF" %}
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm border-start border-4 border-primary h-100">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{% trans "Total Staff" %}</div>
+                    <div class="h3 mb-0 font-weight-bold text-gray-800">{{ total_staff }}</div>
                 </div>
             </div>
         </div>
+        {% for gender in gender_stats %}
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm border-start border-4 border-info h-100">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">{{ gender.gender }}</div>
+                    <div class="h3 mb-0 font-weight-bold text-gray-800">{{ gender.count }}</div>
+                    <small class="text-muted">{{ gender.percentage|floatformat:1 }}%</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <form method="get" class="row g-3 align-items-center">
-                        <div class="col-auto">
-                            <label for="department" class="col-form-label">Department:</label>
-                        </div>
-                        <div class="col-auto">
-                            <select class="form-select" id="department" name="department">
-                                <option value="">All Departments</option>
-                                {% for dept in departments %}
-                                <option value="{{ dept.pk }}" {% if dept.pk|stringformat:"s" == selected_department %}selected{% endif %}>{{ dept.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-auto">
-                            <label for="status" class="col-form-label">Status:</label>
-                        </div>
-                        <div class="col-auto">
-                            <select class="form-select" id="status" name="status">
-                                <option value="">All Statuses</option>
-                                <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
-                                <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Inactive</option>
-                            </select>
-                        </div>
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-primary">Filter</button>
-                        </div>
-                        <div class="col-auto ms-auto">
-                            <button type="button" class="btn btn-success" onclick="window.print()">
-                                <i class="bx bx-printer me-1"></i> Print
-                            </button>
-                        </div>
-                    </form>
+    <div class="row g-4">
+        <!-- Department Distribution -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Staff by Department" %}</h6>
                 </div>
                 <div class="card-body">
-                    <div class="text-center mb-4">
-                        <h4>Staff Directory Report</h4>
-                        <p class="text-muted">Generated on {% now "F j, Y" %}</p>
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="deptChart"></canvas>
                     </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Employee ID</th>
-                                    <th>Name</th>
-                                    <th>Department</th>
-                                    <th>Designation</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Joining Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for staff in staff_list %}
-                                <tr>
-                                    <td>{{ staff.employee_id }}</td>
-                                    <td>{{ staff.full_name }}</td>
-                                    <td>{{ staff.department.name }}</td>
-                                    <td>{{ staff.designation.title }}</td>
-                                    <td>{{ staff.email }}</td>
-                                    <td>{{ staff.phone }}</td>
-                                    <td>{{ staff.date_of_joining }}</td>
-                                    <td>
-                                        {% if staff.is_active %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="8" class="text-center">No staff records found matching the criteria.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Designation Distribution -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Staff by Designation" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="desigChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Age Distribution -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Age Distribution" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="ageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Years -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Years of Service" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="serviceChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Department Chart
+    const deptCtx = document.getElementById('deptChart').getContext('2d');
+    new Chart(deptCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for stat in dept_stats %}"{{ stat.department }}",{% endfor %}],
+            datasets: [{
+                data: [{% for stat in dept_stats %}{{ stat.count }},{% endfor %}],
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69'],
+            }]
+        },
+        options: { maintainAspectRatio: false }
+    });
+
+    // Designation Chart
+    const desigCtx = document.getElementById('desigChart').getContext('2d');
+    new Chart(desigCtx, {
+        type: 'pie',
+        data: {
+            labels: [{% for stat in desig_stats %}"{{ stat.designation }}",{% endfor %}],
+            datasets: [{
+                data: [{% for stat in desig_stats %}{{ stat.count }},{% endfor %}],
+                backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69'],
+            }]
+        },
+        options: { maintainAspectRatio: false }
+    });
+
+    // Age Chart
+    const ageCtx = document.getElementById('ageChart').getContext('2d');
+    new Chart(ageCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for group, count in age_groups.items %}"{{ group }}",{% endfor %}],
+            datasets: [{
+                label: "{% trans 'Staff Count' %}",
+                data: [{% for group, count in age_groups.items %}{{ count }},{% endfor %}],
+                backgroundColor: '#36b9cc',
+            }]
+        },
+        options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Service Chart
+    const serviceCtx = document.getElementById('serviceChart').getContext('2d');
+    new Chart(serviceCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for group, count in service_years.items %}"{{ group }}",{% endfor %}],
+            datasets: [{
+                label: "{% trans 'Staff Count' %}",
+                data: [{% for group, count in service_years.items %}{{ count }},{% endfor %}],
+                backgroundColor: '#1cc88a',
+            }]
+        },
+        options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+</script>
 {% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{{ designation.title }} - {% trans "Details" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800">{{ designation.title }}</h1>
+            <p class="text-muted mb-0">{% trans "Code:" %} {{ designation.code }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:designation_update' designation.pk %}" class="btn btn-primary shadow-sm">
+                <i class="bx bx-edit me-2"></i>{% trans "Edit Designation" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+             <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Overview" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="small text-muted d-block">{% trans "Level" %}</label>
+                        <span class="fw-bold">{{ designation.level }}</span>
+                    </div>
+                     <div class="mb-3">
+                        <label class="small text-muted d-block">{% trans "Parent Designation" %}</label>
+                        <span class="fw-bold">{{ designation.reports_to.title|default:"-" }}</span>
+                    </div>
+                     <div class="mb-0">
+                        <label class="small text-muted d-block">{% trans "Description" %}</label>
+                        <p class="mb-0">{{ designation.description|linebreaks|default:"No description provided." }}</p>
+                    </div>
+                </div>
+            </div>
+             <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Salary Stats" %}</h6>
+                </div>
+                <div class="card-body">
+                    {% if min_salary %}
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            {% trans "Average Salary" %}
+                            <span class="fw-bold">{{ avg_salary|floatform:2 }}</span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between px-0">
+                             {% trans "Minimum" %}
+                            <span class="text-muted">{{ min_salary }}</span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between px-0">
+                             {% trans "Maximum" %}
+                            <span class="text-muted">{{ max_salary }}</span>
+                        </li>
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mb-0">{% trans "No salary data available." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Staff Members" %}</h6>
+                    <span class="badge bg-light text-dark">{{ staff_members.count }}</span>
+                </div>
+                 <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Name" %}</th>
+                                    <th>{% trans "Department" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Action" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for staff in staff_members %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">{{ staff.full_name }}</div>
+                                        <div class="small text-muted">{{ staff.email }}</div>
+                                    </td>
+                                    <td>{{ staff.department.name }}</td>
+                                    <td>
+                                        {% if staff.employment_status == 'ACTIVE' %}
+                                            <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary-subtle text-secondary">{{ staff.employment_status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'hr:staff_detail' staff.pk %}" class="btn btn-sm btn-light">{% trans "View" %}</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">{% trans "No staff members with this designation." %}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

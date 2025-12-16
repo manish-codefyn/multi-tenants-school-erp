@@ -1,44 +1,25 @@
 {% extends 'layouts/dashboard.html' %}
-{% load crispy_forms_tags %}
+{% load i18n crispy_forms_tags %}
 
-{% block title %}Update Participation{% endblock %}
+{% block title %}{% trans "Edit Training Participation" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Update Participation</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:trainingprogram_list' %}">Training</a></li>
-                        <li class="breadcrumb-item active">Update Participation</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-
+<div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Participation Details</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <p class="mb-1 text-muted">Program: <span class="fw-bold text-dark">{{ form.instance.program.title }}</span></p>
-                        <p class="mb-0 text-muted">Staff: <span class="fw-bold text-dark">{{ form.instance.staff.full_name }}</span></p>
-                    </div>
-                    
-                    <form method="post">
+        <div class="col-md-6">
+            {% include "partials/breadcrumb.html" with page_title=_("Edit Participation") parent_text=_("Training Participations") parent_url=request.resolver_match.app_name|add:":trainingparticipation_list" current_text=_("Edit") %}
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
                         {% csrf_token %}
                         {{ form|crispy }}
                         
-                        <div class="mt-4 d-flex justify-content-end gap-2">
-                            <a href="{% url 'hr:training_participants' form.instance.program.pk %}" class="btn btn-light">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Update Participation</button>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="javascript:history.back()" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i>{% trans "Update Status" %}
+                            </button>
                         </div>
                     </form>
                 </div>

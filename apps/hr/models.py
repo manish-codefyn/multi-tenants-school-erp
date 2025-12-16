@@ -60,29 +60,203 @@ class Department(BaseModel):
             user__role='teacher'
         ).count()
 
+class Qualification(BaseModel):
+    DEGREE_CHOICES = (
+        ("DIPLOMA", _("Diploma")),
+        ("BACHELOR", _("Bachelor’s Degree")),
+        ("MASTER", _("Master’s Degree")),
+        ("M_PHIL", _("M.Phil")),
+        ("PHD", _("Ph.D")),
+        ("B_ED", _("B.Ed")),
+        ("M_ED", _("M.Ed")),
+        ("NET", _("NET Qualified")),
+        ("SET", _("SET Qualified")),
+        ("CTET", _("CTET Qualified")),
+        ("OTHER", _("Other")),
+    )
+
+    degree = models.CharField(
+        max_length=50,
+        choices=DEGREE_CHOICES,
+        verbose_name=_("Degree")
+    )
+    specialization = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name=_("Specialization")
+    )
+    institution = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name=_("Institution")
+    )
+    year = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Year of Passing")
+    )
+
+    def __str__(self):
+        return f"{self.get_degree_display()} ({self.specialization})"
+
+
 
 class Designation(BaseModel):
     """
     Staff designations and positions
     """
     CATEGORY_CHOICES = (
+        # Academic Staff
         ("TEACHING", _("Teaching Staff")),
-        ("NON_TEACHING", _("Non-Teaching Staff")),
+        ("PROFESSOR", _("Professor")),
+        ("ASSOCIATE_PROFESSOR", _("Associate Professor")),
+        ("ASSISTANT_PROFESSOR", _("Assistant Professor")),
+        ("LECTURER", _("Lecturer")),
+        ("GUEST_FACULTY", _("Guest / Visiting Faculty")),
+        ("LAB_INSTRUCTOR", _("Lab Instructor")),
+        ("TUTOR", _("Tutor / Academic Coach")),
+
+        # Academic Support
+        ("HOD", _("Head of Department")),
+        ("ACADEMIC_COORDINATOR", _("Academic Coordinator")),
+        ("EXAM_CONTROLLER", _("Controller of Examinations")),
+        ("RESEARCH_GUIDE", _("Research Guide / Supervisor")),
+
+        # Administrative Staff
         ("ADMINISTRATIVE", _("Administrative Staff")),
+        ("PRINCIPAL", _("Principal")),
+        ("VICE_PRINCIPAL", _("Vice Principal")),
+        ("DEAN", _("Dean")),
+        ("REGISTRAR", _("Registrar")),
+        ("OFFICE_SUPERINTENDENT", _("Office Superintendent")),
+        ("CLERK", _("Clerk")),
+        ("ACCOUNTANT", _("Accountant")),
+        ("HR", _("Human Resource Officer")),
+
+        # Student & Institutional Services
+        ("ADMISSION_OFFICER", _("Admission Officer")),
+        ("PLACEMENT_OFFICER", _("Placement Officer")),
+        ("COUNSELLOR", _("Student Counsellor")),
+        ("LIBRARIAN", _("Librarian")),
+        ("LIBRARY_ASSISTANT", _("Library Assistant")),
+        ("SPORTS_COACH", _("Sports Coach")),
+        ("TRANSPORT_MANAGER", _("Transport Manager")),
+
+        # Technical & IT Staff
+        ("IT_ADMIN", _("IT Administrator")),
+        ("SYSTEM_ADMIN", _("System Administrator")),
+        ("NETWORK_ENGINEER", _("Network Engineer")),
+        ("LAB_TECHNICIAN", _("Lab Technician")),
+        ("ERP_ADMIN", _("ERP Administrator")),
+
+        # Support & Operations
         ("SUPPORT", _("Support Staff")),
+        ("PEON", _("Peon / Office Assistant")),
+        ("SECURITY", _("Security Staff")),
+        ("HOUSEKEEPING", _("Housekeeping Staff")),
+        ("ELECTRICIAN", _("Electrician")),
+        ("PLUMBER", _("Plumber")),
+        ("DRIVER", _("Driver")),
+        ("WARDEN", _("Hostel Warden")),
+        ("MESS_STAFF", _("Mess / Canteen Staff")),
+    )
+    EXPERIENCE_CHOICES = (
+        (0, _("Fresher")),
+        (1, _("1 Year")),
+        (2, _("2 Years")),
+        (3, _("3 Years")),
+        (5, _("5+ Years")),
+        (10, _("10+ Years")),
     )
 
-    title = models.CharField(max_length=200, verbose_name=_("Designation Title"))
-    code = models.CharField(max_length=20, unique=True, verbose_name=_("Designation Code"))
+    GRADE_LEVEL_CHOICES = (
+        # Academic Grades
+        ("A+", _("Grade A+ (Senior Most)")),
+        ("A", _("Grade A")),
+        ("B+", _("Grade B+")),
+        ("B", _("Grade B")),
+        ("C+", _("Grade C+")),
+        ("C", _("Grade C")),
+        ("D", _("Grade D (Entry Level)")),
+
+        # Administrative Grades
+        ("ADM_1", _("Admin Level 1")),
+        ("ADM_2", _("Admin Level 2")),
+        ("ADM_3", _("Admin Level 3")),
+
+        # Support Staff Grades
+        ("SUP_1", _("Support Level 1")),
+        ("SUP_2", _("Support Level 2")),
+        ("SUP_3", _("Support Level 3")),
+        )
+    TITLE_CHOICES = (
+        # Academic
+        ("PROFESSOR", _("Professor")),
+        ("ASSOCIATE_PROFESSOR", _("Associate Professor")),
+        ("ASSISTANT_PROFESSOR", _("Assistant Professor")),
+        ("LECTURER", _("Lecturer")),
+        ("GUEST_FACULTY", _("Guest Faculty")),
+        ("LAB_INSTRUCTOR", _("Lab Instructor")),
+        ("TUTOR", _("Tutor / Academic Coach")),
+
+        # Academic Leadership
+        ("HOD", _("Head of Department")),
+        ("DEAN", _("Dean")),
+        ("PRINCIPAL", _("Principal")),
+        ("VICE_PRINCIPAL", _("Vice Principal")),
+
+        # Administration
+        ("REGISTRAR", _("Registrar")),
+        ("ADMIN_OFFICER", _("Administrative Officer")),
+        ("OFFICE_SUPERINTENDENT", _("Office Superintendent")),
+        ("CLERK", _("Clerk")),
+        ("ACCOUNTANT", _("Accountant")),
+        ("HR_OFFICER", _("Human Resource Officer")),
+
+        # Student Services
+        ("ADMISSION_OFFICER", _("Admission Officer")),
+        ("PLACEMENT_OFFICER", _("Placement Officer")),
+        ("COUNSELLOR", _("Student Counsellor")),
+        ("LIBRARIAN", _("Librarian")),
+
+        # IT & Technical
+        ("IT_ADMIN", _("IT Administrator")),
+        ("SYSTEM_ADMIN", _("System Administrator")),
+        ("NETWORK_ENGINEER", _("Network Engineer")),
+        ("LAB_TECHNICIAN", _("Lab Technician")),
+
+        # Support
+        ("WARDEN", _("Hostel Warden")),
+        ("DRIVER", _("Driver")),
+        ("SECURITY", _("Security Staff")),
+        ("PEON", _("Office Assistant")),
+        ("HOUSEKEEPING", _("Housekeeping Staff")),
+    )
+    title = models.CharField(
+    max_length=50,
+    choices=TITLE_CHOICES,
+    verbose_name=_("Designation Title")
+    )
+    code = models.CharField(
+    max_length=20,
+    unique=True,
+    editable=False,
+    verbose_name=_("Designation Code")
+    )
     category = models.CharField(
-        max_length=20,
+        max_length=50,
         choices=CATEGORY_CHOICES,
         verbose_name=_("Staff Category")
     )
     description = models.TextField(blank=True, verbose_name=_("Job Description"))
     
     # Salary Information
-    grade = models.CharField(max_length=20, blank=True, verbose_name=_("Grade Level"))
+    grade = models.CharField(
+    max_length=20,
+    choices=GRADE_LEVEL_CHOICES,
+    blank=True,
+    verbose_name=_("Grade Level")
+    )
     min_salary = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -95,11 +269,17 @@ class Designation(BaseModel):
     )
     
     # Requirements
-    qualifications = models.TextField(blank=True, verbose_name=_("Required Qualifications"))
-    experience_required = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_("Experience Required (years)")
+    qualifications = models.ManyToManyField(
+        Qualification,
+        blank=True,
+        verbose_name=_("Required Qualifications")
     )
+    experience_required = models.IntegerField(
+    choices=EXPERIENCE_CHOICES,
+    blank=True,
+    null=True,
+    verbose_name=_("Experience Required (Years)")
+     )
     
     # Reporting
     reports_to = models.ForeignKey(
@@ -118,11 +298,47 @@ class Designation(BaseModel):
         ordering = ["category", "title"]
 
     def __str__(self):
-        return f"{self.title} ({self.get_category_display()})"
+        return f"{self.get_title_display()} - {self.get_category_display()}"
+  
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = self.generate_code()
+        super().save(*args, **kwargs)
+
+    def generate_code(self):
+        """
+        Generates unique designation code like:
+        PROF-TEACH-001
+        """
+
+        # Short title code
+        title_code = self.title[:4].upper()
+
+        # Short category code
+        category_code = self.category[:5].upper()
+
+        # Count existing designations with same title
+        count = Designation.objects.filter(
+            title=self.title
+        ).count() + 1
+
+        return f"{title_code}-{category_code}-{count:03d}"
 
     @property
     def current_holders_count(self):
         return self.staff_members.filter(is_active=True).count()
+
+    @property
+    def is_senior_position(self):
+        return self.grade in ["A+", "A"]
+
+    @property
+    def is_support_staff(self):
+        return self.grade.startswith("SUP")
+
+    @property
+    def display_title(self):
+        return self.title or self.get_title_display()
 
 
 class Staff(BaseModel):
@@ -263,10 +479,10 @@ class Staff(BaseModel):
     )
     
     # Academic Information (for teaching staff)
-    qualifications = models.JSONField(
-        default=list,
-        verbose_name=_("Educational Qualifications"),
-        help_text=_("List of qualifications with details")
+    qualifications = models.ManyToManyField(
+        Qualification,
+        blank=True,
+        verbose_name=_("Required Qualifications")
     )
     specialization = models.CharField(
         max_length=200,
@@ -383,6 +599,32 @@ class Staff(BaseModel):
     @property
     def full_name(self):
         return self.user.get_full_name()
+
+    @property
+    def first_name(self):
+        return self.user.first_name
+        
+    @property
+    def last_name(self):
+        return self.user.last_name
+    
+    @property
+    def initials(self):
+        f = self.user.first_name[0] if self.user.first_name else ''
+        l = self.user.last_name[0] if self.user.last_name else ''
+        return (f + l).upper()
+
+    @property
+    def profile_image(self):
+        """Return user avatar or first photograph document"""
+        if self.user.avatar:
+            return self.user.avatar
+        
+        # Check for uploaded photograph document
+        photo_doc = self.documents.filter(document_type='PHOTOGRAPH').first()
+        if photo_doc:
+            return photo_doc.file
+        return None
 
     def get_full_name(self):
         return self.full_name
@@ -922,10 +1164,12 @@ class Payroll(BaseModel):
     )
     allowances = models.JSONField(
         default=dict,
+        blank=True,
         verbose_name=_("Allowances")
     )
     deductions = models.JSONField(
         default=dict,
+        blank=True,
         verbose_name=_("Deductions")
     )
     
@@ -1104,10 +1348,7 @@ class EmploymentHistory(BaseModel):
         verbose_name=_("Action")
     )
     effective_date = models.DateField(verbose_name=_("Effective Date"))
-    details = models.JSONField(
-        default=dict,
-        verbose_name=_("Action Details")
-    )
+
     description = models.TextField(blank=True, verbose_name=_("Description"))
     initiated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -1133,6 +1374,7 @@ class EmploymentHistory(BaseModel):
 
     def __str__(self):
         return f"{self.staff} - {self.action} - {self.effective_date}"
+    
 
 
 class TrainingProgram(BaseModel):
@@ -1278,6 +1520,12 @@ class PerformanceReview(BaseModel):
         (5, "5 - Outstanding"),
     )
 
+    STATUS_CHOICES = (
+        ('DRAFT', _('Draft')),
+        ('SUBMITTED', _('Submitted')),
+        ('COMPLETED', _('Completed')),
+    )
+
     staff = models.ForeignKey(
         Staff,
         on_delete=models.CASCADE,
@@ -1288,6 +1536,12 @@ class PerformanceReview(BaseModel):
         max_length=20,
         choices=REVIEW_TYPE_CHOICES,
         verbose_name=_("Review Type")
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='DRAFT',
+        verbose_name=_("Status")
     )
     review_period_start = models.DateField(verbose_name=_("Review Period Start"))
     review_period_end = models.DateField(verbose_name=_("Review Period End"))
@@ -1362,6 +1616,15 @@ class PerformanceReview(BaseModel):
 
     def __str__(self):
         return f"{self.staff} - {self.review_type} - {self.review_period_end}"
+    
+    def get_period_display(self):
+        """
+        Returns review period in readable format
+        Example: 01 Jan 2024 - 31 Dec 2024
+        """
+        if self.review_period_start and self.review_period_end:
+            return f"{self.review_period_start:%d %b %Y} - {self.review_period_end:%d %b %Y}"
+        return _("N/A")
 
     def save(self, *args, **kwargs):
         # Calculate overall rating

@@ -1,103 +1,196 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n humanize static %}
 
-{% block title %}Payslip - {{ payslip.month|date:"F Y" }}{% endblock %}
+{% block title %}{% trans "Payslip" %} - {{ payroll.staff.full_name }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card border-0 shadow-sm" id="payslip">
-            <div class="card-body p-5">
-                <!-- Header -->
-                <div class="text-center mb-5">
-                    <h3 class="fw-bold">{{ request.tenant.name }}</h3>
-                    <p class="text-muted mb-0">Payslip for the month of {{ payslip.month|date:"F Y" }}</p>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Payslip" %}</h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:payroll_detail' payroll.pk %}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-2"></i>{% trans "Back" %}
+            </a>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="bx bx-printer me-2"></i>{% trans "Print" %}
+            </button>
+        </div>
+    </div>
+
+    <div class="card shadow border-0" id="payslip">
+        <div class="card-body p-5">
+            <!-- Header -->
+            <div class="row mb-4 border-bottom pb-4">
+                <div class="col-6">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo" height="50" class="mb-3">
+                    <h4 class="fw-bold">{{ payroll.tenant.name }}</h4>
+                    <p class="text-muted mb-0">{{ payroll.tenant.address|default:"School Address" }}</p>
                 </div>
-
-                <!-- Staff Details -->
-                <div class="row mb-4">
-                    <div class="col-6">
-                        <h6 class="text-uppercase text-muted small">Employee Details</h6>
-                        <div class="fw-bold">{{ payslip.staff.get_full_name }}</div>
-                        <div>{{ payslip.staff.email }}</div>
-                        <div class="text-muted small">
-                            {% for rel in payslip.staff.institute_relationships.all %}
-                                {% if rel.tenant == request.tenant %}
-                                    {{ rel.get_role_display }}
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="col-6 text-end">
-                        <h6 class="text-uppercase text-muted small">Payslip Details</h6>
-                        <div><strong>Slip ID:</strong> #{{ payslip.id|stringformat:"06d" }}</div>
-                        <div><strong>Generated:</strong> {{ payslip.generated_date|date:"d M, Y" }}</div>
-                        <div>
-                            <strong>Status:</strong> 
-                            <span class="badge bg-{% if payslip.status == 'paid' %}success{% else %}info{% endif %}">
-                                {{ payslip.get_status_display }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Earnings & Deductions -->
-                <div class="table-responsive mb-4">
-                    <table class="table table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="50%">Earnings</th>
-                                <th width="50%">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Basic Salary</td>
-                                <td class="text-end">{{ payslip.basic_salary }}</td>
-                            </tr>
-                            <tr>
-                                <td>Allowances (HRA, Transport, etc.)</td>
-                                <td class="text-end">{{ payslip.total_allowances }}</td>
-                            </tr>
-                            <tr class="table-light fw-bold">
-                                <td>Gross Earnings</td>
-                                <td class="text-end">{{ payslip.basic_salary|add:payslip.total_allowances }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <table class="table table-bordered mt-3">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="50%">Deductions</th>
-                                <th width="50%">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Total Deductions (PF, Tax, etc.)</td>
-                                <td class="text-end">{{ payslip.total_deductions }}</td>
-                            </tr>
-                            <tr class="table-light fw-bold">
-                                <td>Total Deductions</td>
-                                <td class="text-end">{{ payslip.total_deductions }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Net Pay -->
-                <div class="alert alert-primary text-center mb-0">
-                    <h4 class="mb-0">Net Pay: {{ payslip.net_salary }}</h4>
-                    <small class="text-muted">(Amount in words: ...)</small>
+                <div class="col-6 text-end">
+                    <h2 class="text-primary text-uppercase mb-3">{% trans "Payslip" %}</h2>
+                    <p class="fs-5 mb-0">{{ payroll.salary_month|date:"F Y" }}</p>
+                    <small class="text-muted">{% trans "Payslip ID:" %} #{{ payroll.id|stringformat:"06d" }}</small>
                 </div>
             </div>
-            <div class="card-footer bg-white text-center py-3 d-print-none">
-                <button onclick="window.print()" class="btn btn-outline-primary">
-                    <i class="bi bi-printer me-2"></i>Print Payslip
-                </button>
+
+            <!-- Employee Info -->
+            <div class="row mb-5">
+                <div class="col-6">
+                    <h6 class="text-uppercase text-muted small mb-3">{% trans "Employee Details" %}</h6>
+                    <div class="d-flex mb-2">
+                        <div class="fw-bold" style="width: 120px;">{% trans "Name:" %}</div>
+                        <div>{{ payroll.staff.full_name }}</div>
+                    </div>
+                    <div class="d-flex mb-2">
+                        <div class="fw-bold" style="width: 120px;">{% trans "Employee ID:" %}</div>
+                        <div>{{ payroll.staff.employee_id }}</div>
+                    </div>
+                    <div class="d-flex mb-2">
+                        <div class="fw-bold" style="width: 120px;">{% trans "Designation:" %}</div>
+                        <div>{{ payroll.staff.designation.title }}</div>
+                    </div>
+                    <div class="d-flex mb-2">
+                        <div class="fw-bold" style="width: 120px;">{% trans "Department:" %}</div>
+                        <div>{{ payroll.staff.department.name }}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <h6 class="text-uppercase text-muted small mb-3">{% trans "Payment Details" %}</h6>
+                    <div class="d-flex mb-2">
+                        <div class="fw-bold" style="width: 120px;">{% trans "Pay Date:" %}</div>
+                        <div>{{ payroll.pay_date|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="d-flex mb-2">
+                        <div class="fw-bold" style="width: 120px;">{% trans "Status:" %}</div>
+                        <div>{{ payroll.get_status_display }}</div>
+                    </div>
+                    <div class="d-flex mb-2">
+                        <div class="fw-bold" style="width: 120px;">{% trans "Working Days:" %}</div>
+                        <div>{{ payroll.present_days|floatformat:1 }} / {{ payroll.working_days|floatformat:0 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Table -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th colspan="2" class="text-center text-uppercase">{% trans "Earnings" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{% trans "Basic Salary" %}</td>
+                                    <td class="text-end">{{ payroll.basic_salary|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "HRA" %}</td>
+                                    <td class="text-end">{{ payroll.hra|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "Transport Allowance" %}</td>
+                                    <td class="text-end">{{ payroll.transport_allowance|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "Other Allowances" %}</td>
+                                    <td class="text-end">{{ payroll.other_allowances|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "Bonus" %}</td>
+                                    <td class="text-end">{{ payroll.bonus|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr class="fw-bold bg-light">
+                                    <td>{% trans "Total Earnings" %}</td>
+                                    <td class="text-end">{{ payroll.total_earnings|intcomma }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th colspan="2" class="text-center text-uppercase">{% trans "Deductions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{% trans "Provident Fund (PF)" %}</td>
+                                    <td class="text-end">{{ payroll.pf_deduction|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "Professional Tax" %}</td>
+                                    <td class="text-end">{{ payroll.professional_tax|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "TDS / Income Tax" %}</td>
+                                    <td class="text-end">{{ payroll.tds|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "Leave Deductions" %}</td>
+                                    <td class="text-end">{{ payroll.leave_deductions|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "Other Deductions" %}</td>
+                                    <td class="text-end">{{ payroll.other_deductions|default:"0.00"|intcomma }}</td>
+                                </tr>
+                                <tr class="fw-bold bg-light">
+                                    <td>{% trans "Total Deductions" %}</td>
+                                    <td class="text-end">{{ payroll.total_deductions|intcomma }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Salary -->
+            <div class="row align-items-center mb-5">
+                <div class="col-md-7">
+                    <p class="mb-0 text-muted small">
+                        {% blocktrans %}Net salary is the amount disbursed to the employee after all deductions.{% endblocktrans %}
+                    </p>
+                </div>
+                <div class="col-md-5">
+                    <div class="bg-primary text-white p-3 rounded text-center">
+                        <div class="text-uppercase small opacity-75">{% trans "Net Pay" %}</div>
+                        <h3 class="fw-bold mb-0">{{ payroll.net_salary|intcomma }}</h3>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-5 pt-5 text-center text-muted small">
+                <p>{% trans "This is a computer-generated document and does not require a signature." %}</p>
+                <p>{% trans "Generated on" %} {% now "F j, Y H:i" %}</p>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #payslip, #payslip * {
+        visibility: visible;
+    }
+    #payslip {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    .btn, header, nav, aside {
+        display: none !important;
+    }
+}
+</style>
 {% endblock %}

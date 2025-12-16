@@ -1,0 +1,61 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Qualifications" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Qualifications" %}</h1>
+        <a href="{% url 'hr:qualification_create' %}" class="btn btn-primary shadow-sm">
+            <i class="bx bx-plus me-2"></i>{% trans "Add Qualification" %}
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="qualificationTable" data-datatable data-title="{% trans 'Qualifications List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Degree" %}</th>
+                            <th>{% trans "Specialization" %}</th>
+                            <th>{% trans "Institution" %}</th>
+                            <th>{% trans "Year" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for qual in qualifications %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ qual.get_degree_display }}</td>
+                            <td>{{ qual.specialization|default:"-" }}</td>
+                            <td>{{ qual.institution|default:"-" }}</td>
+                            <td>{{ qual.year|default:"-" }}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'hr:qualification_update' qual.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="{% url 'hr:qualification_delete' qual.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="{% trans 'Delete' %}">
+                                        <i class="bx bx-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

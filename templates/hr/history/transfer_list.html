@@ -1,36 +1,55 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Transfers{% endblock %}
+{% block title %}{% trans "Staff Transfers" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Transfers</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item active">Transfers</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Staff Transfers" %}</h1>
+        <!-- Assuming transfers are handled via edit department or specific transfer view -->
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <div class="mb-4">
-                        <i class="bx bx-transfer text-muted display-4"></i>
-                    </div>
-                    <h4>Staff Transfers</h4>
-                    <p class="text-muted mb-4">This feature is coming soon. You will be able to manage internal staff transfers between departments or branches here.</p>
-                    <a href="{% url 'hr:dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
-                </div>
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Staff Name" %}</th>
+                            <th>{% trans "Previous Department" %}</th>
+                            <th>{% trans "New Department" %}</th>
+                            <th>{% trans "Transfer Date" %}</th>
+                            <th>{% trans "Remarks" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transfer in transfers %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'hr:staff_detail' transfer.staff.pk %}" class="text-decoration-none fw-bold">
+                                    {{ transfer.staff.full_name }}
+                                </a>
+                            </td>
+                            <td>{{ transfer.previous_department.name }}</td>
+                            <td>
+                                <span class="badge bg-primary-subtle text-primary">
+                                    {{ transfer.new_department.name }}
+                                </span>
+                            </td>
+                            <td>{{ transfer.effective_date|date:"M d, Y" }}</td>
+                            <td>{{ transfer.remarks|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">{% trans "No transfers found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            
+            {% include 'partials/pagination.html' %}
         </div>
     </div>
 </div>

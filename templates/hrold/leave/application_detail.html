@@ -1,0 +1,171 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Leave Application Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                <h4 class="mb-sm-0">Leave Application Details</h4>
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'hr:leaveapplication_list' %}">Leave Applications</a></li>
+                        <li class="breadcrumb-item active">Details</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Application Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <th class="ps-0" scope="row" style="width: 200px;">Applicant :</th>
+                                    <td class="text-muted">{{ object.staff.full_name }} ({{ object.staff.employee_id }})</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Leave Type :</th>
+                                    <td class="text-muted">{{ object.leave_type.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Duration :</th>
+                                    <td class="text-muted">
+                                        {{ object.start_date }} to {{ object.end_date }}
+                                        <span class="badge bg-soft-info text-info ms-2">{{ object.total_days }} Days</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Reason :</th>
+                                    <td class="text-muted">{{ object.reason }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Status :</th>
+                                    <td>
+                                        {% if object.status == 'APPROVED' %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% elif object.status == 'PENDING' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif object.status == 'REJECTED' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% elif object.status == 'CANCELLED' %}
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if object.approved_by %}
+                                <tr>
+                                    <th class="ps-0" scope="row">Approved By :</th>
+                                    <td class="text-muted">{{ object.approved_by.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0" scope="row">Approved On :</th>
+                                    <td class="text-muted">{{ object.approved_at }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if object.rejection_reason %}
+                                <tr>
+                                    <th class="ps-0" scope="row">Rejection Reason :</th>
+                                    <td class="text-danger">{{ object.rejection_reason }}</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-end gap-2">
+                    <a href="{% url 'hr:leaveapplication_list' %}" class="btn btn-light">Back to List</a>
+                    
+                    {% if object.status == 'PENDING' %}
+                        {% if perms.hr.change_leaveapplication %}
+                        <a href="{% url 'hr:leaveapplication_update' object.pk %}" class="btn btn-primary">Edit</a>
+                        {% endif %}
+                        
+                        {% if perms.hr.approve_leave %}
+                        <form method="post" action="{% url 'hr:leaveapplication_approve' object.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">Approve</button>
+                        </form>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">Reject</button>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% if object.status == 'APPROVED' and perms.hr.cancel_leave %}
+                    <form method="post" action="{% url 'hr:leaveapplication_cancel' object.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning">Cancel Leave</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Leave Balance</h5>
+                </div>
+                <div class="card-body">
+                    {% if leave_balance %}
+                    <div class="text-center">
+                        <h3 class="mb-2">{{ leave_balance.available_days }}</h3>
+                        <p class="text-muted mb-0">Available Days</p>
+                    </div>
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span>Entitled</span>
+                            <span class="fw-medium">{{ leave_balance.total_entitled }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span>Used</span>
+                            <span class="fw-medium">{{ leave_balance.used_days }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span>Pending Approval</span>
+                            <span class="fw-medium text-warning">{{ pending_days|default:0 }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No balance record found for this leave type.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reject Leave Application</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'hr:leaveapplication_reject' object.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">Reason for Rejection</label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Reject Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

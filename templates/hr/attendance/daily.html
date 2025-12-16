@@ -1,0 +1,171 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Daily Attendance Log" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Daily Attendance Log" %}</h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:attendance_mark' %}" class="btn btn-primary shadow-sm">
+                <i class="bx bx-check-square me-2"></i>{% trans "Mark Attendance" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded-3">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">{% trans "Select Date" %}</label>
+                    <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-search-alt-2 me-2"></i>{% trans "View" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary-subtle border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-primary fw-bold text-uppercase mb-1">{% trans "Total Staff" %}</h6>
+                            <h3 class="mb-0 text-primary">{{ total_staff }}</h3>
+                        </div>
+                        <div class="avatar bg-primary text-white rounded-circle p-2">
+                            <i class="bx bx-group fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success-subtle border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-success fw-bold text-uppercase mb-1">{% trans "Present" %}</h6>
+                            <h3 class="mb-0 text-success">{{ present_count }}</h3>
+                        </div>
+                        <div class="avatar bg-success text-white rounded-circle p-2">
+                            <i class="bx bx-check fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger-subtle border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-danger fw-bold text-uppercase mb-1">{% trans "Absent" %}</h6>
+                            <h3 class="mb-0 text-danger">{{ absent_count }}</h3>
+                        </div>
+                        <div class="avatar bg-danger text-white rounded-circle p-2">
+                            <i class="bx bx-x fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning-subtle border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-warning-emphasis fw-bold text-uppercase mb-1">{% trans "On Leave" %}</h6>
+                            <h3 class="mb-0 text-warning-emphasis">{{ leave_count }}</h3>
+                        </div>
+                        <div class="avatar bg-warning text-white rounded-circle p-2">
+                            <i class="bx bx-calendar-event fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="dailyAttendanceTable" data-datatable data-title="{% trans 'Daily Attendance Report' %} - {{ selected_date|date:'Y-m-d' }}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Staff Member" %}</th>
+                            <th>{% trans "Department" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Check In" %}</th>
+                            <th>{% trans "Check Out" %}</th>
+                            <th>{% trans "Remarks" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept_name, members in departments.items %}
+                            {% for item in members %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        {% if item.staff.user.avatar %}
+                                            <img src="{{ item.staff.user.avatar.url }}" class="rounded-circle me-2" width="30" height="30">
+                                        {% else %}
+                                            <div class="avatar avatar-sm me-2 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                                {{ item.staff.user.first_name|first }}
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <a href="{% url 'hr:staff_detail' item.staff.pk %}" class="fw-bold text-dark text-decoration-none">{{ item.staff.full_name }}</a>
+                                            <div class="small text-muted">{{ item.staff.employee_id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ dept_name }}</td>
+                                <td>
+                                    {% if item.StaffAttendance %}
+                                        <span class="badge {% if item.StaffAttendance.status == 'PRESENT' %}bg-success{% elif item.StaffAttendance.status == 'ABSENT' %}bg-danger{% elif item.StaffAttendance.status == 'LATE' %}bg-warning{% else %}bg-info{% endif %}">
+                                            {{ item.StaffAttendance.get_status_display }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary">{% trans "Not Marked" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.StaffAttendance.check_in|time:"H:i"|default:"-" }}</td>
+                                <td>{{ item.StaffAttendance.check_out|time:"H:i"|default:"-" }}</td>
+                                <td>{{ item.StaffAttendance.remarks|default:"-" }}</td>
+                                <td class="text-end pe-4">
+                                    {% if item.StaffAttendance %}
+                                        <a href="{% url 'hr:attendance_update' item.StaffAttendance.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                    {% else %}
+                                         <!-- Optional: Add specific mark button for this user if needed, or rely on bulk mark -->
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

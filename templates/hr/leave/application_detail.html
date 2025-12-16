@@ -1,143 +1,167 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Leave Application Details{% endblock %}
+{% block title %}{% trans "Leave Application Details" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Leave Application Details</h4>
-                <div class="page-title-right">
-                    <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{% url 'hr:dashboard' %}">HR</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'hr:leaveapplication_list' %}">Leave Applications</a></li>
-                        <li class="breadcrumb-item active">Details</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Leave Application" %} #{{ object.id|stringformat:"06d" }}</h1>
+        <a href="{% url 'hr:leave_list' %}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-2"></i>{% trans "Back to List" %}
+        </a>
     </div>
 
     <div class="row">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Application Information</h5>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Application Details" %}</h6>
+                    <span class="badge 
+                        {% if object.status == 'APPROVED' %}bg-success
+                        {% elif object.status == 'REJECTED' %}bg-danger
+                        {% else %}bg-warning text-dark{% endif %} p-2">
+                        {{ object.get_status_display }}
+                    </span>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-borderless mb-0">
-                            <tbody>
-                                <tr>
-                                    <th class="ps-0" scope="row" style="width: 200px;">Applicant :</th>
-                                    <td class="text-muted">{{ object.staff.full_name }} ({{ object.staff.employee_id }})</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Leave Type :</th>
-                                    <td class="text-muted">{{ object.leave_type.name }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Duration :</th>
-                                    <td class="text-muted">
-                                        {{ object.start_date }} to {{ object.end_date }}
-                                        <span class="badge bg-soft-info text-info ms-2">{{ object.total_days }} Days</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Reason :</th>
-                                    <td class="text-muted">{{ object.reason }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Status :</th>
-                                    <td>
-                                        {% if object.status == 'APPROVED' %}
-                                            <span class="badge bg-success">Approved</span>
-                                        {% elif object.status == 'PENDING' %}
-                                            <span class="badge bg-warning">Pending</span>
-                                        {% elif object.status == 'REJECTED' %}
-                                            <span class="badge bg-danger">Rejected</span>
-                                        {% elif object.status == 'CANCELLED' %}
-                                            <span class="badge bg-secondary">Cancelled</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% if object.approved_by %}
-                                <tr>
-                                    <th class="ps-0" scope="row">Approved By :</th>
-                                    <td class="text-muted">{{ object.approved_by.get_full_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="ps-0" scope="row">Approved On :</th>
-                                    <td class="text-muted">{{ object.approved_at }}</td>
-                                </tr>
-                                {% endif %}
-                                {% if object.rejection_reason %}
-                                <tr>
-                                    <th class="ps-0" scope="row">Rejection Reason :</th>
-                                    <td class="text-danger">{{ object.rejection_reason }}</td>
-                                </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="small text-muted text-uppercase mb-2">{% trans "Applicant" %}</h5>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar bg-primary-subtle text-primary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                    {{ object.staff.user.first_name|first }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-5">{{ object.staff.full_name }}</div>
+                                    <div class="text-muted">{{ object.staff.designation.title }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="small text-muted text-uppercase mb-2">{% trans "Leave Type" %}</h5>
+                            <p class="fs-5 mb-0">{{ object.leave_type.name }}</p>
+                        </div>
                     </div>
-                </div>
-                <div class="card-footer d-flex justify-content-end gap-2">
-                    <a href="{% url 'hr:leaveapplication_list' %}" class="btn btn-light">Back to List</a>
-                    
-                    {% if object.status == 'PENDING' %}
-                        {% if perms.hr.change_leaveapplication %}
-                        <a href="{% url 'hr:leaveapplication_update' object.pk %}" class="btn btn-primary">Edit</a>
-                        {% endif %}
-                        
-                        {% if perms.hr.approve_leave %}
-                        <form method="post" action="{% url 'hr:leaveapplication_approve' object.pk %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success">Approve</button>
-                        </form>
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">Reject</button>
-                        {% endif %}
-                    {% endif %}
-                    
-                    {% if object.status == 'APPROVED' and perms.hr.cancel_leave %}
-                    <form method="post" action="{% url 'hr:leaveapplication_cancel' object.pk %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-warning">Cancel Leave</button>
-                    </form>
+
+                    <div class="border-top pt-4">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="text-muted small">{% trans "From Date" %}</label>
+                                <p class="fw-bold">{{ object.start_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted small">{% trans "To Date" %}</label>
+                                <p class="fw-bold">{{ object.end_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted small">{% trans "Total Days" %}</label>
+                                <p class="fw-bold">{{ object.days_count }} {% trans "Days" %}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h5 class="small text-muted text-uppercase mb-2">{% trans "Reason" %}</h5>
+                        <div class="bg-light p-3 rounded">
+                            {{ object.reason|linebreaks }}
+                        </div>
+                    </div>
+
+                    {% if object.attachment %}
+                    <div class="mt-4">
+                        <h5 class="small text-muted text-uppercase mb-2">{% trans "Attachment" %}</h5>
+                        <a href="{{ object.attachment.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                            <i class="bx bx-file me-2"></i>{% trans "View Attachment" %}
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Leave Balance</h5>
+
+            {% if object.status != 'PENDING' %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Approval Details" %}</h6>
                 </div>
                 <div class="card-body">
-                    {% if leave_balance %}
-                    <div class="text-center">
-                        <h3 class="mb-2">{{ leave_balance.available_days }}</h3>
-                        <p class="text-muted mb-0">Available Days</p>
-                    </div>
-                    <div class="mt-4">
-                        <div class="d-flex justify-content-between border-bottom py-2">
-                            <span>Entitled</span>
-                            <span class="fw-medium">{{ leave_balance.total_entitled }}</span>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="text-muted small">{% trans "Action By" %}</label>
+                            <p class="fw-bold">{{ object.approved_by.get_full_name|default:"-" }}</p>
                         </div>
-                        <div class="d-flex justify-content-between border-bottom py-2">
-                            <span>Used</span>
-                            <span class="fw-medium">{{ leave_balance.used_days }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between py-2">
-                            <span>Pending Approval</span>
-                            <span class="fw-medium text-warning">{{ pending_days|default:0 }}</span>
+                        <div class="col-md-6">
+                            <label class="text-muted small">{% trans "Action Date" %}</label>
+                            <p class="fw-bold">{{ object.approval_date|date:"M d, Y H:i"|default:"-" }}</p>
                         </div>
                     </div>
-                    {% else %}
-                    <p class="text-center text-muted">No balance record found for this leave type.</p>
+                    {% if object.rejection_reason %}
+                    <div class="mt-3">
+                        <label class="text-muted small">{% trans "Rejection Reason" %}</label>
+                        <p class="text-danger">{{ object.rejection_reason }}</p>
+                    </div>
                     {% endif %}
+                    {% if object.admin_remarks %}
+                    <div class="mt-3">
+                        <label class="text-muted small">{% trans "Admin Remarks" %}</label>
+                        <p>{{ object.admin_remarks }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Approval Actions -->
+            {% if object.status == 'PENDING' and can_approve %}
+            <div class="card shadow mb-4 border-left-primary">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Take Action" %}</h6>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'hr:leave_approve' object.pk %}" method="post" id="approvalForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Remarks" %}</label>
+                            <textarea name="remarks" class="form-control" rows="3" placeholder="Optional remarks..."></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="action" value="approve" class="btn btn-success">
+                                <i class="bx bx-check me-2"></i>{% trans "Approve Request" %}
+                            </button>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                                <i class="bx bx-x me-2"></i>{% trans "Reject Request" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Leave Info -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Leave Balance" %}</h6>
+                </div>
+                <div class="card-body">
+                    {% with balance=object.get_balance %}
+                    <div class="text-center mb-3">
+                        <div class="display-4 fw-bold text-primary">{{ balance.available_days }}</div>
+                        <div class="text-muted">{% trans "Days Available" %}</div>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            {% trans "Total Entitled" %}
+                            <span class="fw-bold">{{ balance.total_entitled }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            {% trans "Used So Far" %}
+                            <span class="fw-bold">{{ balance.used_days }}</span>
+                        </li>
+                    </ul>
+                    {% endwith %}
                 </div>
             </div>
         </div>
@@ -145,24 +169,24 @@
 </div>
 
 <!-- Reject Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="rejectModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Reject Leave Application</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">{% trans "Reject Leave Application" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'hr:leaveapplication_reject' object.pk %}">
+            <form action="{% url 'hr:leave_approve' object.pk %}" method="post">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="rejection_reason" class="form-label">Reason for Rejection</label>
-                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="3" required></textarea>
+                        <label class="form-label required">{% trans "Reason for Rejection" %}</label>
+                        <textarea name="rejection_reason" class="form-control" rows="3" required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Reject Application</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger">{% trans "Reject Application" %}</button>
                 </div>
             </form>
         </div>

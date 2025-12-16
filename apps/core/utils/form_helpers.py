@@ -38,3 +38,18 @@ class SelectWithSearch(forms.Select):
         else:
             attrs = default_attrs
         super().__init__(attrs=attrs)
+
+class SelectMultipleWithSearch(forms.SelectMultiple):
+    """
+    SelectMultiple widget that can be initialized with Select2 or similar libraries.
+    """
+    def __init__(self, attrs=None):
+        default_attrs = {'class': 'form-control select2'}
+        if attrs:
+            if 'class' in attrs:
+                attrs['class'] += ' select2'
+            else:
+                attrs.update({'class': 'form-control select2'})
+        else:
+            attrs = default_attrs
+        super().__init__(attrs=attrs)

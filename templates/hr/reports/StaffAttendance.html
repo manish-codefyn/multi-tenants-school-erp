@@ -1,0 +1,161 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Attendance Report" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+<style>
+    /* Custom styles for this report */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Attendance Report" %}</h1>
+        <!-- Custom API Export Buttons (Success/Backup) -->
+        <div class="d-flex gap-2">
+             <span class="text-muted d-flex align-items-center me-2"><small>Backend Export:</small></span>
+            <form id="exportForm" action="{% url 'hr:api_report_generate' %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="report_type" value="StaffAttendance">
+                <input type="hidden" name="parameters" id="exportParams">
+                <div class="btn-group no-print" role="group">
+                    <button type="submit" name="format" value="pdf" class="btn btn-sm btn-outline-danger" onclick="prepareExport(event)">
+                        <i class="bx bxs-file-pdf"></i>
+                    </button>
+                    <button type="submit" name="format" value="excel" class="btn btn-sm btn-outline-success" onclick="prepareExport(event)">
+                        <i class="bx bxs-file-json"></i>
+                    </button>
+                    <button type="submit" name="format" value="csv" class="btn btn-sm btn-outline-primary" onclick="prepareExport(event)">
+                        <i class="bx bxs-file-txt"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <!-- Filter Form -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">{% trans "Month" %}</label>
+                    <input type="month" name="month" class="form-control" value="{{ filters.month }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">{% trans "Department" %}</label>
+                    <select name="department" class="form-select">
+                        <option value="">{% trans "All Departments" %}</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if filters.department == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">{% trans "Generate Report" %}</button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table id="attendanceTable" class="table table-bordered table-sm table-striped w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 200px;">{% trans "Staff Member" %}</th>
+                            {% for day in report_days %}
+                            <th class="text-center small px-1" title="{{ day.date|date:'D, d M' }}">
+                                <div>{{ day.day }}</div>
+                                <div style="font-size: 0.7em;" class="text-muted">{{ day.weekday|slice:":1" }}</div>
+                            </th>
+                            {% endfor %}
+                            <th class="text-center" title="Present">P</th>
+                            <th class="text-center" title="Absent">A</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in report_data %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="text-truncate">
+                                        <div class="fw-bold text-dark small">{{ row.staff.user.get_full_name }}</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">{{ row.staff.employee_id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            {% for status in row.daily_status %}
+                            <td class="text-center p-0 align-middle">
+                                {% if status != '-' %}
+                                <div class="badge rounded-0 d-flex align-items-center justify-content-center w-100 h-100
+                                    {% if status == 'P' %}text-success
+                                    {% elif status == 'A' %}text-danger
+                                    {% elif status == 'L' %}text-warning
+                                    {% elif status == 'H' %}text-info
+                                    {% endif %}" style="font-size: 0.8rem;">
+                                    {{ status }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            <td class="text-center align-middle fw-bold small text-success">{{ row.present_count|floatformat:0 }}</td>
+                            <td class="text-center align-middle fw-bold small text-danger">{{ row.absent_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+
+<script>
+    $(document).ready(function() {
+        // Init DataTable via the helper function from includes/datatable_scripts.html
+        if (typeof initDataTable === 'function') {
+            initDataTable('attendanceTable', {
+                title: '{% trans "Staff Attendance Report" %}',
+                paging: false,
+                scrollY: '500px',
+                scrollX: true,
+                scrollCollapse: true
+            });
+        }
+    });
+
+    function prepareExport(event) {
+        // ... (existing export logic logic) ...
+         const monthInput = document.querySelector('input[name="month"]').value;
+        let startDate, endDate;
+
+        if (monthInput) {
+            const date = new Date(monthInput + "-01");
+            startDate = monthInput + "-01";
+            const [year, month] = monthInput.split('-');
+            const lastDayDate = new Date(year, month, 0); 
+            const lastDay = lastDayDate.getDate();
+            endDate = `${monthInput}-${lastDay.toString().padStart(2, '0')}`;
+        } else {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1; 
+            const monthStr = month.toString().padStart(2, '0');
+            startDate = `${year}-${monthStr}-01`;
+            const lastDayDate = new Date(year, month, 0);
+            const lastDay = lastDayDate.getDate();
+            endDate = `${year}-${monthStr}-${lastDay.toString().padStart(2, '0')}`;
+        }
+
+        const params = {
+            start_date: startDate,
+            end_date: endDate
+        };
+        
+        document.getElementById('exportParams').value = JSON.stringify(params);
+    }
+</script>
+{% endblock %}

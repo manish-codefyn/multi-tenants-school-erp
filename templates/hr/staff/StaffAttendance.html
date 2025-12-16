@@ -1,0 +1,83 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Staff Attendance" %} - {{ staff.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{{ staff.full_name }}</h1>
+            <p class="text-muted mb-0">{% trans "Attendance History" %}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:staff_detail' staff.pk %}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-2"></i>{% trans "Back to Profile" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4 mb-4">
+        <!-- Add summary stats here like Present Days, Absent Days, Lates, etc. -->
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Attendance Records" %}</h6>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    {% trans "Export" %}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">PDF</a></li>
+                    <li><a class="dropdown-item" href="#">Excel</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Check In" %}</th>
+                            <th>{% trans "Check Out" %}</th>
+                            <th>{% trans "Hours" %}</th>
+                            <th>{% trans "Remarks" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attendance in attendance_records %}
+                        <tr>
+                            <td>{{ attendance.date|date:"M d, Y (D)" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if attendance.status == 'PRESENT' %}bg-success-subtle text-success
+                                    {% elif attendance.status == 'ABSENT' %}bg-danger-subtle text-danger
+                                    {% elif attendance.status == 'LATE' %}bg-warning-subtle text-warning
+                                    {% elif attendance.status == 'HALF_DAY' %}bg-info-subtle text-info
+                                    {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                    {{ attendance.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ attendance.check_in|default:"-" }}</td>
+                            <td>{{ attendance.check_out|default:"-" }}</td>
+                            <td>{{ attendance.work_hours|default:"-" }}</td>
+                            <td>{{ attendance.remarks|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">{% trans "No attendance records found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% include 'partials/pagination.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,65 +1,56 @@
-# Add these to your views.py file
-
-from django.views.generic import View,ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
+import logging
+import csv
+import io
+import re
+import uuid
+import json
+import openpyxl
+from django.shortcuts import render
+from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db.models import Count, Q, Sum, Avg
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.permissions.mixins import PermissionRequiredMixin, RoleRequiredMixin, TenantAccessMixin
 from apps.core.utils.tenant import get_current_tenant
-# from apps.core.utils.audit import audit_log
+from apps.core.utils.audit import audit_log
+from apps.core.views import (
+    BaseView, BaseListView, BaseDetailView, BaseCreateView, 
+    BaseUpdateView, BaseDeleteView, BaseTemplateView, ExportMixin
+)
+
+logger = logging.getLogger(__name__)
 
 from .models import (
     Department, Designation, Staff, StaffAddress, StaffDocument,
     StaffAttendance, LeaveType, LeaveApplication, LeaveBalance,
     SalaryStructure, Payroll, Promotion, EmploymentHistory,
     TrainingProgram, TrainingParticipation, PerformanceReview,
-    Recruitment, JobApplication
+    Recruitment, JobApplication, Holiday, WorkSchedule, TaxConfig, PFESIConfig,
+    Qualification
 )
 from .forms import (
     DepartmentForm, DesignationForm, StaffForm, StaffAddressForm,
     StaffDocumentForm, AttendanceForm, LeaveTypeForm, LeaveApplicationForm,
     LeaveBalanceForm, SalaryStructureForm, PayrollForm, PromotionForm,
     EmploymentHistoryForm, TrainingProgramForm, TrainingParticipationForm,
-    PerformanceReviewForm, RecruitmentForm, JobApplicationForm
-)
-
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
-from django.contrib import messages
-from django.db.models import Count, Q, Sum, Avg
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse, HttpResponseForbidden
-from django.core.exceptions import PermissionDenied
-
-from apps.core.permissions.mixins import PermissionRequiredMixin, RoleRequiredMixin, TenantAccessMixin
-from apps.core.utils.tenant import get_current_tenant
-from apps.core.utils.audit import audit_log
-
-from .models import (
-    Department, Designation, Staff, StaffAddress, StaffDocument,
-    StaffAttendance, LeaveType, LeaveApplication, LeaveBalance,
-    SalaryStructure, Payroll, Promotion, EmploymentHistory,
-    TrainingProgram, TrainingParticipation, PerformanceReview, Holiday, WorkSchedule, TaxConfig, PFESIConfig,
-    Recruitment, JobApplication
-)
-from .forms import (
-    DepartmentForm, DesignationForm, StaffForm, StaffAddressForm,
-    StaffDocumentForm, AttendanceForm, LeaveTypeForm, LeaveApplicationForm,
-    LeaveBalanceForm, SalaryStructureForm, PayrollForm, PromotionForm,
-    EmploymentHistoryForm, TrainingProgramForm, TrainingParticipationForm,
-    PerformanceReviewForm, RecruitmentForm, JobApplicationForm
+    PerformanceReviewForm, RecruitmentForm, JobApplicationForm, PublicJobApplicationForm, StaffImportForm,
+    QualificationForm, HolidayForm, WorkScheduleForm
 )
 
 
-class HRDashboardView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
+User = get_user_model()
+from .idcard import StaffIDCardGenerator
+
+
+class HRDashboardView(BaseTemplateView):
     template_name = 'hr/dashboard.html'
     permission_required = 'hr.view_dashboard'
     roles_required = ['admin', 'hr_manager', 'principal']
@@ -79,7 +70,7 @@ class HRDashboardView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
         
         # Department Statistics
         departments = Department.objects.filter(tenant=tenant).annotate(
-            staff_count=Count('staff_members', filter=Q(staff_members__is_active=True))
+            staff_members_count=Count('staff_members', filter=Q(staff_members__is_active=True))
         )
         context['departments'] = departments
         context['total_departments'] = departments.count()
@@ -139,7 +130,7 @@ class HRDashboardView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
         audit_log(
             user=self.request.user,
             action='VIEW_DASHBOARD',
-            resource='HR Dashboard',
+            resource_type='HR Dashboard',
             details={'tenant_id': str(tenant.id)},
             severity='INFO'
         )
@@ -147,7 +138,7 @@ class HRDashboardView(LoginRequiredMixin, RoleRequiredMixin, TemplateView):
         return context
 
 
-class StaffListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class StaffListView(BaseListView):
     model = Staff
     template_name = 'hr/staff/list.html'
     context_object_name = 'staff_members'
@@ -221,7 +212,7 @@ class StaffListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMix
         return context
 
 
-class StaffDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class StaffDetailView(BaseDetailView):
     model = Staff
     template_name = 'hr/staff/detail.html'
     context_object_name = 'staff'
@@ -258,7 +249,7 @@ class StaffDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessM
         return context
 
 
-class StaffCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class StaffCreateView(BaseCreateView):
     model = Staff
     form_class = StaffForm
     template_name = 'hr/staff/form.html'
@@ -287,7 +278,7 @@ class StaffCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         audit_log(
             user=self.request.user,
             action='CREATE_STAFF',
-            resource='Staff',
+            resource_type='Staff',
             resource_id=str(self.object.id),
             details={
                 'staff_id': str(self.object.id),
@@ -300,7 +291,7 @@ class StaffCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return response
 
 
-class StaffUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class StaffUpdateView(BaseUpdateView):
     model = Staff
     form_class = StaffForm
     template_name = 'hr/staff/form.html'
@@ -327,7 +318,7 @@ class StaffUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessM
         audit_log(
             user=self.request.user,
             action='UPDATE_STAFF',
-            resource='Staff',
+            resource_type='Staff',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -336,7 +327,7 @@ class StaffUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessM
         return response
 
 
-class StaffDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class StaffDeleteView(BaseDeleteView):
     model = Staff
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_staff'
@@ -363,7 +354,7 @@ class StaffDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessM
         audit_log(
             user=request.user,
             action='DELETE_STAFF',
-            resource='Staff',
+            resource_type='Staff',
             resource_id=str(staff.id),
             details={
                 'employee_id': staff.employee_id,
@@ -373,32 +364,244 @@ class StaffDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessM
             severity='WARNING'
         )
         
+
         return JsonResponse({
             'success': True,
             'redirect': self.get_success_url()
         })
 
 
+class StaffIDCardView(BaseDetailView):
+    """Generate ID Card for staff"""
+    model = Staff
+    permission_required = 'hr.view_staff'
+    roles_required = ['admin', 'staff','super_admin'] 
+    
+    def get(self, request, *args, **kwargs):
+        staff = self.get_object()
+        
+        # Check permissions: can only view own ID card unless admin/hr
+        if not (request.user.role in ['admin','staff','super_admin','hr'] or staff.user == request.user):
+            raise PermissionDenied("You do not have permission to view ID card for this staff member.")
+            
+        generator = StaffIDCardGenerator(staff)
+        return generator.get_id_card_response()
+
+
+
+class StaffImportView(BaseView):
+    """View to import staff from CSV/Excel"""
+    permission_required = 'hr.add_staff'
+    roles_required = ['admin', 'hr_manager']
+    template_name = 'hr/staff/import.html'
+    
+    def get(self, request, *args, **kwargs):
+        form = StaffImportForm()
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request, *args, **kwargs):
+        form = StaffImportForm(request.POST, request.FILES)
+        if not form.is_valid():
+            return render(request, self.template_name, {'form': form})
+            
+        file = request.FILES['file']
+        tenant = get_current_tenant()
+        created_count = 0
+        updated_count = 0
+        errors = []
+        
+        try:
+            # Read file based on extension
+            if file.name.endswith('.csv'):
+                data_list = []
+                # Use utf-8-sig to handle BOM from Excel
+                decoded_file = file.read().decode('utf-8-sig').splitlines()
+                reader = csv.DictReader(decoded_file)
+                # Normalize headers
+                if reader.fieldnames:
+                    reader.fieldnames = [str(name).strip().lower().replace(' ', '_') for name in reader.fieldnames]
+                
+                for row in reader:
+                    data_list.append(row)
+            else:
+                # Excel
+                wb = openpyxl.load_workbook(file)
+                ws = wb.active
+                # Normalize headers
+                headers = []
+                for cell in ws[1]:
+                    value = cell.value
+                    if value:
+                        headers.append(str(value).strip().lower().replace(' ', '_'))
+                    else:
+                        headers.append('') # Handle empty header cells if any
+                
+                data_list = []
+                for row in ws.iter_rows(min_row=2, values_only=True):
+                    # Only zip if we have headers, and handle row length
+                    row_dict = {}
+                    for i, value in enumerate(row):
+                        if i < len(headers) and headers[i]:
+                            row_dict[headers[i]] = value
+                    data_list.append(row_dict)
+            
+            # Process data
+            for index, row in enumerate(data_list):
+                row_num = index + 2
+                email = row.get('email')
+                first_name = row.get('first_name')
+                # Handle flexible names
+                if not first_name and row.get('name'):
+                    name_parts = row['name'].strip().split(' ', 1)
+                    first_name = name_parts[0]
+                    if len(name_parts) > 1 and not row.get('last_name'):
+                        row['last_name'] = name_parts[1]
+                
+                if not email or not first_name:
+                    errors.append(f"Row {row_num}: Missing required keys. Found: {list(row.keys())}")
+                    continue
+                    
+                # Create/Get User
+                user, user_created = User.objects.get_or_create(
+                    email=email.strip(),
+                    defaults={
+                        'password': 'Staff@123',
+                        'first_name': first_name.strip(),
+                        'last_name': row.get('last_name', '').strip(),
+                        'role': 'staff',
+                        'is_active': True,
+                        'tenant': tenant
+                    }
+                )
+                
+                if user_created:
+                    user.set_password('Staff@123') # Default password
+                    user.save()
+                
+                # Validate IDs and Lookup by Name
+                dept_id = row.get('department_id')
+                desig_id = row.get('designation_id')
+                
+                # Check Department (ID or Name)
+                if dept_id:
+                    try:
+                         uuid.UUID(str(dept_id))
+                    except (ValueError, TypeError):
+                        dept_id = None
+                
+                if not dept_id and row.get('department'):
+                    dept_obj = Department.objects.filter(tenant=tenant, name__iexact=row['department'].strip()).first()
+                    if dept_obj:
+                        dept_id = dept_obj.id
+
+                # Check Designation (ID or Name)
+                if desig_id:
+                    try:
+                        uuid.UUID(str(desig_id))
+                    except (ValueError, TypeError):
+                        desig_id = None
+                        
+                if not desig_id and row.get('designation'):
+                    desig_obj = Designation.objects.filter(tenant=tenant, title__iexact=row['designation'].strip()).first()
+                    if desig_obj:
+                        desig_id = desig_obj.id
+
+                # Create/Update Staff
+                staff, staff_created = Staff.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'department_id': dept_id,
+                        'designation_id': desig_id,
+                        'joining_date': row.get('joining_date', timezone.now().date()),
+                        'date_of_birth': row.get('date_of_birth', '2000-01-01'),
+                        'personal_phone': row.get('phone', ''),
+                        'tenant': tenant
+                    }
+                )
+                
+                if staff_created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+                    
+            messages.success(request, f"Import complete. Created: {created_count}, Updated: {updated_count}")
+            if errors:
+                messages.warning(request, f"Encounters {len(errors)} errors: " + "; ".join(errors[:5]))
+                
+        except Exception as e:
+            messages.error(request, f"Error processing file: {str(e)}")
+            
+        return redirect('hr:staff_list')
+
+
+class StaffImportSampleView(BaseView):
+    """Download sample import file"""
+    permission_required = 'hr.add_staff'
+    roles_required = ['admin', 'hr_manager']
+    
+    def get(self, request, *args, **kwargs):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="staff_import_sample.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['first_name', 'last_name', 'email', 'phone', 'department_id', 'designation_id', 'joining_date', 'date_of_birth'])
+        
+        # Get real examples if available
+        tenant = get_current_tenant()
+        dept = Department.objects.filter(tenant=tenant).first()
+        desig = Designation.objects.filter(tenant=tenant).first()
+        
+        dept_id = str(dept.id) if dept else 'UUID-OR-EMPTY'
+        desig_id = str(desig.id) if desig else 'UUID-OR-EMPTY'
+        
+        writer.writerow(['John', 'Doe', 'john@example.com', '9876543210', dept_id, desig_id, '2023-01-01', '1990-01-01'])
+        
+        return response
+
+
+class StaffExportView(ExportMixin, BaseListView):
+    """Export staff list"""
+    permission_required = 'hr.view_staff'
+    model = Staff
+    export_filename = 'staff_export'
+    
+    def get(self, request, *args, **kwargs):
+        return self.export(request, *args, **kwargs)
+        
+    def get_queryset(self):
+        return super().get_queryset().select_related('user', 'department', 'designation')
+
+    def get_export_headers(self):
+        return ['first_name', 'last_name', 'email', 'phone', 'department_id', 'designation_id', 'joining_date', 'date_of_birth']
+    
+    def get_export_row(self, staff):
+        return [
+            staff.user.first_name,
+            staff.user.last_name,
+            staff.user.email,
+            staff.personal_phone,
+            str(staff.department.id) if staff.department else '',
+            str(staff.designation.id) if staff.designation else '',
+            staff.joining_date,
+            staff.date_of_birth
+        ]
+
+
 # ==================== DEPARTMENT VIEWS ====================
 
-class DepartmentListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class DepartmentListView(BaseListView):
     model = Department
     template_name = 'hr/department/list.html'
     context_object_name = 'departments'
     permission_required = 'hr.view_department'
 
 
-class DepartmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class DepartmentCreateView(BaseCreateView):
     model = Department
     form_class = DepartmentForm
     template_name = 'hr/department/form.html'
     permission_required = 'hr.add_department'
     roles_required = ['admin', 'hr_manager', 'principal']
-    
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request
-        return kwargs
     
     def get_success_url(self):
         return reverse_lazy('hr:department_list')
@@ -406,63 +609,25 @@ class DepartmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         form.instance.updated_by = self.request.user
-        
-        response = super().form_valid(form)
-        
-        messages.success(
-            self.request,
-            f"Department '{form.instance.name}' created successfully."
-        )
-        
-        audit_log(
-            user=self.request.user,
-            action='CREATE_DEPARTMENT',
-            resource='Department',
-            resource_id=str(self.object.id),
-            details={'name': self.object.name, 'code': self.object.code},
-            severity='INFO'
-        )
-        
-        return response
+        return super().form_valid(form)
 
 
-class DepartmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class DepartmentUpdateView(BaseUpdateView):
     model = Department
     form_class = DepartmentForm
     template_name = 'hr/department/form.html'
     permission_required = 'hr.change_department'
     roles_required = ['admin', 'hr_manager', 'principal']
     
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request
-        return kwargs
-    
     def get_success_url(self):
         return reverse_lazy('hr:department_list')
     
     def form_valid(self, form):
         form.instance.updated_by = self.request.user
-        response = super().form_valid(form)
-        
-        messages.success(
-            self.request,
-            f"Department '{form.instance.name}' updated successfully."
-        )
-        
-        audit_log(
-            user=self.request.user,
-            action='UPDATE_DEPARTMENT',
-            resource='Department',
-            resource_id=str(self.object.id),
-            details={'changes': form.changed_data},
-            severity='INFO'
-        )
-        
-        return response
+        return super().form_valid(form)
 
 
-class DepartmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class DepartmentDeleteView(BaseDeleteView):
     model = Department
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_department'
@@ -481,39 +646,15 @@ class DepartmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
                 f"Cannot delete department '{department.name}' because it has active staff members."
             )
             return JsonResponse({'success': False, 'error': 'Department has active staff'})
-        
-        # Perform soft delete
-        department.delete(
-            user=request.user,
-            reason=request.POST.get('deletion_reason', 'No reason provided'),
-            category=request.POST.get('deletion_category', 'ADMIN_ACTION')
-        )
-        
-        messages.success(
-            request,
-            f"Department '{department.name}' has been deleted."
-        )
-        
-        audit_log(
-            user=request.user,
-            action='DELETE_DEPARTMENT',
-            resource='Department',
-            resource_id=str(department.id),
-            details={'name': department.name, 'code': department.code},
-            severity='WARNING'
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'redirect': self.get_success_url()
-        })
+            
+        return super().delete(request, *args, **kwargs)
 
 
 # ==================== StaffAttendance VIEWS ====================
 
-class AttendanceListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class AttendanceListView(BaseListView):
     model = StaffAttendance
-    template_name = 'hr/StaffAttendance/list.html'
+    template_name = 'hr/attendance/list.html'
     context_object_name = 'attendances'
     permission_required = 'hr.view_attendance'
     paginate_by = 50
@@ -560,8 +701,8 @@ class AttendanceListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcce
         return context
 
 
-class AttendanceBulkCreateView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
-    template_name = 'hr/StaffAttendance/bulk_create.html'
+class AttendanceBulkCreateView(BaseTemplateView):
+    template_name = 'hr/attendance/bulk_create.html'
     permission_required = 'hr.add_attendance'
     roles_required = ['admin', 'hr_manager', 'attendance_manager']
     
@@ -589,12 +730,14 @@ class AttendanceBulkCreateView(LoginRequiredMixin, PermissionRequiredMixin, Temp
         
         date = request.POST.get('date')
         if not date:
-            return JsonResponse({'success': False, 'error': 'Date is required'})
+            messages.error(request, "Date is required")
+            return redirect('hr:attendance_mark')
         
         try:
             attendance_date = timezone.datetime.strptime(date, '%Y-%m-%d').date()
         except ValueError:
-            return JsonResponse({'success': False, 'error': 'Invalid date format'})
+            messages.error(request, "Invalid date format")
+            return redirect('hr:attendance_mark')
         
         tenant = get_current_tenant()
         created_count = 0
@@ -608,15 +751,33 @@ class AttendanceBulkCreateView(LoginRequiredMixin, PermissionRequiredMixin, Temp
             
             status = request.POST.get(status_key)
             if status:
+                # Parse check-in/out times
+                check_in_str = request.POST.get(check_in_key)
+                check_out_str = request.POST.get(check_out_key)
+                
+                check_in_time = None
+                if check_in_str:
+                    try:
+                        check_in_time = timezone.datetime.strptime(check_in_str, '%H:%M').time()
+                    except ValueError:
+                        pass
+                        
+                check_out_time = None
+                if check_out_str:
+                    try:
+                        check_out_time = timezone.datetime.strptime(check_out_str, '%H:%M').time()
+                    except ValueError:
+                        pass
+
                 # Create or update StaffAttendance record
-                StaffAttendance, created = StaffAttendance.objects.update_or_create(
+                attendance_record, created = StaffAttendance.objects.update_or_create(
                     tenant=tenant,
                     staff=staff,
                     date=attendance_date,
                     defaults={
                         'status': status,
-                        'check_in': request.POST.get(check_in_key),
-                        'check_out': request.POST.get(check_out_key),
+                        'check_in': check_in_time,
+                        'check_out': check_out_time,
                         'remarks': request.POST.get(remarks_key, ''),
                         'marked_by': request.user,
                     }
@@ -630,7 +791,7 @@ class AttendanceBulkCreateView(LoginRequiredMixin, PermissionRequiredMixin, Temp
         audit_log(
             user=request.user,
             action='BULK_ATTENDANCE',
-            resource='StaffAttendance',
+            resource_type='StaffAttendance',
             details={
                 'date': date,
                 'created': created_count,
@@ -644,15 +805,12 @@ class AttendanceBulkCreateView(LoginRequiredMixin, PermissionRequiredMixin, Temp
             f"StaffAttendance marked for {created_count + updated_count} staff members."
         )
         
-        return JsonResponse({
-            'success': True,
-            'message': f"StaffAttendance saved successfully. Created: {created_count}, Updated: {updated_count}"
-        })
+        return redirect('hr:attendance_list')
 
 
 # ==================== LEAVE VIEWS ====================
 
-class LeaveApplicationListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class LeaveApplicationListView(BaseListView):
     model = LeaveApplication
     template_name = 'hr/leave/application_list.html'
     context_object_name = 'leave_applications'
@@ -712,7 +870,7 @@ class LeaveApplicationListView(LoginRequiredMixin, PermissionRequiredMixin, Tena
         return context
 
 
-class LeaveApplicationCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class LeaveApplicationCreateView(BaseCreateView):
     model = LeaveApplication
     form_class = LeaveApplicationForm
     template_name = 'hr/leave/application_form.html'
@@ -733,7 +891,7 @@ class LeaveApplicationCreateView(LoginRequiredMixin, PermissionRequiredMixin, Cr
         return kwargs
     
     def get_success_url(self):
-        return reverse_lazy('hr:leaveapplication_list')
+        return reverse_lazy('hr:leave_list')
     
     def form_valid(self, form):
         form.instance.applied_date = timezone.now()
@@ -747,7 +905,7 @@ class LeaveApplicationCreateView(LoginRequiredMixin, PermissionRequiredMixin, Cr
         audit_log(
             user=self.request.user,
             action='APPLY_LEAVE',
-            resource='Leave Application',
+            resource_type='Leave Application',
             resource_id=str(self.object.id),
             details={
                 'staff': self.object.staff.full_name,
@@ -760,7 +918,7 @@ class LeaveApplicationCreateView(LoginRequiredMixin, PermissionRequiredMixin, Cr
         return response
 
 
-class LeaveApplicationApproveView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class LeaveApplicationApproveView(BaseUpdateView):
     model = LeaveApplication
     fields = []  # No form fields needed for approval
     permission_required = 'hr.approve_leaveapplication'
@@ -796,7 +954,7 @@ class LeaveApplicationApproveView(LoginRequiredMixin, PermissionRequiredMixin, U
         audit_log(
             user=request.user,
             action=f'{action.upper()}_LEAVE',
-            resource='Leave Application',
+            resource_type='Leave Application',
             resource_id=str(leave_app.id),
             details={
                 'staff': leave_app.staff.full_name,
@@ -812,7 +970,7 @@ class LeaveApplicationApproveView(LoginRequiredMixin, PermissionRequiredMixin, U
 
 # ==================== PAYROLL VIEWS ====================
 
-class PayrollListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class PayrollListView(BaseListView):
     model = Payroll
     template_name = 'hr/payroll/list.html'
     context_object_name = 'payrolls'
@@ -872,7 +1030,7 @@ class PayrollListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessM
         return context
 
 
-class PayrollGenerateView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class PayrollGenerateView(BaseTemplateView):
     template_name = 'hr/payroll/generate.html'
     permission_required = 'hr.generate_payroll'
     roles_required = ['admin', 'hr_manager', 'accountant']
@@ -897,12 +1055,14 @@ class PayrollGenerateView(LoginRequiredMixin, PermissionRequiredMixin, TemplateV
     def post(self, request, *args, **kwargs):
         month = request.POST.get('month')
         if not month:
-            return JsonResponse({'success': False, 'error': 'Month is required'})
+            messages.error(request, "Month is required")
+            return redirect('hr:payroll_generate')
         
         try:
             month_date = timezone.datetime.strptime(month, '%Y-%m').date()
         except ValueError:
-            return JsonResponse({'success': False, 'error': 'Invalid month format'})
+            messages.error(request, "Invalid month format")
+            return redirect('hr:payroll_generate')
         
         tenant = get_current_tenant()
         created_count = 0
@@ -912,25 +1072,42 @@ class PayrollGenerateView(LoginRequiredMixin, PermissionRequiredMixin, TemplateV
             if Payroll.objects.filter(tenant=tenant, staff=staff, salary_month=month_date).exists():
                 continue
             
-            # Create payroll entry
-            Payroll.objects.create(
+            # Create payrol entry
+            # defaults for required fields
+            allowances = {}
+            deductions = {}
+            total_earnings = staff.basic_salary # Simplified initial value
+            total_deductions = 0
+            net_salary = total_earnings - total_deductions
+            
+            payroll = Payroll.objects.create(
                 tenant=tenant,
                 staff=staff,
                 salary_month=month_date,
                 pay_date=timezone.now().date(),
                 basic_salary=staff.basic_salary,
+                allowances=allowances,
+                deductions=deductions,
+                total_earnings=total_earnings,
+                total_deductions=total_deductions,
+                net_salary=net_salary,
                 working_days=22,  # Default, should be configurable
-                present_days=18,  # Default, should be calculated from StaffAttendance
+                present_days=22,  # Default, assume full attendance for now
                 status='DRAFT',
                 created_by=request.user,
-                updated_by=request.user
+                updated_by=request.user,
+                processed_by=request.user 
             )
+            
+            # Recalculate based on actual logic if needed
+            payroll.calculate_salary()
+            
             created_count += 1
         
         audit_log(
             user=request.user,
             action='GENERATE_PAYROLL',
-            resource='Payroll',
+            resource_type='Payroll',
             details={'month': month, 'entries_created': created_count},
             severity='INFO'
         )
@@ -940,15 +1117,12 @@ class PayrollGenerateView(LoginRequiredMixin, PermissionRequiredMixin, TemplateV
             f"Payroll generated for {created_count} staff members for {month}."
         )
         
-        return JsonResponse({
-            'success': True,
-            'message': f"Payroll generated for {created_count} staff members."
-        })
+        return redirect('hr:payroll_list')
 
 
 # ==================== API VIEWS FOR AJAX ====================
 
-class StaffAutocompleteView(LoginRequiredMixin, PermissionRequiredMixin, View):
+class StaffAutocompleteView(BaseView):
     permission_required = 'hr.view_staff'
     
     def get(self, request, *args, **kwargs):
@@ -985,7 +1159,7 @@ class StaffAutocompleteView(LoginRequiredMixin, PermissionRequiredMixin, View):
         return JsonResponse({'results': results})
 
 
-class LeaveBalanceCheckView(LoginRequiredMixin, PermissionRequiredMixin, View):
+class LeaveBalanceCheckView(BaseView):
     permission_required = 'hr.view_leavebalance'
     
     def get(self, request, *args, **kwargs):
@@ -1029,7 +1203,7 @@ class LeaveBalanceCheckView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
 # ==================== EXPORT VIEWS ====================
 
-class StaffExportView(LoginRequiredMixin, PermissionRequiredMixin, View):
+class StaffExportView(BaseView):
     permission_required = 'hr.export_staff'
     roles_required = ['admin', 'hr_manager']
     
@@ -1075,7 +1249,7 @@ class StaffExportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         audit_log(
             user=request.user,
             action='EXPORT_STAFF',
-            resource='Staff',
+            resource_type='Staff',
             details={'format': 'csv', 'count': staff_list.count()},
             severity='INFO'
         )
@@ -1085,7 +1259,7 @@ class StaffExportView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
 # ==================== DASHBOARD WIDGETS ====================
 
-class HRDashboardWidgetsView(LoginRequiredMixin, PermissionRequiredMixin, View):
+class HRDashboardWidgetsView(BaseView):
     permission_required = 'hr.view_dashboard'
     
     def get(self, request, *args, **kwargs):
@@ -1141,7 +1315,7 @@ class HRDashboardWidgetsView(LoginRequiredMixin, PermissionRequiredMixin, View):
 # ==================== STAFF SUB-PAGES ====================
 
 
-class StaffAttendanceView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class StaffAttendanceView(BaseDetailView):
     """Staff-specific StaffAttendance view"""
     model = Staff
     template_name = 'hr/staff/StaffAttendance.html'
@@ -1173,7 +1347,7 @@ class StaffAttendanceView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         return context
 
 
-class StaffLeavesView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class StaffLeavesView(BaseDetailView):
     """Staff-specific leaves view"""
     model = Staff
     template_name = 'hr/staff/leaves.html'
@@ -1211,7 +1385,7 @@ class StaffLeavesView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessM
         return context
 
 
-class StaffDocumentsView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class StaffDocumentsView(BaseDetailView):
     """Staff-specific documents view"""
     model = Staff
     template_name = 'hr/staff/documents.html'
@@ -1245,7 +1419,7 @@ class StaffDocumentsView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcce
         return context
 
 
-class StaffSalaryView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class StaffSalaryView(BaseDetailView):
     """Staff-specific salary view"""
     model = Staff
     template_name = 'hr/staff/salary.html'
@@ -1289,7 +1463,7 @@ class StaffSalaryView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessM
         return context
 
 
-class StaffPerformanceView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class StaffPerformanceView(BaseDetailView):
     """Staff-specific performance view"""
     model = Staff
     template_name = 'hr/staff/performance.html'
@@ -1338,7 +1512,7 @@ class StaffPerformanceView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
 
 # ==================== DESIGNATION VIEWS ====================
 
-class DesignationListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class DesignationListView(BaseListView):
     model = Designation
     template_name = 'hr/designation/list.html'
     context_object_name = 'designations'
@@ -1346,7 +1520,7 @@ class DesignationListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
     paginate_by = 20
 
 
-class DesignationCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class DesignationCreateView(BaseCreateView):
     model = Designation
     form_class = DesignationForm
     template_name = 'hr/designation/form.html'
@@ -1374,7 +1548,7 @@ class DesignationCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
         audit_log(
             user=self.request.user,
             action='CREATE_DESIGNATION',
-            resource='Designation',
+            resource_type='Designation',
             resource_id=str(self.object.id),
             details={'title': self.object.title, 'code': self.object.code},
             severity='INFO'
@@ -1383,7 +1557,7 @@ class DesignationCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
         return response
 
 
-class DesignationDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class DesignationDetailView(BaseDetailView):
     model = Designation
     template_name = 'hr/designation/detail.html'
     context_object_name = 'designation'
@@ -1409,7 +1583,7 @@ class DesignationDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         return context
 
 
-class DesignationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class DesignationUpdateView(BaseUpdateView):
     model = Designation
     form_class = DesignationForm
     template_name = 'hr/designation/form.html'
@@ -1436,7 +1610,7 @@ class DesignationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         audit_log(
             user=self.request.user,
             action='UPDATE_DESIGNATION',
-            resource='Designation',
+            resource_type='Designation',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -1445,7 +1619,7 @@ class DesignationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         return response
 
 
-class DesignationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class DesignationDeleteView(BaseDeleteView):
     model = Designation
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_designation'
@@ -1480,7 +1654,7 @@ class DesignationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         audit_log(
             user=request.user,
             action='DELETE_DESIGNATION',
-            resource='Designation',
+            resource_type='Designation',
             resource_id=str(designation.id),
             details={'title': designation.title, 'code': designation.code},
             severity='WARNING'
@@ -1494,7 +1668,7 @@ class DesignationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
 
 # ==================== DEPARTMENT DETAIL VIEW ====================
 
-class DepartmentDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class DepartmentDetailView(BaseDetailView):
     """Department detail view"""
     model = Department
     template_name = 'hr/department/detail.html'
@@ -1542,14 +1716,14 @@ class DepartmentDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
 
 # ==================== DEPARTMENT VIEWS ====================
 
-class DepartmentListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class DepartmentListView(BaseListView):
     model = Department
     template_name = 'hr/department/list.html'
     context_object_name = 'departments'
     permission_required = 'hr.view_department'
 
 
-class DepartmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class DepartmentCreateView(BaseCreateView):
     model = Department
     form_class = DepartmentForm
     template_name = 'hr/department/form.html'
@@ -1578,7 +1752,7 @@ class DepartmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         audit_log(
             user=self.request.user,
             action='CREATE_DEPARTMENT',
-            resource='Department',
+            resource_type='Department',
             resource_id=str(self.object.id),
             details={'name': self.object.name, 'code': self.object.code},
             severity='INFO'
@@ -1587,7 +1761,7 @@ class DepartmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         return response
 
 
-class DepartmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class DepartmentUpdateView(BaseUpdateView):
     model = Department
     form_class = DepartmentForm
     template_name = 'hr/department/form.html'
@@ -1614,7 +1788,7 @@ class DepartmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         audit_log(
             user=self.request.user,
             action='UPDATE_DEPARTMENT',
-            resource='Department',
+            resource_type='Department',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -1623,7 +1797,7 @@ class DepartmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         return response
 
 
-class DepartmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class DepartmentDeleteView(BaseDeleteView):
     model = Department
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_department'
@@ -1658,7 +1832,7 @@ class DepartmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         audit_log(
             user=request.user,
             action='DELETE_DEPARTMENT',
-            resource='Department',
+            resource_type='Department',
             resource_id=str(department.id),
             details={'name': department.name, 'code': department.code},
             severity='WARNING'
@@ -1670,9 +1844,9 @@ class DepartmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         })
 # ==================== StaffAttendance SUB-VIEWS ====================
 
-class AttendanceDailyView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class AttendanceDailyView(BaseTemplateView):
     """Daily StaffAttendance view"""
-    template_name = 'hr/StaffAttendance/daily.html'
+    template_name = 'hr/attendance/daily.html'
     permission_required = 'hr.view_attendance'
     roles_required = ['admin', 'hr_manager', 'attendance_manager']
     
@@ -1730,7 +1904,7 @@ class AttendanceDailyView(LoginRequiredMixin, PermissionRequiredMixin, TemplateV
         return context
 
 
-class AttendanceMonthlyView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class AttendanceMonthlyView(BaseTemplateView):
     """Monthly StaffAttendance summary"""
     template_name = 'hr/StaffAttendance/monthly.html'
     permission_required = 'hr.view_attendance'
@@ -1801,10 +1975,10 @@ class AttendanceMonthlyView(LoginRequiredMixin, PermissionRequiredMixin, Templat
         return context
 
 
-class AttendanceUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class AttendanceUpdateView(BaseUpdateView):
     model = StaffAttendance
     form_class = AttendanceForm
-    template_name = 'hr/StaffAttendance/form.html'
+    template_name = 'hr/attendance/form.html'
     permission_required = 'hr.change_attendance'
     
     def get_form_kwargs(self):
@@ -1827,7 +2001,7 @@ class AttendanceUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         audit_log(
             user=self.request.user,
             action='UPDATE_ATTENDANCE',
-            resource='StaffAttendance',
+            resource_type='StaffAttendance',
             resource_id=str(self.object.id),
             details={
                 'staff': self.object.staff.full_name,
@@ -1840,7 +2014,7 @@ class AttendanceUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         return response
 
 
-class AttendanceDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class AttendanceDeleteView(BaseDeleteView):
     model = StaffAttendance
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_attendance'
@@ -1866,7 +2040,7 @@ class AttendanceDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         audit_log(
             user=request.user,
             action='DELETE_ATTENDANCE',
-            resource='StaffAttendance',
+            resource_type='StaffAttendance',
             resource_id=str(StaffAttendance.id),
             details={
                 'staff': StaffAttendance.staff.full_name,
@@ -1881,7 +2055,7 @@ class AttendanceDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         })
 
 
-class AttendanceDailySummaryView(LoginRequiredMixin, PermissionRequiredMixin, View):
+class AttendanceDailySummaryView(BaseView):
     """API view for daily StaffAttendance summary"""
     permission_required = 'hr.view_attendance'
     
@@ -1941,7 +2115,7 @@ class AttendanceDailySummaryView(LoginRequiredMixin, PermissionRequiredMixin, Vi
 
 # ==================== LEAVE MANAGEMENT SUB-VIEWS ====================
 
-class LeaveTypeListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class LeaveTypeListView(BaseListView):
     model = LeaveType
     template_name = 'hr/leave/type_list.html'
     context_object_name = 'leave_types'
@@ -1952,7 +2126,7 @@ class LeaveTypeListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcces
         return super().get_queryset().filter(tenant=tenant).order_by('name')
 
 
-class LeaveTypeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class LeaveTypeCreateView(BaseCreateView):
     model = LeaveType
     form_class = LeaveTypeForm
     template_name = 'hr/leave/type_form.html'
@@ -1980,7 +2154,7 @@ class LeaveTypeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
         audit_log(
             user=self.request.user,
             action='CREATE_LEAVETYPE',
-            resource='Leave Type',
+            resource_type='Leave Type',
             resource_id=str(self.object.id),
             details={'name': self.object.name, 'code': self.object.code},
             severity='INFO'
@@ -1989,7 +2163,7 @@ class LeaveTypeCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
         return response
 
 
-class LeaveTypeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class LeaveTypeUpdateView(BaseUpdateView):
     model = LeaveType
     form_class = LeaveTypeForm
     template_name = 'hr/leave/type_form.html'
@@ -2016,7 +2190,7 @@ class LeaveTypeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         audit_log(
             user=self.request.user,
             action='UPDATE_LEAVETYPE',
-            resource='Leave Type',
+            resource_type='Leave Type',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -2025,7 +2199,7 @@ class LeaveTypeUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         return response
 
 
-class LeaveTypeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class LeaveTypeDeleteView(BaseDeleteView):
     model = LeaveType
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_leavetype'
@@ -2068,7 +2242,7 @@ class LeaveTypeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         audit_log(
             user=request.user,
             action='DELETE_LEAVETYPE',
-            resource='Leave Type',
+            resource_type='Leave Type',
             resource_id=str(leave_type.id),
             details={'name': leave_type.name, 'code': leave_type.code},
             severity='WARNING'
@@ -2080,7 +2254,7 @@ class LeaveTypeDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         })
 
 
-class LeaveApplicationDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class LeaveApplicationDetailView(BaseDetailView):
     """Leave application detail"""
     model = LeaveApplication
     template_name = 'hr/leave/application_detail.html'
@@ -2112,7 +2286,7 @@ class LeaveApplicationDetailView(LoginRequiredMixin, PermissionRequiredMixin, Te
         return context
 
 
-class LeaveApplicationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class LeaveApplicationUpdateView(BaseUpdateView):
     model = LeaveApplication
     form_class = LeaveApplicationForm
     template_name = 'hr/leave/application_form.html'
@@ -2138,7 +2312,7 @@ class LeaveApplicationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Te
         audit_log(
             user=self.request.user,
             action='UPDATE_LEAVE_APPLICATION',
-            resource='Leave Application',
+            resource_type='Leave Application',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -2147,7 +2321,7 @@ class LeaveApplicationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Te
         return response
 
 
-class LeaveApplicationCancelView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class LeaveApplicationCancelView(BaseView)  :
     """Cancel leave application"""
     permission_required = 'hr.change_leaveapplication'
     http_method_names = ['post']
@@ -2183,7 +2357,7 @@ class LeaveApplicationCancelView(LoginRequiredMixin, PermissionRequiredMixin, Te
         audit_log(
             user=request.user,
             action='CANCEL_LEAVE',
-            resource='Leave Application',
+            resource_type='Leave Application',
             resource_id=str(leave_app.id),
             details={
                 'staff': leave_app.staff.full_name,
@@ -2199,7 +2373,7 @@ class LeaveApplicationCancelView(LoginRequiredMixin, PermissionRequiredMixin, Te
         })
 
 
-class LeaveApplicationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class LeaveApplicationDeleteView(BaseDeleteView):
     model = LeaveApplication
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_leaveapplication'
@@ -2236,7 +2410,7 @@ class LeaveApplicationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Te
         audit_log(
             user=request.user,
             action='DELETE_LEAVE_APPLICATION',
-            resource='Leave Application',
+            resource_type='Leave Application',
             resource_id=str(leave_app.id),
             details={
                 'staff': leave_app.staff.full_name,
@@ -2251,7 +2425,7 @@ class LeaveApplicationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Te
         })
 
 
-class LeaveBalanceListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class LeaveBalanceListView(BaseListView):
     """Leave balance list"""
     model = LeaveBalance
     template_name = 'hr/leave/balance_list.html'
@@ -2320,7 +2494,7 @@ class LeaveBalanceListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
 
 # ==================== PAYROLL SUB-VIEWS ====================
 
-class PayrollProcessView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class PayrollProcessView(BaseTemplateView):
     """Process payroll"""
     template_name = 'hr/payroll/process.html'
     permission_required = 'hr.process_payroll'
@@ -2392,7 +2566,7 @@ class PayrollProcessView(LoginRequiredMixin, PermissionRequiredMixin, TemplateVi
         audit_log(
             user=request.user,
             action='PROCESS_PAYROLL',
-            resource='Payroll',
+            resource_type='Payroll',
             details={
                 'month': month,
                 'records_processed': updated_count,
@@ -2414,7 +2588,7 @@ class PayrollProcessView(LoginRequiredMixin, PermissionRequiredMixin, TemplateVi
         })
 
 
-class PayrollDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class PayrollDetailView(BaseDetailView):
     """Payroll detail view"""
     model = Payroll
     template_name = 'hr/payroll/detail.html'
@@ -2422,7 +2596,7 @@ class PayrollDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcces
     permission_required = 'hr.view_payroll'
 
 
-class PayrollUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class PayrollUpdateView(BaseUpdateView):
     model = Payroll
     form_class = PayrollForm
     template_name = 'hr/payroll/form.html'
@@ -2448,7 +2622,7 @@ class PayrollUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcces
         audit_log(
             user=self.request.user,
             action='UPDATE_PAYROLL',
-            resource='Payroll',
+            resource_type='Payroll',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -2457,7 +2631,7 @@ class PayrollUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcces
         return response
 
 
-class PayrollDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class PayrollDeleteView(BaseDeleteView):
     model = Payroll
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_payroll'
@@ -2495,7 +2669,7 @@ class PayrollDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcces
         audit_log(
             user=request.user,
             action='DELETE_PAYROLL',
-            resource='Payroll',
+            resource_type='Payroll',
             resource_id=str(payroll.id),
             details={
                 'staff': payroll.staff.full_name,
@@ -2510,7 +2684,7 @@ class PayrollDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcces
         })
 
 
-class PayrollApproveView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class PayrollApproveView(BaseView):
     """Approve payroll"""
     permission_required = 'hr.approve_payroll'
     roles_required = ['admin', 'hr_manager', 'principal']
@@ -2541,7 +2715,7 @@ class PayrollApproveView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcce
         audit_log(
             user=request.user,
             action='APPROVE_PAYROLL',
-            resource='Payroll',
+            resource_type='Payroll',
             resource_id=str(payroll.id),
             details={
                 'staff': payroll.staff.full_name,
@@ -2557,7 +2731,7 @@ class PayrollApproveView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcce
         })
 
 
-class PayrollPayslipView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class PayrollPayslipView(BaseDetailView):
     """Generate payslip"""
     model = Payroll
     template_name = 'hr/payroll/payslip.html'
@@ -2595,7 +2769,7 @@ class PayrollPayslipView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcce
         return context
 
 
-class SalaryStructureListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class SalaryStructureListView(BaseListView):
     model = SalaryStructure
     template_name = 'hr/payroll/structure_list.html'
     context_object_name = 'salary_structures'
@@ -2625,7 +2799,7 @@ class SalaryStructureListView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
         return queryset.order_by('-effective_from')
 
 
-class SalaryStructureCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class SalaryStructureCreateView(BaseCreateView):
     model = SalaryStructure
     form_class = SalaryStructureForm
     template_name = 'hr/payroll/structure_form.html'
@@ -2653,7 +2827,7 @@ class SalaryStructureCreateView(LoginRequiredMixin, PermissionRequiredMixin, Cre
         audit_log(
             user=self.request.user,
             action='CREATE_SALARY_STRUCTURE',
-            resource='Salary Structure',
+            resource_type='Salary Structure',
             resource_id=str(self.object.id),
             details={'staff': self.object.staff.full_name},
             severity='INFO'
@@ -2662,7 +2836,7 @@ class SalaryStructureCreateView(LoginRequiredMixin, PermissionRequiredMixin, Cre
         return response
 
 
-class SalaryStructureUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class SalaryStructureUpdateView(BaseUpdateView):
     model = SalaryStructure
     form_class = SalaryStructureForm
     template_name = 'hr/payroll/structure_form.html'
@@ -2689,7 +2863,7 @@ class SalaryStructureUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         audit_log(
             user=self.request.user,
             action='UPDATE_SALARY_STRUCTURE',
-            resource='Salary Structure',
+            resource_type='Salary Structure',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -2698,7 +2872,7 @@ class SalaryStructureUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         return response
 
 
-class SalaryStructureDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class SalaryStructureDeleteView(BaseDeleteView):
     model = SalaryStructure
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_salarystructure'
@@ -2725,7 +2899,7 @@ class SalaryStructureDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         audit_log(
             user=request.user,
             action='DELETE_SALARY_STRUCTURE',
-            resource='Salary Structure',
+            resource_type='Salary Structure',
             resource_id=str(structure.id),
             details={'staff': structure.staff.full_name},
             severity='WARNING'
@@ -2737,7 +2911,7 @@ class SalaryStructureDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         })
 
 
-class PayrollMonthlyReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class PayrollMonthlyReportView(BaseTemplateView):
     """Monthly payroll report"""
     template_name = 'hr/payroll/report_monthly.html'
     permission_required = 'hr.view_payroll_report'
@@ -2793,7 +2967,7 @@ class PayrollMonthlyReportView(LoginRequiredMixin, PermissionRequiredMixin, Temp
         return context
 
 
-class PayrollAnnualReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class PayrollAnnualReportView(BaseTemplateView):
     """Annual payroll report"""
     template_name = 'hr/payroll/report_annual.html'
     permission_required = 'hr.view_payroll_report'
@@ -2848,7 +3022,7 @@ class PayrollAnnualReportView(LoginRequiredMixin, PermissionRequiredMixin, Templ
         return context
 
 
-class PayrollDepartmentReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class PayrollDepartmentReportView(BaseTemplateView):
     """Department-wise payroll report"""
     template_name = 'hr/payroll/report_department.html'
     permission_required = 'hr.view_payroll_report'
@@ -2997,7 +3171,7 @@ class PayrollSummaryView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
 # ==================== RECRUITMENT VIEWS ====================
 
-class RecruitmentListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class RecruitmentListView(BaseListView):
     model = Recruitment
     template_name = 'hr/recruitment/list.html'
     context_object_name = 'recruitments'
@@ -3059,7 +3233,7 @@ class RecruitmentListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         return context
 
 
-class RecruitmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class RecruitmentCreateView(BaseCreateView):
     model = Recruitment
     form_class = RecruitmentForm
     template_name = 'hr/recruitment/form.html'
@@ -3092,7 +3266,7 @@ class RecruitmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
         audit_log(
             user=self.request.user,
             action='CREATE_RECRUITMENT',
-            resource='Recruitment',
+            resource_type='Recruitment',
             resource_id=str(self.object.id),
             details={'position': self.object.position_title, 'openings': self.object.no_of_openings},
             severity='INFO'
@@ -3101,7 +3275,7 @@ class RecruitmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
         return response
 
 
-class RecruitmentDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class RecruitmentDetailView(BaseDetailView):
     model = Recruitment
     template_name = 'hr/recruitment/detail.html'
     context_object_name = 'recruitment'
@@ -3128,7 +3302,7 @@ class RecruitmentDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         return context
 
 
-class RecruitmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class RecruitmentUpdateView(BaseUpdateView):
     model = Recruitment
     form_class = RecruitmentForm
     template_name = 'hr/recruitment/form.html'
@@ -3155,7 +3329,7 @@ class RecruitmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         audit_log(
             user=self.request.user,
             action='UPDATE_RECRUITMENT',
-            resource='Recruitment',
+            resource_type='Recruitment',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -3164,7 +3338,7 @@ class RecruitmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         return response
 
 
-class RecruitmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class RecruitmentDeleteView(BaseDeleteView):
     model = Recruitment
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_recruitment'
@@ -3199,7 +3373,7 @@ class RecruitmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         audit_log(
             user=request.user,
             action='DELETE_RECRUITMENT',
-            resource='Recruitment',
+            resource_type='Recruitment',
             resource_id=str(recruitment.id),
             details={'position': recruitment.position_title},
             severity='WARNING'
@@ -3211,7 +3385,7 @@ class RecruitmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         })
 
 
-class RecruitmentCloseView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class RecruitmentCloseView(BaseView):
     """Close recruitment position"""
     permission_required = 'hr.change_recruitment'
     roles_required = ['admin', 'hr_manager']
@@ -3249,7 +3423,7 @@ class RecruitmentCloseView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         audit_log(
             user=request.user,
             action=f'{action.upper()}_RECRUITMENT',
-            resource='Recruitment',
+            resource_type='Recruitment',
             resource_id=str(recruitment.id),
             details={
                 'position': recruitment.position_title,
@@ -3265,7 +3439,7 @@ class RecruitmentCloseView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
 
 # ==================== JOB APPLICATION VIEWS ====================
 
-class JobApplicationListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class JobApplicationListView(BaseListView):
     model = JobApplication
     template_name = 'hr/recruitment/application_list.html'
     context_object_name = 'job_applications'
@@ -3328,10 +3502,10 @@ class JobApplicationListView(LoginRequiredMixin, PermissionRequiredMixin, Tenant
         return context
 
 
-class JobApplicationCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class JobApplicationCreateView(BaseCreateView):
     model = JobApplication
-    form_class = JobApplicationForm
-    template_name = 'hr/recruitment/application_form.html'
+    form_class = PublicJobApplicationForm
+    template_name = 'public/recruitment/application_form.html'
     permission_required = 'hr.add_jobapplication'
     
     def get_form_kwargs(self):
@@ -3354,7 +3528,7 @@ class JobApplicationCreateView(LoginRequiredMixin, PermissionRequiredMixin, Crea
         audit_log(
             user=self.request.user,
             action='CREATE_JOB_APPLICATION',
-            resource='Job Application',
+            resource_type='Job Application',
             resource_id=str(self.object.id),
             details={'applicant': self.object.applicant_name, 'position': self.object.recruitment.position_title},
             severity='INFO'
@@ -3363,19 +3537,37 @@ class JobApplicationCreateView(LoginRequiredMixin, PermissionRequiredMixin, Crea
         return response
 
 
-class JobApplicationDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class JobApplicationDetailView(BaseDetailView):
     model = JobApplication
     template_name = 'hr/recruitment/application_detail.html'
     context_object_name = 'job_application'
     permission_required = 'hr.view_jobapplication'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        job_application = self.get_object()
+        context['page_title'] = job_application.applicant_name
+        context['parent_text'] = _("Recruitment")
+        context['parent_url'] = reverse_lazy('hr:jobapplication_list')
+        context['current_text'] = job_application.applicant_name
+        return context
 
-class JobApplicationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+
+class JobApplicationUpdateView(BaseUpdateView):
     model = JobApplication
     form_class = JobApplicationForm
     template_name = 'hr/recruitment/application_form.html'
     permission_required = 'hr.change_jobapplication'
     roles_required = ['admin', 'hr_manager']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        job_application = self.get_object()
+        context['page_title'] = _("Edit Application")
+        context['parent_text'] = _("Recruitment")
+        context['parent_url'] = reverse_lazy('hr:jobapplication_list')
+        context['current_text'] = job_application.applicant_name
+        return context
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -3397,7 +3589,7 @@ class JobApplicationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Tena
         audit_log(
             user=self.request.user,
             action='UPDATE_JOB_APPLICATION',
-            resource='Job Application',
+            resource_type='Job Application',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -3406,7 +3598,7 @@ class JobApplicationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Tena
         return response
 
 
-class JobApplicationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class JobApplicationDeleteView(BaseDeleteView):
     model = JobApplication
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_jobapplication'
@@ -3433,7 +3625,7 @@ class JobApplicationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Tena
         audit_log(
             user=request.user,
             action='DELETE_JOB_APPLICATION',
-            resource='Job Application',
+            resource_type='Job Application',
             resource_id=str(application.id),
             details={'applicant': application.applicant_name},
             severity='WARNING'
@@ -3445,7 +3637,7 @@ class JobApplicationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Tena
         })
 
 
-class JobApplicationShortlistView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class JobApplicationShortlistView(BaseView):
     """Shortlist job application"""
     permission_required = 'hr.manage_recruitment'
     roles_required = ['admin', 'hr_manager']
@@ -3458,10 +3650,8 @@ class JobApplicationShortlistView(LoginRequiredMixin, PermissionRequiredMixin, T
         )
         
         if application.status != 'APPLIED':
-            return JsonResponse({
-                'success': False,
-                'error': f'Cannot shortlist application with status: {application.status}'
-            })
+            messages.error(request, f"Cannot shortlist application with status: {application.get_status_display()}")
+            return redirect('hr:jobapplication_detail', pk=application.pk)
         
         # Shortlist the application
         application.status = 'SHORTLISTED'
@@ -3470,7 +3660,7 @@ class JobApplicationShortlistView(LoginRequiredMixin, PermissionRequiredMixin, T
         audit_log(
             user=request.user,
             action='SHORTLIST_APPLICATION',
-            resource='Job Application',
+            resource_type='Job Application',
             resource_id=str(application.id),
             details={
                 'applicant': application.applicant_name,
@@ -3479,13 +3669,11 @@ class JobApplicationShortlistView(LoginRequiredMixin, PermissionRequiredMixin, T
             severity='INFO'
         )
         
-        return JsonResponse({
-            'success': True,
-            'message': 'Application shortlisted successfully.'
-        })
+        messages.success(request, "Application shortlisted successfully.")
+        return redirect('hr:jobapplication_detail', pk=application.pk)
 
 
-class JobApplicationInterviewView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class JobApplicationInterviewView(BaseView):
     """Schedule interview for job application"""
     permission_required = 'hr.manage_recruitment'
     roles_required = ['admin', 'hr_manager']
@@ -3498,10 +3686,8 @@ class JobApplicationInterviewView(LoginRequiredMixin, PermissionRequiredMixin, T
         )
         
         if application.status != 'SHORTLISTED':
-            return JsonResponse({
-                'success': False,
-                'error': f'Cannot schedule interview for application with status: {application.status}'
-            })
+            messages.error(request, f"Cannot schedule interview for application with status: {application.get_status_display()}")
+            return redirect('hr:jobapplication_detail', pk=application.pk)
         
         # Update status to interview
         application.status = 'INTERVIEW'
@@ -3510,7 +3696,7 @@ class JobApplicationInterviewView(LoginRequiredMixin, PermissionRequiredMixin, T
         audit_log(
             user=request.user,
             action='SCHEDULE_INTERVIEW',
-            resource='Job Application',
+            resource_type='Job Application',
             resource_id=str(application.id),
             details={
                 'applicant': application.applicant_name,
@@ -3519,13 +3705,43 @@ class JobApplicationInterviewView(LoginRequiredMixin, PermissionRequiredMixin, T
             severity='INFO'
         )
         
-        return JsonResponse({
-            'success': True,
-            'message': 'Interview scheduled successfully.'
-        })
+        messages.success(request, "Interview scheduled successfully.")
+        return redirect('hr:jobapplication_detail', pk=application.pk)
 
 
-class JobApplicationOfferView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class JobApplicationRejectView(BaseView):
+    """Reject job application"""
+    permission_required = 'hr.manage_recruitment'
+    roles_required = ['admin', 'hr_manager']
+    http_method_names = ['post']
+    
+    def post(self, request, *args, **kwargs):
+        application = get_object_or_404(
+            JobApplication.objects.filter(tenant=get_current_tenant()),
+            pk=kwargs['pk']
+        )
+        
+        # Reject the application
+        application.status = 'REJECTED'
+        application.save()
+        
+        audit_log(
+            user=request.user,
+            action='REJECT_APPLICATION',
+            resource_type='Job Application',
+            resource_id=str(application.id),
+            details={
+                'applicant': application.applicant_name,
+                'position': application.recruitment.position_title
+            },
+            severity='INFO'
+        )
+        
+        messages.success(request, "Application rejected.")
+        return redirect('hr:jobapplication_detail', pk=application.pk)
+
+
+class JobApplicationOfferView(BaseView):
     """Make job offer to applicant"""
     permission_required = 'hr.manage_recruitment'
     roles_required = ['admin', 'hr_manager']
@@ -3550,7 +3766,7 @@ class JobApplicationOfferView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
         audit_log(
             user=request.user,
             action='MAKE_JOB_OFFER',
-            resource='Job Application',
+            resource_type='Job Application',
             resource_id=str(application.id),
             details={
                 'applicant': application.applicant_name,
@@ -3567,7 +3783,7 @@ class JobApplicationOfferView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
 
 # ==================== TRAINING & DEVELOPMENT VIEWS ====================
 
-class TrainingProgramListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class TrainingProgramListView(BaseListView):
     model = TrainingProgram
     template_name = 'hr/training/program_list.html'
     context_object_name = 'training_programs'
@@ -3641,7 +3857,7 @@ class TrainingProgramListView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
         return context
 
 
-class TrainingProgramCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class TrainingProgramCreateView(BaseCreateView):
     model = TrainingProgram
     form_class = TrainingProgramForm
     template_name = 'hr/training/program_form.html'
@@ -3669,7 +3885,7 @@ class TrainingProgramCreateView(LoginRequiredMixin, PermissionRequiredMixin, Cre
         audit_log(
             user=self.request.user,
             action='CREATE_TRAINING_PROGRAM',
-            resource='Training Program',
+            resource_type='Training Program',
             resource_id=str(self.object.id),
             details={'title': self.object.title, 'type': self.object.training_type},
             severity='INFO'
@@ -3678,7 +3894,7 @@ class TrainingProgramCreateView(LoginRequiredMixin, PermissionRequiredMixin, Cre
         return response
 
 
-class TrainingProgramDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class TrainingProgramDetailView(BaseDetailView):
     model = TrainingProgram
     template_name = 'hr/training/program_detail.html'
     context_object_name = 'training_program'
@@ -3707,7 +3923,7 @@ class TrainingProgramDetailView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         return context
 
 
-class TrainingProgramUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class TrainingProgramUpdateView(BaseUpdateView):
     model = TrainingProgram
     form_class = TrainingProgramForm
     template_name = 'hr/training/program_form.html'
@@ -3734,7 +3950,7 @@ class TrainingProgramUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         audit_log(
             user=self.request.user,
             action='UPDATE_TRAINING_PROGRAM',
-            resource='Training Program',
+            resource_type='Training Program',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -3743,7 +3959,7 @@ class TrainingProgramUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         return response
 
 
-class TrainingProgramDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class TrainingProgramDeleteView(BaseDeleteView):
     model = TrainingProgram
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_trainingprogram'
@@ -3778,7 +3994,7 @@ class TrainingProgramDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         audit_log(
             user=request.user,
             action='DELETE_TRAINING_PROGRAM',
-            resource='Training Program',
+            resource_type='Training Program',
             resource_id=str(training.id),
             details={'title': training.title},
             severity='WARNING'
@@ -3790,7 +4006,7 @@ class TrainingProgramDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         })
 
 
-class TrainingRegisterView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class TrainingRegisterView(BaseView):
     """Register for training program"""
     permission_required = 'hr.register_training'
     http_method_names = ['post']
@@ -3850,7 +4066,7 @@ class TrainingRegisterView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         audit_log(
             user=request.user,
             action='REGISTER_TRAINING',
-            resource='Training Program',
+            resource_type='Training Program',
             resource_id=str(training.id),
             details={
                 'training': training.title,
@@ -3865,7 +4081,7 @@ class TrainingRegisterView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         })
 
 
-class TrainingParticipantsView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class TrainingParticipantsView(BaseDetailView):
     """View training participants"""
     model = TrainingProgram
     template_name = 'hr/training/participants.html'
@@ -3897,7 +4113,7 @@ class TrainingParticipantsView(LoginRequiredMixin, PermissionRequiredMixin, Tena
 
 # ==================== TRAINING PARTICIPATION VIEWS ====================
 
-class TrainingParticipationListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class TrainingParticipationListView(BaseListView):
     model = TrainingParticipation
     template_name = 'hr/training/participation_list.html'
     context_object_name = 'training_participations'
@@ -3933,7 +4149,7 @@ class TrainingParticipationListView(LoginRequiredMixin, PermissionRequiredMixin,
         return queryset.order_by('-training__start_date')
 
 
-class TrainingParticipationCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class TrainingParticipationCreateView(BaseCreateView):
     model = TrainingParticipation
     form_class = TrainingParticipationForm
     template_name = 'hr/training/participation_form.html'
@@ -3961,7 +4177,7 @@ class TrainingParticipationCreateView(LoginRequiredMixin, PermissionRequiredMixi
         audit_log(
             user=self.request.user,
             action='CREATE_TRAINING_PARTICIPATION',
-            resource='Training Participation',
+            resource_type='Training Participation',
             resource_id=str(self.object.id),
             details={
                 'training': self.object.training.title,
@@ -3973,7 +4189,7 @@ class TrainingParticipationCreateView(LoginRequiredMixin, PermissionRequiredMixi
         return response
 
 
-class TrainingParticipationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class TrainingParticipationUpdateView(BaseUpdateView):
     model = TrainingParticipation
     form_class = TrainingParticipationForm
     template_name = 'hr/training/participation_form.html'
@@ -4000,7 +4216,7 @@ class TrainingParticipationUpdateView(LoginRequiredMixin, PermissionRequiredMixi
         audit_log(
             user=self.request.user,
             action='UPDATE_TRAINING_PARTICIPATION',
-            resource='Training Participation',
+            resource_type='Training Participation',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -4009,7 +4225,7 @@ class TrainingParticipationUpdateView(LoginRequiredMixin, PermissionRequiredMixi
         return response
 
 
-class TrainingParticipationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class TrainingParticipationDeleteView(BaseDeleteView):
     model = TrainingParticipation
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_trainingparticipation'
@@ -4036,7 +4252,7 @@ class TrainingParticipationDeleteView(LoginRequiredMixin, PermissionRequiredMixi
         audit_log(
             user=request.user,
             action='DELETE_TRAINING_PARTICIPATION',
-            resource='Training Participation',
+            resource_type='Training Participation',
             resource_id=str(participation.id),
             details={
                 'training': participation.training.title,
@@ -4051,7 +4267,7 @@ class TrainingParticipationDeleteView(LoginRequiredMixin, PermissionRequiredMixi
         })
 
 
-class TrainingCertificateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class TrainingCertificateView(BaseDetailView):
     """View training certificate"""
     model = TrainingParticipation
     template_name = 'hr/training/certificate.html'
@@ -4071,7 +4287,7 @@ class TrainingCertificateView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
 
 # ==================== PERFORMANCE MANAGEMENT VIEWS ====================
 
-class PerformanceReviewListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class PerformanceReviewListView(BaseListView):
     model = PerformanceReview
     template_name = 'hr/performance/review_list.html'
     context_object_name = 'performance_reviews'
@@ -4149,7 +4365,7 @@ class PerformanceReviewListView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         return context
 
 
-class PerformanceReviewCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class PerformanceReviewCreateView(BaseCreateView):
     model = PerformanceReview
     form_class = PerformanceReviewForm
     template_name = 'hr/performance/review_form.html'
@@ -4178,7 +4394,7 @@ class PerformanceReviewCreateView(LoginRequiredMixin, PermissionRequiredMixin, C
         audit_log(
             user=self.request.user,
             action='CREATE_PERFORMANCE_REVIEW',
-            resource='Performance Review',
+            resource_type='Performance Review',
             resource_id=str(self.object.id),
             details={'staff': self.object.staff.full_name, 'rating': self.object.overall_rating},
             severity='INFO'
@@ -4187,7 +4403,7 @@ class PerformanceReviewCreateView(LoginRequiredMixin, PermissionRequiredMixin, C
         return response
 
 
-class PerformanceReviewDetailView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class PerformanceReviewDetailView(BaseDetailView):
     model = PerformanceReview
     template_name = 'hr/performance/review_detail.html'
     context_object_name = 'performance_review'
@@ -4209,10 +4425,15 @@ class PerformanceReviewDetailView(LoginRequiredMixin, PermissionRequiredMixin, T
             review.approved_by is None
         )
         
+        context['page_title'] = _("Performance Review - ") + review.staff.full_name
+        context['parent_text'] = _("Performance Reviews")
+        context['parent_url'] = reverse_lazy('hr:performancereview_list')
+        context['current_text'] = review.staff.full_name
+        
         return context
 
 
-class PerformanceReviewUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class PerformanceReviewUpdateView(BaseUpdateView):
     model = PerformanceReview
     form_class = PerformanceReviewForm
     template_name = 'hr/performance/review_form.html'
@@ -4239,7 +4460,7 @@ class PerformanceReviewUpdateView(LoginRequiredMixin, PermissionRequiredMixin, T
         audit_log(
             user=self.request.user,
             action='UPDATE_PERFORMANCE_REVIEW',
-            resource='Performance Review',
+            resource_type='Performance Review',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -4248,7 +4469,7 @@ class PerformanceReviewUpdateView(LoginRequiredMixin, PermissionRequiredMixin, T
         return response
 
 
-class PerformanceReviewDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class PerformanceReviewDeleteView(BaseDeleteView):
     model = PerformanceReview
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_performancereview'
@@ -4275,7 +4496,7 @@ class PerformanceReviewDeleteView(LoginRequiredMixin, PermissionRequiredMixin, T
         audit_log(
             user=request.user,
             action='DELETE_PERFORMANCE_REVIEW',
-            resource='Performance Review',
+            resource_type='Performance Review',
             resource_id=str(review.id),
             details={'staff': review.staff.full_name},
             severity='WARNING'
@@ -4287,7 +4508,7 @@ class PerformanceReviewDeleteView(LoginRequiredMixin, PermissionRequiredMixin, T
         })
 
 
-class PerformanceAcknowledgeView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class PerformanceAcknowledgeView(BaseView):
     """Acknowledge performance review"""
     permission_required = 'hr.acknowledge_performancereview'
     http_method_names = ['post']
@@ -4320,7 +4541,7 @@ class PerformanceAcknowledgeView(LoginRequiredMixin, PermissionRequiredMixin, Te
         audit_log(
             user=request.user,
             action='ACKNOWLEDGE_PERFORMANCE_REVIEW',
-            resource='Performance Review',
+            resource_type='Performance Review',
             resource_id=str(review.id),
             details={
                 'staff': review.staff.full_name,
@@ -4337,7 +4558,7 @@ class PerformanceAcknowledgeView(LoginRequiredMixin, PermissionRequiredMixin, Te
 
 # ==================== EMPLOYMENT HISTORY VIEWS ====================
 
-class EmploymentHistoryListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class EmploymentHistoryListView(BaseListView):
     model = EmploymentHistory
     template_name = 'hr/history/list.html'
     context_object_name = 'employment_history'
@@ -4390,7 +4611,7 @@ class EmploymentHistoryListView(LoginRequiredMixin, PermissionRequiredMixin, Ten
         return context
 
 
-class EmploymentHistoryCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class EmploymentHistoryCreateView(BaseCreateView):
     model = EmploymentHistory
     form_class = EmploymentHistoryForm
     template_name = 'hr/history/form.html'
@@ -4419,7 +4640,7 @@ class EmploymentHistoryCreateView(LoginRequiredMixin, PermissionRequiredMixin, C
         audit_log(
             user=self.request.user,
             action='CREATE_EMPLOYMENT_HISTORY',
-            resource='Employment History',
+            resource_type='Employment History',
             resource_id=str(self.object.id),
             details={'staff': self.object.staff.full_name, 'action': self.object.action},
             severity='INFO'
@@ -4430,7 +4651,7 @@ class EmploymentHistoryCreateView(LoginRequiredMixin, PermissionRequiredMixin, C
 
 # ==================== PROMOTION VIEWS ====================
 
-class PromotionListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class PromotionListView(BaseListView):
     model = Promotion
     template_name = 'hr/history/promotion_list.html'
     context_object_name = 'promotions'
@@ -4475,7 +4696,7 @@ class PromotionListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcces
         return context
 
 
-class PromotionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class PromotionCreateView(BaseCreateView):
     model = Promotion
     form_class = PromotionForm
     template_name = 'hr/history/promotion_form.html'
@@ -4525,7 +4746,7 @@ class PromotionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
         audit_log(
             user=self.request.user,
             action='CREATE_PROMOTION',
-            resource='Promotion',
+            resource_type='Promotion',
             resource_id=str(self.object.id),
             details={
                 'staff': self.object.staff.full_name,
@@ -4538,7 +4759,7 @@ class PromotionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVie
         return response
 
 
-class PromotionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class PromotionUpdateView(BaseUpdateView):
     model = Promotion
     form_class = PromotionForm
     template_name = 'hr/history/promotion_form.html'
@@ -4565,7 +4786,7 @@ class PromotionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         audit_log(
             user=self.request.user,
             action='UPDATE_PROMOTION',
-            resource='Promotion',
+            resource_type='Promotion',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -4574,7 +4795,7 @@ class PromotionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         return response
 
 
-class PromotionDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class PromotionDeleteView(BaseDeleteView):
     model = Promotion
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_promotion'
@@ -4601,7 +4822,7 @@ class PromotionDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
         audit_log(
             user=request.user,
             action='DELETE_PROMOTION',
-            resource='Promotion',
+            resource_type='Promotion',
             resource_id=str(promotion.id),
             details={'staff': promotion.staff.full_name},
             severity='WARNING'
@@ -4615,7 +4836,7 @@ class PromotionDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAcc
 
 # ==================== TRANSFER VIEWS ====================
 
-class TransferListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class TransferListView(BaseListView):
     """List staff transfers (special type of employment history)"""
     template_name = 'hr/history/transfer_list.html'
     context_object_name = 'transfers'
@@ -4663,7 +4884,7 @@ class TransferListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccess
 
 # ==================== DOCUMENT VIEWS ====================
 
-class StaffDocumentListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class StaffDocumentListView(BaseListView):
     model = StaffDocument
     template_name = 'hr/documents/list.html'
     context_object_name = 'documents'
@@ -4721,7 +4942,7 @@ class StaffDocumentListView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
         return context
 
 
-class StaffDocumentUploadView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class StaffDocumentUploadView(BaseCreateView):
     model = StaffDocument
     form_class = StaffDocumentForm
     template_name = 'hr/documents/upload.html'
@@ -4763,7 +4984,7 @@ class StaffDocumentUploadView(LoginRequiredMixin, PermissionRequiredMixin, Creat
         audit_log(
             user=self.request.user,
             action='UPLOAD_STAFF_DOCUMENT',
-            resource='Staff Document',
+            resource_type='Staff Document',
             resource_id=str(self.object.id),
             details={
                 'staff': self.object.staff.full_name,
@@ -4776,7 +4997,7 @@ class StaffDocumentUploadView(LoginRequiredMixin, PermissionRequiredMixin, Creat
         return response
 
 
-class StaffDocumentViewView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DetailView):
+class StaffDocumentViewView(BaseDetailView):
     """View staff document"""
     model = StaffDocument
     template_name = 'hr/documents/view.html'
@@ -4784,7 +5005,7 @@ class StaffDocumentViewView(LoginRequiredMixin, PermissionRequiredMixin, TenantA
     permission_required = 'hr.view_staffdocument'
 
 
-class StaffDocumentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class StaffDocumentDeleteView(BaseDeleteView):
     model = StaffDocument
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_staffdocument'
@@ -4810,7 +5031,7 @@ class StaffDocumentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
         audit_log(
             user=request.user,
             action='DELETE_STAFF_DOCUMENT',
-            resource='Staff Document',
+            resource_type='Staff Document',
             resource_id=str(document.id),
             details={
                 'staff': document.staff.full_name,
@@ -4825,7 +5046,7 @@ class StaffDocumentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
         })
 
 
-class StaffDocumentVerifyView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, View):
+class StaffDocumentVerifyView(BaseView):
     """Verify staff document"""
     permission_required = 'hr.verify_staffdocument'
     roles_required = ['admin', 'hr_manager']
@@ -4852,7 +5073,7 @@ class StaffDocumentVerifyView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
         audit_log(
             user=request.user,
             action='VERIFY_STAFF_DOCUMENT',
-            resource='Staff Document',
+            resource_type='Staff Document',
             resource_id=str(document.id),
             details={
                 'staff': document.staff.full_name,
@@ -4870,7 +5091,7 @@ class StaffDocumentVerifyView(LoginRequiredMixin, PermissionRequiredMixin, Tenan
 
 # ==================== ADDRESS VIEWS ====================
 
-class StaffAddressListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, ListView):
+class StaffAddressListView(BaseListView):
     model = StaffAddress
     template_name = 'hr/addresses/list.html'
     context_object_name = 'addresses'
@@ -4915,7 +5136,7 @@ class StaffAddressListView(LoginRequiredMixin, PermissionRequiredMixin, TenantAc
         return context
 
 
-class StaffAddressCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class StaffAddressCreateView(BaseCreateView):
     model = StaffAddress
     form_class = StaffAddressForm
     template_name = 'hr/addresses/form.html'
@@ -4960,7 +5181,7 @@ class StaffAddressCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
         audit_log(
             user=self.request.user,
             action='CREATE_STAFF_ADDRESS',
-            resource='Staff Address',
+            resource_type='Staff Address',
             resource_id=str(self.object.id),
             details={
                 'staff': self.object.staff.full_name,
@@ -4972,7 +5193,7 @@ class StaffAddressCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
         return response
 
 
-class StaffAddressUpdateView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, UpdateView):
+class StaffAddressUpdateView(BaseUpdateView):
     model = StaffAddress
     form_class = StaffAddressForm
     template_name = 'hr/addresses/form.html'
@@ -5006,7 +5227,7 @@ class StaffAddressUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Tenant
         audit_log(
             user=self.request.user,
             action='UPDATE_STAFF_ADDRESS',
-            resource='Staff Address',
+            resource_type='Staff Address',
             resource_id=str(self.object.id),
             details={'changes': form.changed_data},
             severity='INFO'
@@ -5015,7 +5236,7 @@ class StaffAddressUpdateView(LoginRequiredMixin, PermissionRequiredMixin, Tenant
         return response
 
 
-class StaffAddressDeleteView(LoginRequiredMixin, PermissionRequiredMixin, TenantAccessMixin, DeleteView):
+class StaffAddressDeleteView(BaseDeleteView):
     model = StaffAddress
     template_name = 'hr/common/confirm_delete.html'
     permission_required = 'hr.delete_staffaddress'
@@ -5053,7 +5274,7 @@ class StaffAddressDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Tenant
         audit_log(
             user=request.user,
             action='DELETE_STAFF_ADDRESS',
-            resource='Staff Address',
+            resource_type='Staff Address',
             resource_id=str(address.id),
             details={
                 'staff': address.staff.full_name,
@@ -5070,7 +5291,7 @@ class StaffAddressDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Tenant
 
 # ==================== REPORT VIEWS ====================
 
-class StaffReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class StaffReportView(BaseTemplateView):
     """Staff report view"""
     template_name = 'hr/reports/staff.html'
     permission_required = 'hr.view_staff_report'
@@ -5179,7 +5400,27 @@ class StaffReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
         return context
 
 
-class AttendanceReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+
+class StaffReportPDFView(StaffReportView):
+    """Staff report PDF view"""
+    template_name = 'hr/reports/staff_pdf.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        template = get_template(self.template_name)
+        html = template.render(context)
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="staff_report.pdf"'
+        
+        pisa_status = pisa.CreatePDF(html, dest=response)
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+        return response
+
+
+class AttendanceReportView(BaseTemplateView):
     """StaffAttendance report view"""
     template_name = 'hr/reports/StaffAttendance.html'
     permission_required = 'hr.view_attendance_report'
@@ -5189,67 +5430,102 @@ class AttendanceReportView(LoginRequiredMixin, PermissionRequiredMixin, Template
         context = super().get_context_data(**kwargs)
         tenant = get_current_tenant()
         
-        # Get date range
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
+        # Filter parameters
+        month_str = self.request.GET.get('month')
+        dept_id = self.request.GET.get('department')
         
-        if not start_date or not end_date:
-            # Default to current month
-            today = timezone.now().date()
-            start_date = today.replace(day=1)
-            end_date = today
-        else:
+        # Calculate date range
+        today = timezone.now().date()
+        if month_str:
             try:
-                start_date = timezone.datetime.strptime(start_date, '%Y-%m-%d').date()
-                end_date = timezone.datetime.strptime(end_date, '%Y-%m-%d').date()
+                year, month = map(int, month_str.split('-'))
+                start_date = timezone.datetime(year, month, 1).date()
+                import calendar
+                _, last_day = calendar.monthrange(year, month)
+                end_date = timezone.datetime(year, month, last_day).date()
             except ValueError:
-                today = timezone.now().date()
                 start_date = today.replace(day=1)
                 end_date = today
+                month_str = start_date.strftime('%Y-%m')
+        else:
+            start_date = today.replace(day=1)
+            end_date = today
+            month_str = start_date.strftime('%Y-%m')
+
+        # Get departments for filter
+        context['departments'] = Department.objects.filter(tenant=tenant)
+        context['filters'] = {'month': month_str, 'department': dept_id}
         
-        # Get StaffAttendance data
+        # Staff Query
+        staff_qs = Staff.objects.filter(tenant=tenant, is_active=True).select_related('user', 'department').order_by('user__first_name')
+        if dept_id:
+            staff_qs = staff_qs.filter(department_id=dept_id)
+            
+        # Attendance Records
         attendance_records = StaffAttendance.objects.filter(
             tenant=tenant,
             date__range=[start_date, end_date]
-        ).select_related('staff', 'staff__department')
+        ).values('staff_id', 'date', 'status')
         
-        # Overall statistics
-        total_days = (end_date - start_date).days + 1
-        total_staff = Staff.objects.filter(tenant=tenant, is_active=True).count()
+        # Create lookup map: (staff_id, date) -> status
+        attendance_map = {(r['staff_id'], r['date']): r['status'] for r in attendance_records}
         
-        context['start_date'] = start_date
-        context['end_date'] = end_date
-        context['total_days'] = total_days
-        context['total_staff'] = total_staff
-        
-        # Department-wise statistics
-        departments = Department.objects.filter(tenant=tenant)
-        dept_stats = []
-        
-        for dept in departments:
-            dept_staff = Staff.objects.filter(department=dept, is_active=True).count()
-            if dept_staff > 0:
-                dept_attendance = attendance_records.filter(staff__department=dept)
-                
-                if dept_attendance.exists():
-                    present_days = dept_attendance.filter(status__in=['PRESENT', 'LATE']).count()
-                    absent_days = dept_attendance.filter(status='ABSENT').count()
-                    leave_days = dept_attendance.filter(status='LEAVE').count()
-                    
-                    dept_stats.append({
-                        'department': dept.name,
-                        'staff_count': dept_staff,
-                        'present_days': present_days,
-                        'absent_days': absent_days,
-                        'leave_days': leave_days,
-                        'attendance_rate': (present_days / (dept_staff * total_days)) * 100 if dept_staff * total_days > 0 else 0
-                    })
-        
-        context['dept_stats'] = dept_stats
-        
-        # Daily StaffAttendance trend
-        daily_data = []
+        # Generate Days List
+        report_days = []
         current_date = start_date
+        while current_date <= end_date:
+            report_days.append({
+                'date': current_date,
+                'day': current_date.day,
+                'weekday': current_date.strftime('%a')
+            })
+            current_date += timezone.timedelta(days=1)
+            
+        context['report_days'] = report_days
+        
+        # Build Matrix Data
+        report_data = []
+        for staff in staff_qs:
+            daily_status = []
+            present_count = 0
+            absent_count = 0
+            
+            for day_info in report_days:
+                date = day_info['date']
+                status = attendance_map.get((staff.id, date), '-')
+                
+                # Normalize status code to short form for template badge logic if needed
+                # Template expects 'P', 'A', 'L', 'H' or full code?
+                # Template badges: P, A, L, H.
+                # Model choices: PRESENT, ABSENT, LATE, HALF_DAY, LEAVE
+                short_status = '-'
+                if status == 'PRESENT':
+                    short_status = 'P'
+                    present_count += 1
+                elif status == 'LATE':
+                    short_status = 'L'
+                    present_count += 1
+                elif status == 'ABSENT':
+                    short_status = 'A'
+                    absent_count += 1
+                elif status == 'HALF_DAY':
+                    short_status = 'H'
+                    present_count += 0.5
+                elif status == 'LEAVE':
+                    short_status = 'L' # Or use specific leave code
+                
+                daily_status.append(short_status)
+            
+            report_data.append({
+                'staff': staff,
+                'daily_status': daily_status,
+                'present_count': present_count,
+                'absent_count': absent_count
+            })
+            
+        context['report_data'] = report_data
+        
+        return context
         
         while current_date <= end_date:
             day_attendance = attendance_records.filter(date=current_date)
@@ -5273,7 +5549,7 @@ class AttendanceReportView(LoginRequiredMixin, PermissionRequiredMixin, Template
         return context
 
 
-class LeaveReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class LeaveReportView(BaseTemplateView):
     """Leave report view"""
     template_name = 'hr/reports/leave.html'
     permission_required = 'hr.view_leave_report'
@@ -5369,7 +5645,7 @@ class LeaveReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView)
         return context
 
 
-class TurnoverReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class TurnoverReportView(BaseTemplateView):
     """Staff turnover report view"""
     template_name = 'hr/reports/turnover.html'
     permission_required = 'hr.view_turnover_report'
@@ -5470,7 +5746,7 @@ class TurnoverReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateVi
         return context
 
 
-class DemographicReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class DemographicReportView(BaseTemplateView):
     """Demographic report view"""
     template_name = 'hr/reports/demographic.html'
     permission_required = 'hr.view_demographic_report'
@@ -5583,7 +5859,7 @@ class DemographicReportView(LoginRequiredMixin, PermissionRequiredMixin, Templat
         return context
 
 
-class SalaryAnalysisView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class SalaryAnalysisView(BaseTemplateView):
     """Salary analysis report view"""
     template_name = 'hr/reports/salary.html'
     permission_required = 'hr.view_salary_report'
@@ -5767,7 +6043,7 @@ class SalaryAnalysisView(LoginRequiredMixin, PermissionRequiredMixin, TemplateVi
 
 # ==================== SETTINGS VIEWS ====================
 
-class HRSettingsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class HRSettingsView(BaseTemplateView):
     """HR Settings view"""
     template_name = 'hr/settings/index.html'
     permission_required = 'hr.view_hr_settings'
@@ -5836,7 +6112,7 @@ class ReportGenerateView(LoginRequiredMixin, PermissionRequiredMixin, View):
         audit_log(
             user=request.user,
             action='GENERATE_REPORT',
-            resource='Report',
+            resource_type='Report',
             details={
                 'report_type': report_type,
                 'format': format_type,
@@ -5870,35 +6146,239 @@ class ReportGenerateView(LoginRequiredMixin, PermissionRequiredMixin, View):
             start_date = parameters.get('start_date', timezone.now().date() - timezone.timedelta(days=30))
             end_date = parameters.get('end_date', timezone.now().date())
             
-            StaffAttendance = StaffAttendance.objects.filter(
+            staff_attendance_qs = StaffAttendance.objects.filter(
                 tenant=tenant,
                 date__range=[start_date, end_date]
-            )
+            ).select_related('staff', 'staff__user', 'staff__department').order_by('date', 'staff__user__first_name')
             
+            records = staff_attendance_qs.values(
+                'date', 
+                'staff__employee_id', 
+                'staff__user__first_name', 
+                'staff__user__last_name', 
+                'staff__department__name', 
+                'status',
+                'check_in',
+                'check_out'
+            )
+
             return {
                 'start_date': start_date,
                 'end_date': end_date,
-                'total_records': StaffAttendance.count(),
-                'attendance_by_status': StaffAttendance.values('status').annotate(count=Count('id')),
-                'attendance_by_dept': StaffAttendance.values('staff__department__name').annotate(count=Count('id')),
+                'total_records': staff_attendance_qs.count(),
+                'attendance_by_status': staff_attendance_qs.values('status').annotate(count=Count('id')),
+                'attendance_by_dept': staff_attendance_qs.values('staff__department__name').annotate(count=Count('id')),
+                'records': list(records) # Convert queryset to list for passing to export functions
             }
         
-        # Add other report types here...
-        
-        return {}
+        elif report_type == 'leave':
+            # Leave Analysis Data
+            year = int(parameters.get('year', timezone.now().year))
+            
+            leave_apps = LeaveApplication.objects.filter(
+                tenant=tenant,
+                start_date__year=year,
+                status='APPROVED'
+            ).select_related('staff', 'leave_type', 'staff__department')
+            
+            leave_balances = LeaveBalance.objects.filter(
+                tenant=tenant,
+                year=year
+            ).select_related('staff', 'leave_type')
+            
+            # Leave Type Stats
+            leave_types = LeaveType.objects.filter(tenant=tenant, is_active=True)
+            leave_type_stats = []
+            for lt in leave_types:
+                type_apps = leave_apps.filter(leave_type=lt)
+                type_balances = leave_balances.filter(leave_type=lt)
+                
+                if type_apps.exists() or type_balances.exists():
+                    total_entitled = sum(b.total_entitled for b in type_balances)
+                    total_used = sum(b.used_days for b in type_balances)
+                    leave_type_stats.append({
+                        'leave_type': lt.name,
+                        'total_entitled': total_entitled,
+                        'total_used': total_used,
+                        'available': total_entitled - total_used,
+                        'utilization_rate': (total_used/total_entitled*100) if total_entitled else 0,
+                        'applications': type_apps.count()
+                    })
+            
+            # Monthly Trend
+            monthly_data = []
+            for m in range(1, 13):
+                m_apps = leave_apps.filter(start_date__month=m)
+                if m_apps.exists():
+                    monthly_data.append({
+                        'month': m, # Formatting to name in template is preferred
+                        'applications': m_apps.count(),
+                        'days': sum(a.total_days for a in m_apps)
+                    })
+            
+            # Dept Stats
+            departments = Department.objects.filter(tenant=tenant)
+            dept_stats = []
+            for d in departments:
+                d_staff = Staff.objects.filter(department=d, is_active=True)
+                if d_staff.exists():
+                    d_apps = leave_apps.filter(staff__department=d)
+                    d_balances = leave_balances.filter(staff__department=d)
+                    
+                    if d_apps.exists() or d_balances.exists():
+                        total_entitled = sum(b.total_entitled for b in d_balances)
+                        total_used = sum(b.used_days for b in d_balances)
+                        dept_stats.append({
+                            'department': d.name,
+                            'staff_count': d_staff.count(),
+                            'applications': d_apps.count(),
+                            'days': sum(a.total_days for a in d_apps),
+                            'utilization_rate': (total_used/total_entitled*100) if total_entitled else 0
+                        })
+            
+            return {
+                'selected_year': year,
+                'leave_type_stats': leave_type_stats,
+                'monthly_data': monthly_data,
+                'dept_stats': dept_stats,
+                'generated_at': timezone.now()
+            }
+
+        elif report_type == 'salary':
+            # Salary Analysis Data
+            staff_queryset = Staff.objects.filter(
+                tenant=tenant,
+                is_active=True,
+                employment_status='ACTIVE'
+            ).select_related('department', 'designation')
+
+            # Overall Stats
+            salaries = [s.basic_salary for s in staff_queryset if s.basic_salary]
+            stats = {
+                'total_salary': sum(salaries) if salaries else 0,
+                'avg_salary': sum(salaries) / len(salaries) if salaries else 0,
+                'min_salary': min(salaries) if salaries else 0,
+                'max_salary': max(salaries) if salaries else 0,
+                'median_salary': sorted(salaries)[len(salaries) // 2] if salaries else 0,
+                'staff_count': len(salaries)
+            }
+
+            # Dept Stats
+            departments = Department.objects.filter(tenant=tenant)
+            dept_salary_stats = []
+            for d in departments:
+                d_staff = [s for s in staff_queryset if s.department_id == d.id and s.basic_salary]
+                if d_staff:
+                    d_salaries = [s.basic_salary for s in d_staff]
+                    dept_salary_stats.append({
+                        'department': d.name,
+                        'staff_count': len(d_staff),
+                        'total_salary': sum(d_salaries),
+                        'avg_salary': sum(d_salaries) / len(d_salaries),
+                        'min_salary': min(d_salaries),
+                        'max_salary': max(d_salaries)
+                    })
+
+            # Designation Stats
+            designations = Designation.objects.filter(tenant=tenant)
+            desig_salary_stats = []
+            for desig in designations:
+                desig_staff = [s for s in staff_queryset if s.designation_id == desig.id and s.basic_salary]
+                if desig_staff:
+                    desig_salaries = [s.basic_salary for s in desig_staff]
+                    desig_salary_stats.append({
+                        'designation': desig.title,
+                        'category': desig.get_category_display(),
+                        'staff_count': len(desig_staff),
+                        'avg_salary': sum(desig_salaries) / len(desig_salaries),
+                        'min_salary': min(desig_salaries),
+                        'max_salary': max(desig_salaries),
+                        'designation_min': desig.min_salary,
+                        'designation_max': desig.max_salary
+                    })
+            
+            return {
+                'stats': stats,
+                'dept_salary_stats': dept_salary_stats,
+                'desig_salary_stats': desig_salary_stats,
+                'generated_at': timezone.now()
+            }
+    
     
     def generate_pdf_report(self, report_type, data):
-        """Generate PDF report"""
-        # This would use a PDF generation library like ReportLab
-        # For now, return a simple placeholder
-        return b"PDF Report Content"
-    
+        """Generate PDF report using xhtml2pdf"""
+        from xhtml2pdf import pisa
+        from django.template.loader import get_template
+        
+        template_name = f"hr/reports/{report_type}_pdf.html"
+        # Fallback to StaffAttendance if type is capitalized differently or generic
+        if report_type == 'StaffAttendance':
+             template_name = "hr/reports/attendance_pdf.html"
+
+        try:
+            template = get_template(template_name)
+            html = template.render(data)
+            result = io.BytesIO()
+            pisa_status = pisa.CreatePDF(io.BytesIO(html.encode('utf-8')), dest=result)
+            if pisa_status.err:
+                return b"Error generating PDF"
+            return result.getvalue()
+        except:
+             # Fallback if specific template missing
+             return b"PDF Generation Error: Template not found."
+
     def generate_excel_report(self, report_type, data):
-        """Generate Excel report"""
-        # This would use a library like openpyxl
-        # For now, return a simple placeholder
-        return b"Excel Report Content"
-    
+        """Generate Excel report using openpyxl"""
+        import openpyxl
+        from openpyxl.styles import Font, Alignment
+        
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = f"{report_type} Report"
+        
+        # Style
+        header_font = Font(bold=True)
+        
+        if report_type == 'StaffAttendance':
+            # Headers
+            headers = ['Date', 'Staff ID', 'Staff Name', 'Department', 'Status', 'Check In', 'Check Out']
+            for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.font = header_font
+            
+            # Data
+            # Note: parameters need to be passed correctly in generate_report_data to get detailed list
+            row_num = 2
+            for record in data.get('records', []):
+                ws.cell(row=row_num, column=1, value=str(record['date']))
+                ws.cell(row=row_num, column=2, value=record['staff__employee_id'])
+                ws.cell(row=row_num, column=3, value=f"{record['staff__user__first_name']} {record['staff__user__last_name']}")
+                ws.cell(row=row_num, column=4, value=record['staff__department__name'])
+                ws.cell(row=row_num, column=5, value=record['status'])
+                ws.cell(row=row_num, column=6, value=str(record['check_in']) if record['check_in'] else '')
+                ws.cell(row=row_num, column=7, value=str(record['check_out']) if record['check_out'] else '')
+                row_num += 1
+                
+        elif report_type == 'staff':
+             headers = ['Employee ID', 'Name', 'Department', 'Designation', 'Joining Date', 'Status']
+             for col, header in enumerate(headers, 1):
+                cell = ws.cell(row=1, column=col, value=header)
+                cell.font = header_font
+             
+             row_num = 2
+             for staff in data.get('staff_list', []):
+                 ws.cell(row=row_num, column=1, value=staff['employee_id'])
+                 ws.cell(row=row_num, column=2, value=f"{staff['user__first_name']} {staff['user__last_name']}")
+                 ws.cell(row=row_num, column=3, value=staff['department__name'])
+                 ws.cell(row=row_num, column=4, value=staff['designation__title'])
+                 ws.cell(row=row_num, column=5, value=str(staff['joining_date']))
+                 ws.cell(row=row_num, column=6, value=staff['status'])
+                 row_num += 1
+        
+        output = io.BytesIO()
+        wb.save(output)
+        return output.getvalue()
+
     def generate_csv_report(self, report_type, data):
         """Generate CSV report"""
         import csv
@@ -5907,37 +6387,51 @@ class ReportGenerateView(LoginRequiredMixin, PermissionRequiredMixin, View):
         output = io.StringIO()
         writer = csv.writer(output)
         
-        # Write header based on report type
-        if report_type == 'staff':
-            writer.writerow(['Department', 'Staff Count'])
-            for item in data.get('staff_by_dept', []):
-                writer.writerow([item['department__name'], item['count']])
-        
-        elif report_type == 'StaffAttendance':
-            writer.writerow(['Date', 'Status', 'Count'])
-            for item in data.get('attendance_by_status', []):
-                writer.writerow([data['start_date'], item['status'], item['count']])
-        
+        if report_type == 'StaffAttendance':
+            writer.writerow(['Date', 'Staff ID', 'Staff Name', 'Department', 'Status', 'Check In', 'Check Out'])
+            for record in data.get('records', []):
+                writer.writerow([
+                    record['date'],
+                    record['staff__employee_id'],
+                    f"{record['staff__user__first_name']} {record['staff__user__last_name']}",
+                    record['staff__department__name'],
+                    record['status'],
+                    record['check_in'],
+                    record['check_out']
+                ])
+                
+        elif report_type == 'staff':
+            writer.writerow(['Employee ID', 'Name', 'Department', 'Designation', 'Joining Date', 'Status'])
+            for staff in data.get('staff_list', []):
+                 writer.writerow([
+                     staff['employee_id'],
+                     f"{staff['user__first_name']} {staff['user__last_name']}",
+                     staff['department__name'],
+                     staff['designation__title'],
+                     staff['joining_date'],
+                     staff['status']
+                 ])
+
         return output.getvalue().encode('utf-8')
 
 
 # ==================== PERFORMANCE TEMPLATE VIEWS ====================
 
-class PerformanceTemplateListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class PerformanceTemplateListView(BaseTemplateView):
     """Performance template list view"""
     template_name = 'hr/performance/template_list.html'
     permission_required = 'hr.view_performancetemplate'
     roles_required = ['admin', 'hr_manager']
 
 
-class PerformanceGoalListView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class PerformanceGoalListView(BaseTemplateView):
     """Performance goal list view"""
     template_name = 'hr/performance/goal_list.html'
     permission_required = 'hr.view_performancegoal'
     roles_required = ['admin', 'hr_manager']
 
 
-class PerformanceReportView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class PerformanceReportView(BaseTemplateView):
     """Performance report view"""
     template_name = 'hr/performance/report.html'
     permission_required = 'hr.view_performance_report'
@@ -5945,20 +6439,20 @@ class PerformanceReportView(LoginRequiredMixin, PermissionRequiredMixin, Templat
 
 # ==================== SETTINGS VIEWS ====================
 
-class HRSettingsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class HRSettingsView(BaseTemplateView):
     template_name = 'hr/settings/index.html'
     permission_required = 'hr.view_settings'
     roles_required = ['admin', 'hr_manager']
 
-class HolidayListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class HolidayListView(BaseListView):
     model = Holiday
     template_name = 'hr/settings/holiday_list.html'
     context_object_name = 'holidays'
     permission_required = 'hr.view_holiday'
 
-class HolidayCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class HolidayCreateView(BaseCreateView):
     model = Holiday
-    fields = ['name', 'date', 'is_recurring', 'description']
+    form_class = HolidayForm
     template_name = 'hr/settings/holiday_form.html'
     success_url = reverse_lazy('hr:holiday_list')
     permission_required = 'hr.add_holiday'
@@ -5968,20 +6462,146 @@ class HolidayCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
         audit_log(self.request.user, "Created Holiday", f"Created holiday {form.instance.name}")
         return super().form_valid(form)
 
-class WorkScheduleView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    def get_success_url(self):
+        return self.success_url
+
+class HolidayUpdateView(BaseUpdateView):
+    model = Holiday
+    form_class = HolidayForm
+    template_name = 'hr/settings/holiday_form.html'
+    success_url = reverse_lazy('hr:holiday_list')
+    permission_required = 'hr.change_holiday'
+
+    def form_valid(self, form):
+        audit_log(self.request.user, "Updated Holiday", f"Updated holiday {form.instance.name}")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.success_url
+
+class HolidayDeleteView(BaseDeleteView):
+    model = Holiday
+    template_name = 'hr/common/confirm_delete.html'
+    success_url = reverse_lazy('hr:holiday_list')
+    permission_required = 'hr.delete_holiday'
+
+    def form_valid(self, form):
+        audit_log(self.request.user, "Deleted Holiday", f"Deleted holiday {self.object.name}")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.success_url
+
+class WorkScheduleView(BaseListView):
     model = WorkSchedule
     template_name = 'hr/settings/work_schedule.html'
     context_object_name = 'schedules'
     permission_required = 'hr.view_workschedule'
 
-class TaxConfigView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class WorkScheduleCreateView(BaseCreateView):
+    model = WorkSchedule
+    form_class = WorkScheduleForm
+    template_name = 'hr/settings/work_schedule_form.html'
+    success_url = reverse_lazy('hr:work_schedule')
+    permission_required = 'hr.add_workschedule'
+
+    def form_valid(self, form):
+        form.instance.tenant = get_current_tenant()
+        audit_log(self.request.user, "Created Work Schedule", f"Created work schedule {form.instance.name}")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.success_url
+
+class WorkScheduleUpdateView(BaseUpdateView):
+    model = WorkSchedule
+    form_class = WorkScheduleForm
+    template_name = 'hr/settings/work_schedule_form.html'
+    success_url = reverse_lazy('hr:work_schedule')
+    permission_required = 'hr.change_workschedule'
+    
+    def get_initial(self):
+        initial = super().get_initial()
+        # Convert list of days back to ints for the form
+        if self.object.working_days:
+            initial['working_days'] = self.object.working_days
+        return initial
+
+    def form_valid(self, form):
+        audit_log(self.request.user, "Updated Work Schedule", f"Updated work schedule {form.instance.name}")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.success_url
+
+class WorkScheduleDeleteView(BaseDeleteView):
+    model = WorkSchedule
+    template_name = 'hr/common/confirm_delete.html'
+    success_url = reverse_lazy('hr:work_schedule')
+    permission_required = 'hr.delete_workschedule'
+
+    def form_valid(self, form):
+        audit_log(self.request.user, "Deleted Work Schedule", f"Deleted work schedule {self.object.name}")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.success_url
+
+class TaxConfigView(BaseListView):
     model = TaxConfig
     template_name = 'hr/settings/tax_config.html'
     context_object_name = 'tax_configs'
     permission_required = 'hr.view_taxconfig'
 
-class PFESIConfigView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class PFESIConfigView(BaseListView):
     model = PFESIConfig
     template_name = 'hr/settings/pf_esi_config.html'
     context_object_name = 'pf_esi_configs'
     permission_required = 'hr.view_pfesiconfig'
+
+
+# ==================== Qualification VIEWS ====================
+
+class QualificationListView(BaseListView):
+    model = Qualification
+    template_name = 'hr/qualification/list.html'
+    context_object_name = 'qualifications'
+    permission_required = 'hr.view_qualification'
+
+class QualificationCreateView(BaseCreateView):
+    model = Qualification
+    form_class = QualificationForm
+    template_name = 'hr/qualification/form.html'
+    permission_required = 'hr.add_qualification'
+    roles_required = ['admin', 'hr_manager', 'principal']
+    
+    def get_success_url(self):
+        return reverse_lazy('hr:qualification_list')
+    
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        form.instance.updated_by = self.request.user
+        return super().form_valid(form)
+
+class QualificationUpdateView(BaseUpdateView):
+    model = Qualification
+    form_class = QualificationForm
+    template_name = 'hr/qualification/form.html'
+    permission_required = 'hr.change_qualification'
+    roles_required = ['admin', 'hr_manager', 'principal']
+    
+    def get_success_url(self):
+        return reverse_lazy('hr:qualification_list')
+    
+    def form_valid(self, form):
+        form.instance.updated_by = self.request.user
+        return super().form_valid(form)
+
+class QualificationDeleteView(BaseDeleteView):
+    model = Qualification
+    template_name = 'hr/common/confirm_delete.html'
+    permission_required = 'hr.delete_qualification'
+    roles_required = ['admin', 'principal']
+    
+    def get_success_url(self):
+        return reverse_lazy('hr:qualification_list')
