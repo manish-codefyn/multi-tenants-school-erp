@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-    {% include 'transportation/partials/sub_menu.html' %}
+
     
     {% url 'transportation:fuel_create' as create_url %}
     {% include 'partials/breadcrumb.html' with page_title=_("Fuel Records") current_text=_("Fuel") action_url=create_url action_text=_("Add Record") %}

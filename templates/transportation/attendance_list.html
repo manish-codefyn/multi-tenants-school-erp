@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-    {% include 'transportation/partials/sub_menu.html' %}
+
     
     {% url 'transportation:attendance_create' as create_url %}
     {% include 'partials/breadcrumb.html' with page_title=_("Attendance") current_text=_("Attendance") action_url=create_url action_text=_("Record Attendance") %}
