@@ -53,3 +53,16 @@ class SelectMultipleWithSearch(forms.SelectMultiple):
         else:
             attrs = default_attrs
         super().__init__(attrs=attrs)
+
+
+class TimeInput(forms.TimeInput):
+    """
+    Custom TimeInput widget with HTML5 time type.
+    """
+    input_type = 'time'
+
+    def __init__(self, attrs=None):
+        default_attrs = {'class': 'form-control'}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)

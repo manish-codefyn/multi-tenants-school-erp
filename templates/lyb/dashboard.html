@@ -1,0 +1,107 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Library Dashboard - EduERP{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-4">Library Management</h4>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+    <div class="col">
+        <div class="card radius-10 bg-gradient-cosmic">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Total Books</p>
+                        <h4 class="my-1 text-white">{{ total_books|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white">
+                        <i class="bx bx-book"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ibiza">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Available Books</p>
+                        <h4 class="my-1 text-white">{{ available_books|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white">
+                        <i class="bx bx-book-open"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col">
+        <div class="card radius-10 bg-gradient-ohhappiness">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-white">Issued Books</p>
+                        <h4 class="my-1 text-white">{{ issued_books|default:"0" }}</h4>
+                    </div>
+                    <div class="fs-1 text-white">
+                        <i class="bx bx-book-bookmark"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col">
+        <div class="card radius-10 bg-gradient-kyoto">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-auto">
+                        <p class="mb-0 text-dark">Overdue Books</p>
+                        <h4 class="my-1 text-dark">{{ overdue_books|default:"0" }}</h4>
+                    </div>
+                    <div class="text-dark fs-1">
+                        <i class="bx bx-error"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12 col-lg-6">
+        <div class="card radius-10">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'library:book_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus-circle me-2"></i>Add New Book
+                    </a>
+                    <a href="{% url 'library:book_issue_create' %}" class="btn btn-success">
+                        <i class="bx bx-book-add me-2"></i>Issue Book
+                    </a>
+                    <a href="{% url 'library:book_list' %}" class="btn btn-outline-primary">
+                        <i class="bx bx-list-ul me-2"></i>View All Books
+                    </a>
+                    <a href="{% url 'library:author_list' %}" class="btn btn-outline-secondary">
+                        <i class="bx bx-user me-2"></i>Manage Authors
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

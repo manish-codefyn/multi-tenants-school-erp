@@ -1,0 +1,48 @@
+{% extends 'library/book_list.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Book Issues" %}{% endblock %}
+{% block content %}
+    {% url 'library:issue_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Book Issues") current_text=_("Issues") action_url=create_url action_text=_("Issue Book") %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="issueTable" data-datatable data-title="{% trans 'Issues List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Issue No" %}</th>
+                            <th>{% trans "Book" %}</th>
+                            <th>{% trans "Member" %}</th>
+                            <th>{% trans "Issue Date" %}</th>
+                            <th>{% trans "Due Date" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in issues %}
+                        <tr>
+                            <td class="ps-4 font-monospace">{{ issue.issue_number }}</td>
+                            <td>{{ issue.book_copy.book.title }} <small class="text-muted">({{ issue.book_copy.barcode }})</small></td>
+                            <td>{{ issue.member.get_full_name }}</td>
+                            <td>{{ issue.issue_date|date:"M d, Y" }}</td>
+                            <td>{{ issue.due_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {% if issue.status == 'ISSUED' %}bg-warning-subtle text-warning{% elif issue.status == 'RETURNED' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %}">
+                                    {{ issue.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'library:issue_detail' issue.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-show"></i></a>
+                                    <a href="{% url 'library:issue_update' issue.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

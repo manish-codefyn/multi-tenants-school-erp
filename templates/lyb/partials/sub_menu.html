@@ -1,0 +1,12 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-book"></i></div>
+        <div class="menu-title">Library</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'library:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'library:book_list' %}"><i class="bx bx-radio-circle"></i>Books</a></li>
+        <li><a href="{% url 'library:author_list' %}"><i class="bx bx-radio-circle"></i>Authors</a></li>
+        <li><a href="{% url 'library:book_issue_list' %}"><i class="bx bx-radio-circle"></i>Book Issues</a></li>
+    </ul>
+</li>

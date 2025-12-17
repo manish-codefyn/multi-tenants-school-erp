@@ -1,0 +1,42 @@
+{% extends 'library/book_list.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Book Categories" %}{% endblock %}
+{% block content %}
+    {% url 'library:category_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Categories") current_text=_("Categories") action_url=create_url action_text=_("Add Category") %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="categoryTable" data-datatable data-title="{% trans 'Category List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Parent Category" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ category.name }}</td>
+                            <td><span class="font-monospace text-muted">{{ category.code }}</span></td>
+                            <td>{{ category.parent_category.name|default:"-" }}</td>
+                            <td>
+                                {% if category.is_active %}<span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>{% else %}<span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>{% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'library:category_update' category.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'library:category_delete' category.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

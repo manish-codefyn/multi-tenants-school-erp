@@ -1,0 +1,46 @@
+{% extends 'library/book_list.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Book Copies" %}{% endblock %}
+{% block content %}
+    {% url 'library:copy_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Book Copies") current_text=_("Copies") action_url=create_url action_text=_("Add Copy") %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="copyTable" data-datatable data-title="{% trans 'Book Copies' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Barcode" %}</th>
+                            <th>{% trans "Book" %}</th>
+                            <th>{% trans "Accession No" %}</th>
+                            <th>{% trans "Condition" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for copy in copies %}
+                        <tr>
+                            <td class="ps-4 font-monospace">{{ copy.barcode }}</td>
+                            <td class="fw-bold">{{ copy.book.title }}</td>
+                            <td>{{ copy.accession_number }}</td>
+                            <td>{{ copy.get_condition_display }}</td>
+                            <td>
+                                <span class="badge {% if copy.status == 'AVAILABLE' %}bg-success-subtle text-success{% else %}bg-warning-subtle text-warning{% endif %}">
+                                    {{ copy.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'library:copy_update' copy.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'library:copy_delete' copy.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

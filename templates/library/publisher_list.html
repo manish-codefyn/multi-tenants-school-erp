@@ -1,0 +1,40 @@
+{% extends 'library/book_list.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Publishers" %}{% endblock %}
+{% block content %}
+    {% url 'library:publisher_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Publishers") current_text=_("Publishers") action_url=create_url action_text=_("Add Publisher") %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="publisherTable" data-datatable data-title="{% trans 'Publisher List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Contact Person" %}</th>
+                            <th>{% trans "Email" %}</th>
+                            <th>{% trans "Website" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for publisher in publishers %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ publisher.name }}</td>
+                            <td>{{ publisher.contact_person|default:"-" }}</td>
+                            <td>{{ publisher.email|default:"-" }}</td>
+                            <td>{{ publisher.website|default:"-"|urlize }}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'library:publisher_update' publisher.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'library:publisher_delete' publisher.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Books{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Books</h5>
+            <a href="{% url 'library:book_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Add New</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="bookTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>ISBN</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Publisher</th>
+                        <th>Total Copies</th>
+                        <th>Available</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr>
+                        <td><code>{{ book.isbn }}</code></td>
+                        <td>{{ book.title|truncatewords:5 }}</td>
+                        <td>{{ book.category.name }}</td>
+                        <td>{{ book.publisher.name }}</td>
+                        <td>{{ book.total_copies }}</td>
+                        <td>{{ book.available_copies }}</td>
+                        <td>{% if book.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'library:book_detail' book.pk %}" class="ms-3" title="View"><i class="bx bxs-show"></i></a>
+                                <a href="{% url 'library:book_update' book.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
+                                <a href="{% url 'library:book_delete' book.pk %}" class="ms-3 text-danger" title="Delete"><i class="bx bxs-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#bookTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#bookTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

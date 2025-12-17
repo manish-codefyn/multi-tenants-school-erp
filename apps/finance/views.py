@@ -304,7 +304,7 @@ class PaymentListView(BaseListView):
     template_name = 'finance/payment/list.html'
     context_object_name = 'payments'
     permission_required = 'finance.view_payment'
-    paginate_by = 20
+
 
     def get_queryset(self):
         qs = super().get_queryset().select_related('invoice', 'invoice__student', 'invoice__student__user')

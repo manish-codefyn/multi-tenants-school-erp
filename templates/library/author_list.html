@@ -1,57 +1,42 @@
-{% extends 'layouts/dashboard.html' %}
-{% load static %}
-
-{% block title %}Authors{% endblock %}
-
+{% extends 'library/book_list.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Authors" %}{% endblock %}
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h5 class="mb-0">Authors</h5>
-            <a href="{% url 'library:author_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Add New</a>
-        </div>
-        
-        <div class="table-responsive">
-            <table id="authorTable" class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Nationality</th>
-                        <th>Books Count</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for author in authors %}
-                    <tr>
-                        <td>{{ author.name }}</td>
-                        <td>{{ author.nationality }}</td>
-                        <td>{{ author.books_count }}</td>
-                        <td>{% if author.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
-                        <td>
-                            <div class="d-flex order-actions">
-                                <a href="{% url 'library:author_update' author.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
-                                <a href="{% url 'library:author_delete' author.pk %}" class="ms-3 text-danger" title="Delete"><i class="bx bxs-trash"></i></a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    {% url 'library:author_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Authors") current_text=_("Authors") action_url=create_url action_text=_("Add Author") %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="authorTable" data-datatable data-title="{% trans 'Authors List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Nationality" %}</th>
+                            <th>{% trans "Books Count" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for author in authors %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ author.name }}</td>
+                            <td>{{ author.nationality|default:"-" }}</td>
+                            <td>{{ author.books_count }}</td>
+                            <td>
+                                {% if author.is_active %}<span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>{% else %}<span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>{% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'library:author_update' author.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'library:author_delete' author.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    $(document).ready(function() {
-        var table = $('#authorTable').DataTable({
-            lengthChange: false,
-            buttons: [ 'copy', 'excel', 'pdf', 'print']
-        });
-        table.buttons().container().appendTo( '#authorTable_wrapper .col-md-6:eq(0)' );
-    });
-</script>
 {% endblock %}
