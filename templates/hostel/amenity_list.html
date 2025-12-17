@@ -1,0 +1,47 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Amenities" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% url 'hostel:amenity_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Amenities") current_text=_("Amenities") action_url=create_url action_text=_("Add Amenity") %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="amenityTable" data-datatable data-export-columns="[0, 1]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Icon" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for amenity in amenities %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ amenity.name }}</td>
+                            <td>{% if amenity.icon %}<i class="{{ amenity.icon }}"></i> {{ amenity.icon }}{% else %}-{% endif %}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'hostel:amenity_update' amenity.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'hostel:amenity_delete' amenity.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

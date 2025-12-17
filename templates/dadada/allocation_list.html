@@ -1,0 +1,127 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Room Allocations{% endblock %}
+
+{% block extra_css %}
+{% include \'includes/datatable_styles.html\' %}
+{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Hostel Management</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hostel:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Allocations</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="ms-auto">
+                <a href="{% url 'hostel:allocation_create' %}" class="btn btn-primary"><i class="bx bx-plus"></i> Allocate Room</a>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="Search by student name..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="active" {% if request.GET.status == 'active' or not request.GET.status %}selected{% endif %}>Active</option>
+                            <option value="checked_out" {% if request.GET.status == 'checked_out' %}selected{% endif %}>Checked Out</option>
+                            <option value="transferred" {% if request.GET.status == 'transferred' %}selected{% endif %}>Transferred</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100"><i class="bx bx-search"></i> Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Allocations Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Room</th>
+                                <th>Bed Number</th>
+                                <th>Allocation Date</th>
+                                <th>Checkout Date</th>
+                                <th>Status</th>
+                                <th>Rent Paid</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for allocation in allocations %}
+                            <tr>
+                                <td>{{ allocation.student.get_full_name }}</td>
+                                <td>{{ allocation.room }}</td>
+                                <td>{{ allocation.bed_number }}</td>
+                                <td>{{ allocation.allocation_date|date:"M d, Y" }}</td>
+                                <td>{{ allocation.checkout_date|date:"M d, Y"|default:"-" }}</td>
+                                <td>
+                                    {% if allocation.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif allocation.status == 'checked_out' %}
+                                        <span class="badge bg-secondary">Checked Out</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Transferred</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if allocation.rent_paid %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Unpaid</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if allocation.status == 'active' %}
+                                    <a href="{% url 'hostel:allocation_checkout' allocation.pk %}" class="btn btn-sm btn-outline-warning">Checkout</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center">No allocations found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                        {% endif %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ page_obj.number }}</a></li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+ 
+{% endblock %}
+
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

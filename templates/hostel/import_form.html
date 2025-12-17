@@ -1,0 +1,38 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Import Data" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0 text-primary">
+                    <i class="bx bx-import me-2"></i>{% trans "Import Records" %}
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                    <i class="bx bx-info-circle me-2 fs-5"></i>
+                    <div>
+                        {% trans "Please upload a CSV or Excel file. The first row should contain the column headers." %}
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    
+                    <div class="d-flex justify-content-between mt-4 align-items-center">
+                        <a href="javascript:history.back()" class="btn btn-light">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bx bx-upload me-2"></i>{% trans "Upload & Import" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

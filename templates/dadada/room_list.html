@@ -1,0 +1,140 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Rooms{% endblock %}
+
+{% block extra_css %}
+{% include \'includes/datatable_styles.html\' %}
+{% endblock %}
+
+{% block content %}
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Hostel Management</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0">
+                        <li class="breadcrumb-item"><a href="{% url 'hostel:dashboard' %}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Rooms</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="ms-auto">
+                <a href="{% url 'hostel:room_create' %}" class="btn btn-primary"><i class="bx bx-plus"></i> Add Room</a>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <select name="hostel" class="form-select">
+                            <option value="">All Hostels</option>
+                            {% for hostel in hostels %}
+                            <option value="{{ hostel.pk }}" {% if request.GET.hostel == hostel.pk|stringformat:"s" %}selected{% endif %}>{{ hostel.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="available" {% if request.GET.status == 'available' %}selected{% endif %}>Available</option>
+                            <option value="occupied" {% if request.GET.status == 'occupied' %}selected{% endif %}>Occupied</option>
+                            <option value="maintenance" {% if request.GET.status == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                            <option value="reserved" {% if request.GET.status == 'reserved' %}selected{% endif %}>Reserved</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="available" class="form-select">
+                            <option value="">All Rooms</option>
+                            <option value="yes" {% if request.GET.available == 'yes' %}selected{% endif %}>Available Only</option>
+                            <option value="no" {% if request.GET.available == 'no' %}selected{% endif %}>Occupied Only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-secondary w-100"><i class="bx bx-search"></i> Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Rooms Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Room Number</th>
+                                <th>Hostel</th>
+                                <th>Floor</th>
+                                <th>Type</th>
+                                <th>Capacity</th>
+                                <th>Occupancy</th>
+                                <th>Rent</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for room in rooms %}
+                            <tr>
+                                <td>{{ room.room_number }}</td>
+                                <td>{{ room.floor.block.hostel.name }}</td>
+                                <td>Floor {{ room.floor.floor_number }}</td>
+                                <td>{{ room.get_room_type_display }}</td>
+                                <td>{{ room.capacity }}</td>
+                                <td>{{ room.current_occupancy }}/{{ room.capacity }}</td>
+                                <td>₹{{ room.rent_per_month }}</td>
+                                <td>
+                                    {% if room.status == 'available' %}
+                                        <span class="badge bg-success">Available</span>
+                                    {% elif room.status == 'occupied' %}
+                                        <span class="badge bg-danger">Occupied</span>
+                                    {% elif room.status == 'maintenance' %}
+                                        <span class="badge bg-warning text-dark">Maintenance</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Reserved</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'hostel:room_detail' room.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    <a href="{% url 'hostel:room_update' room.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center">No rooms found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                        {% endif %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ page_obj.number }}</a></li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

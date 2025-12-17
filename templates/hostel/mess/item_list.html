@@ -1,0 +1,67 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Menu Items" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% url 'hostel:mess_item_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Menu Items") current_text=_("Items") action_url=create_url action_text=_("Add Item") extra_action_url=import_url extra_action_text=_("Import") extra_action_icon="bx bx-import" %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="itemTable" data-datatable data-export-columns="[0, 1, 2, 3, 4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Price" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ item.name }}</td>
+                            <td>{{ item.category.name|default:"-" }}</td>
+                            <td>
+                                {% if item.food_type == 'veg' %}
+                                    <span class="badge bg-success-subtle text-success"><i class="bx bx-leaf me-1"></i>{% trans "Veg" %}</span>
+                                {% elif item.food_type == 'non_veg' %}
+                                    <span class="badge bg-danger-subtle text-danger"><i class="bx bx-bone me-1"></i>{% trans "Non-Veg" %}</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning">{% trans "Egg" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.standard_price }}</td>
+                            <td>
+                                {% if item.is_available %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Available" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Unavailable" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'hostel:mess_item_update' item.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'hostel:mess_item_delete' item.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

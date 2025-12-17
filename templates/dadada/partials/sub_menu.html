@@ -1,0 +1,13 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-building-house"></i></div>
+        <div class="menu-title">Hostel</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'hostel:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'hostel:hostel_list' %}"><i class="bx bx-radio-circle"></i>Hostels</a></li>
+        <li><a href="{% url 'hostel:room_list' %}"><i class="bx bx-radio-circle"></i>Rooms</a></li>
+        <li><a href="{% url 'hostel:allocation_list' %}"><i class="bx bx-radio-circle"></i>Allocations</a></li>
+        <li><a href="{% url 'hostel:leave_list' %}"><i class="bx bx-radio-circle"></i>Leave Applications</a></li>
+    </ul>
+</li>

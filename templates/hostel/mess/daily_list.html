@@ -1,0 +1,51 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Daily Menus" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% url 'hostel:mess_daily_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Daily Menus") current_text=_("Daily Menus") action_url=create_url action_text=_("Create Daily Menu") %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="dailyMenuTable" data-datatable data-export-columns="[0, 1, 2, 3]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th>{% trans "Day" %}</th>
+                            <th>{% trans "Meal" %}</th>
+                            <th>{% trans "Note" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for menu in menus %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ menu.date|date:"M d, Y" }}</td>
+                            <td>{{ menu.get_day_display }}</td>
+                            <td>{{ menu.get_meal_display }}</td>
+                            <td>{{ menu.special_note|default:"-" }}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'hostel:mess_daily_update' menu.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'hostel:mess_daily_delete' menu.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

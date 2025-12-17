@@ -1,0 +1,59 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Mess Subscriptions" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% url 'hostel:mess_subscription_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Mess Subscriptions") current_text=_("Subscriptions") action_url=create_url action_text=_("New Subscription") %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="subscriptionTable" data-datatable data-export-columns="[0, 1, 2, 3, 4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Student" %}</th>
+                            <th>{% trans "Plan" %}</th>
+                            <th>{% trans "Duration" %}</th>
+                            <th>{% trans "Rate" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in subscriptions %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ sub.student.first_name }} {{ sub.student.last_name }}</td>
+                            <td>{{ sub.get_plan_type_display }}</td>
+                            <td>{{ sub.start_date|date:"d M" }} - {{ sub.end_date|date:"d M Y" }}</td>
+                            <td>{{ sub.monthly_rate }}</td>
+                            <td>
+                                {% if sub.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'hostel:mess_subscription_update' sub.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'hostel:mess_subscription_delete' sub.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

@@ -1,22 +1,31 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n %}
 
-{% block title %}Confirm Delete{% endblock %}
+{% block title %}{% trans "Confirm Delete" %}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-xl-6 mx-auto">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="mb-4 text-danger">Confirm Deletion</h5>
-                <p>Are you sure you want to delete "<strong>{{ object }}</strong>"?</p>
-                <p class="text-muted">This action cannot be undone.</p>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <div class="mb-4 text-danger">
+                    <i class="bx bx-error-circle" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="card-title text-danger mb-3">{% trans "Are you sure?" %}</h4>
+                <p class="text-muted mb-4">
+                    {% trans "Do you really want to delete this record? This process cannot be undone." %}
+                </p>
+                <div class="bg-light p-3 rounded mb-4 text-start">
+                    <strong>{% trans "Record:" %}</strong> {{ object }}
+                </div>
                 
                 <form method="post">
                     {% csrf_token %}
-                    <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="btn btn-danger px-4">Confirm Delete</button>
-                        <a href="javascript:history.back()" class="btn btn-light px-4">Cancel</a>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="javascript:history.back()" class="btn btn-light px-4">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="bx bx-trash me-2"></i>{% trans "Delete" %}
+                        </button>
                     </div>
                 </form>
             </div>

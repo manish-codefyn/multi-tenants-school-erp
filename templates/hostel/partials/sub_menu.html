@@ -1,13 +1,94 @@
+{% load i18n %}
+
 <li>
     <a href="javascript:;" class="has-arrow">
-        <div class="parent-icon"><i class="bx bx-building-house"></i></div>
-        <div class="menu-title">Hostel</div>
+        <div class="parent-icon">
+            <i class="bx bx-building-house"></i>
+        </div>
+        <div class="menu-title">{% trans "Hostel" %}</div>
     </a>
+
     <ul>
-        <li><a href="{% url 'hostel:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
-        <li><a href="{% url 'hostel:hostel_list' %}"><i class="bx bx-radio-circle"></i>Hostels</a></li>
-        <li><a href="{% url 'hostel:room_list' %}"><i class="bx bx-radio-circle"></i>Rooms</a></li>
-        <li><a href="{% url 'hostel:allocation_list' %}"><i class="bx bx-radio-circle"></i>Allocations</a></li>
-        <li><a href="{% url 'hostel:leave_list' %}"><i class="bx bx-radio-circle"></i>Leave Applications</a></li>
+        <!-- ================= DASHBOARD ================= -->
+        <li>
+            <a href="{% url 'hostel:dashboard' %}">
+                <i class="bx bx-home-alt"></i> {% trans "Dashboard" %}
+            </a>
+        </li>
+
+        <!-- ================= HOSTEL MANAGEMENT ================= -->
+        <li class="menu-label">{% trans "Hostel Management" %}</li>
+        <li>
+            <a href="{% url 'hostel:hostel_list' %}">
+                <i class="bx bx-buildings"></i> {% trans "Hostels" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'hostel:room_list' %}">
+                <i class="bx bx-door-open"></i> {% trans "Rooms" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'hostel:allocation_list' %}">
+                <i class="bx bx-user-check"></i> {% trans "Allocations" %}
+            </a>
+        </li>
+
+        <!-- ================= LEAVES ================= -->
+        <li class="menu-label">{% trans "Student Movement" %}</li>
+        <li>
+            <a href="{% url 'hostel:leave_list' %}">
+                <i class="bx bx-log-out-circle"></i> {% trans "Leave Applications" %}
+            </a>
+        </li>
+
+        <!-- ================= ATTENDANCE ================= -->
+        <li class="menu-label">{% trans "Attendance" %}</li>
+        <li>
+            <a href="{% url 'hostel:attendance_list' %}">
+                <i class="bx bx-calendar-check"></i> {% trans "Hostel Attendance" %}
+            </a>
+        </li>
+
+        <!-- ================= AMENITIES ================= -->
+        <li class="menu-label">{% trans "Amenities & Facilities" %}</li>
+        <li>
+            <a href="{% url 'hostel:amenity_list' %}">
+                <i class="bx bx-wifi"></i> {% trans "Amenities" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'hostel:facility_list' %}">
+                <i class="bx bx-dumbbell"></i> {% trans "Facilities" %}
+            </a>
+        </li>
+
+        <!-- ================= MESS MANAGEMENT ================= -->
+        <li class="menu-label">{% trans "Mess Management" %}</li>
+        <li>
+            <a href="{% url 'hostel:mess_dashboard' %}">
+                <i class="bx bx-restaurant"></i> {% trans "Mess Dashboard" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'hostel:mess_category_list' %}">
+                <i class="bx bx-category"></i> {% trans "Menu Categories" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'hostel:mess_item_list' %}">
+                <i class="bx bx-food-menu"></i> {% trans "Menu Items" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'hostel:mess_daily_list' %}">
+                <i class="bx bx-calendar"></i> {% trans "Daily Menus" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'hostel:mess_subscription_list' %}">
+                <i class="bx bx-user-plus"></i> {% trans "Mess Subscriptions" %}
+            </a>
+        </li>
     </ul>
 </li>

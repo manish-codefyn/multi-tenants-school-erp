@@ -1,14 +1,14 @@
 {% extends 'layouts/dashboard.html' %}
 {% load i18n crispy_forms_tags %}
 
-{% block title %}{% if object %}{% trans "Edit Room" %}{% else %}{% trans "Add Room" %}{% endif %}{% endblock %}
+{% block title %}{% if object %}{% trans "Edit Attendance" %}{% else %}{% trans "Mark Attendance" %}{% endif %}{% endblock %}
 
 {% block content %}
-    {% url 'hostel:room_list' as list_url %}
+    {% url 'hostel:attendance_list' as list_url %}
     {% if object %}
-        {% include 'partials/breadcrumb.html' with page_title=_("Edit Room") parent_text=_("Rooms") parent_url=list_url current_text=_("Edit") %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Edit Attendance") parent_text=_("Attendance") parent_url=list_url current_text=_("Edit") %}
     {% else %}
-        {% include 'partials/breadcrumb.html' with page_title=_("Add Room") parent_text=_("Rooms") parent_url=list_url current_text=_("Add") %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Mark Attendance") parent_text=_("Attendance") parent_url=list_url current_text=_("Mark") %}
     {% endif %}
 
     <div class="row justify-content-center">
@@ -22,7 +22,7 @@
                         <div class="d-flex justify-content-end gap-2 mt-4">
                             <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
                             <button type="submit" class="btn btn-primary px-4">
-                                <i class="fas fa-save me-2"></i>{% trans "Save Room" %}
+                                <i class="fas fa-save me-2"></i>{% trans "Save Attendance" %}
                             </button>
                         </div>
                     </form>

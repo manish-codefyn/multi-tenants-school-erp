@@ -1,0 +1,62 @@
+```html
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Leave Applications" %}{% endblock %}
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% url 'hostel:leave_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Leave Applications") current_text=_("Leaves") action_url=create_url action_text=_("New Leave") %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="leaveTable" data-datatable data-export-columns="[0, 1, 2, 3, 4]" data-title="{% trans 'Leave List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Student" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "From" %}</th>
+                            <th>{% trans "To" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in leaves %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                {{ leave.student.first_name }} {{ leave.student.last_name }}
+                            </td>
+                            <td>{{ leave.get_leave_type_display }}</td>
+                            <td>{{ leave.from_date|date:"M d, H:i" }}</td>
+                            <td>{{ leave.to_date|date:"M d, H:i" }}</td>
+                            <td>
+                                {% if leave.status == 'APPROVED' %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Approved" %}</span>
+                                {% elif leave.status == 'PENDING' %}
+                                    <span class="badge bg-warning-subtle text-warning">{% trans "Pending" %}</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">{{ leave.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'hostel:leave_update' leave.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'hostel:leave_delete' leave.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}
+```

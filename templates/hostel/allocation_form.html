@@ -1,27 +1,33 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static crispy_forms_tags %}
+{% load i18n crispy_forms_tags %}
 
-{% block title %}Allocation Form{% endblock %}
+{% block title %}{% if object %}{% trans "Edit Allocation" %}{% else %}{% trans "New Allocation" %}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-xl-9 mx-auto">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="mb-4">Hostel Allocation</h5>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div class="row">
-                        <div class="col-sm-3"></div>
-                        <div class="col-sm-9 text-secondary">
-                            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
-                            <a href="{% url 'hostel:allocation_list' %}" class="btn btn-light px-4">Cancel</a>
+    {% url 'hostel:allocation_list' as list_url %}
+    {% if object %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Edit Allocation") parent_text=_("Allocations") parent_url=list_url current_text=_("Edit") %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with page_title=_("New Allocation") parent_text=_("Allocations") parent_url=list_url current_text=_("New") %}
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i>{% trans "Save Allocation" %}
+                            </button>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

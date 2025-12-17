@@ -1,0 +1,28 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Menu Category Form" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0">{% if form.instance.pk %}{% trans "Edit Category" %}{% else %}{% trans "Add Category" %}{% endif %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'hostel:mess_category_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary">{% trans "Save Category" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Mess Management" %}{% endblock %}
+
+{% block content %}
+    {% include 'hostel/partials/sub_menu.html' %}
+    
+    <div class="row g-4 mb-4">
+        <!-- Stats -->
+        <div class="col-md-3">
+             <div class="card border-0 shadow-sm border-start border-primary border-4 h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted fw-bold mb-2">{% trans "Active Menus" %}</h6>
+                    <h2 class="mb-0">{{ total_menus|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="card border-0 shadow-sm border-start border-success border-4 h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted fw-bold mb-2">{% trans "Subscriptions" %}</h6>
+                    <h2 class="mb-0">{{ total_subscriptions|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'hostel:mess_daily_create' %}" class="btn btn-outline-primary text-start">
+                            <i class="bx bx-calendar-plus me-2"></i>{% trans "Create Daily Menu" %}
+                        </a>
+                        <a href="{% url 'hostel:mess_item_create' %}" class="btn btn-outline-secondary text-start">
+                            <i class="bx bx-food-menu me-2"></i>{% trans "Add Menu Item" %}
+                        </a>
+                        <a href="{% url 'hostel:mess_subscription_create' %}" class="btn btn-outline-info text-start">
+                            <i class="bx bx-user-plus me-2"></i>{% trans "New Subscription" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
