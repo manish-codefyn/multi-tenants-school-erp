@@ -1,0 +1,55 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Route Stops" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'transportation/partials/sub_menu.html' %}
+    
+    {% url 'transportation:stop_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Route Stops") current_text=_("Stops") action_url=create_url action_text=_("Add Stop") %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="stopTable" data-datatable data-export-columns="[0, 1, 2, 3, 4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Stop Name" %}</th>
+                            <th>{% trans "Route" %}</th>
+                            <th>{% trans "Seq" %}</th>
+                            <th>{% trans "Timing" %}</th>
+                            <th>{% trans "Landmark" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stop in stops %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ stop.stop_name }}</td>
+                            <td>{{ stop.route.name }}</td>
+                            <td>{{ stop.sequence }}</td>
+                            <td><i class="bx bx-up-arrow-alt text-success"></i> {{ stop.pickup_time|time:"H:i" }} <br> <i class="bx bx-down-arrow-alt text-danger"></i> {{ stop.drop_time|time:"H:i" }}</td>
+                            <td>{{ stop.landmark|default:"-" }}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'transportation:stop_update' stop.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'transportation:stop_delete' stop.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

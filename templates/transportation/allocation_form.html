@@ -1,7 +1,7 @@
 {% extends 'layouts/dashboard.html' %}
 {% load i18n crispy_forms_tags %}
 
-{% block title %}{% trans "Route Form" %}{% endblock %}
+{% block title %}{% trans "Allocation Form" %}{% endblock %}
 
 {% block content %}
 {% include 'transportation/partials/sub_menu.html' %}
@@ -10,15 +10,15 @@
         <div class="col-md-8">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent py-3">
-                    <h5 class="mb-0">{% if form.instance.pk %}{% trans "Edit Route" %}{% else %}{% trans "Add Route" %}{% endif %}</h5>
+                    <h5 class="mb-0">{% if form.instance.pk %}{% trans "Edit Allocation" %}{% else %}{% trans "New Allocation" %}{% endif %}</h5>
                 </div>
                 <div class="card-body">
                     <form method="post" novalidate>
                         {% csrf_token %}
                         {{ form|crispy }}
                         <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="{% url 'transportation:route_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
-                            <button type="submit" class="btn btn-primary">{% trans "Save Route" %}</button>
+                            <a href="{% url 'transportation:allocation_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary">{% trans "Save Allocation" %}</button>
                         </div>
                     </form>
                 </div>

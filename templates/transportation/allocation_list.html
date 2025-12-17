@@ -1,0 +1,70 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Allocations" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'transportation/partials/sub_menu.html' %}
+    
+    {% url 'transportation:allocation_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Allocations") current_text=_("Allocations") action_url=create_url action_text=_("New Allocation") %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="allocationTable" data-datatable data-export-columns="[0, 1, 2, 3, 4, 5]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Student" %}</th>
+                            <th>{% trans "Route" %}</th>
+                            <th>{% trans "Stops" %}</th>
+                            <th>{% trans "Fee" %}</th>
+                            <th>{% trans "Validity" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for allocation in allocations %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                {{ allocation.student.first_name }} {{ allocation.student.last_name }}
+                                <br><small class="text-muted">{{ allocation.student.admission_number }}</small>
+                            </td>
+                            <td>{{ allocation.route.name }}</td>
+                            <td>
+                                <i class="bx bx-up-arrow-alt text-success"></i> {{ allocation.pickup_stop.stop_name }}
+                                <br>
+                                <i class="bx bx-down-arrow-alt text-danger"></i> {{ allocation.drop_stop.stop_name }}
+                            </td>
+                            <td>
+                                {{ allocation.monthly_fee }}
+                                <br>
+                                {% if allocation.is_fee_paid %}<span class="badge bg-success-subtle text-success">Paid</span>{% else %}<span class="badge bg-warning-subtle text-warning">Pending</span>{% endif %}
+                            </td>
+                            <td>{{ allocation.allocation_date|date:"d M Y" }} - <br>{{ allocation.valid_until|date:"d M Y"|default:"Indefinite" }}</td>
+                            <td>
+                                {% if allocation.is_active %}<span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>{% else %}<span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>{% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'transportation:allocation_update' allocation.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'transportation:allocation_delete' allocation.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

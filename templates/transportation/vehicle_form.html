@@ -1,25 +1,93 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static crispy_forms_tags %}
+{% load i18n crispy_forms_tags %}
 
-{% block title %}Vehicle Form{% endblock %}
+{% block title %}{% trans "Vehicle Form" %}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-xl-9 mx-auto">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="mb-4">Vehicle Details</h5>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <div class="row">
-                        <div class="col-sm-3"></div>
-                        <div class="col-sm-9 text-secondary">
-                            <button type="submit" class="btn btn-primary px-4">Save Changes</button>
-                            <a href="{% url 'transportation:vehicle_list' %}" class="btn btn-light px-4">Cancel</a>
+{% include 'transportation/partials/sub_menu.html' %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0">{% if form.instance.pk %}{% trans "Edit Vehicle" %}{% else %}{% trans "Add Vehicle" %}{% endif %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.vehicle_number|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.vehicle_type|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.make|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.model|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.year|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.color|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.fuel_type|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.seating_capacity|as_crispy_field }}
+                            </div>
                         </div>
-                    </div>
-                </form>
+                        <h6 class="mt-4 mb-3 text-muted border-bottom pb-2">{% trans "Registration & Insurance" %}</h6>
+                         <div class="row">
+                            <div class="col-md-4">
+                                {{ form.registration_number|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.registration_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.registration_expiry|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.insurance_company|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.insurance_number|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.insurance_expiry|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.fitness_certificate_number|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.fitness_expiry|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                         <h6 class="mt-4 mb-3 text-muted border-bottom pb-2">{% trans "Other Details" %}</h6>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.driver|as_crispy_field }}
+                            </div>
+                             <div class="col-md-3">
+                                {{ form.under_maintenance|as_crispy_field }}
+                            </div>
+                             <div class="col-md-3">
+                                {{ form.is_active|as_crispy_field }}
+                            </div>
+                         </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'transportation:vehicle_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary">{% trans "Save Vehicle" %}</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

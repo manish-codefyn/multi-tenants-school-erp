@@ -1,12 +1,72 @@
+{% load i18n %}
+
 <li>
     <a href="javascript:;" class="has-arrow">
-        <div class="parent-icon"><i class="bx bx-bus"></i></div>
-        <div class="menu-title">Transportation</div>
+        <div class="parent-icon">
+            <i class="bx bx-bus"></i>
+        </div>
+        <div class="menu-title">{% trans "Transportation" %}</div>
     </a>
+
     <ul>
-        <li><a href="{% url 'transportation:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
-        <li><a href="{% url 'transportation:vehicle_list' %}"><i class="bx bx-radio-circle"></i>Vehicles</a></li>
-        <li><a href="{% url 'transportation:route_list' %}"><i class="bx bx-radio-circle"></i>Routes</a></li>
-        <li><a href="{% url 'transportation:allocation_list' %}"><i class="bx bx-radio-circle"></i>Allocations</a></li>
+        <!-- ================= DASHBOARD ================= -->
+        <li>
+            <a href="{% url 'transportation:dashboard' %}">
+                <i class="bx bx-home-alt"></i> {% trans "Dashboard" %}
+            </a>
+        </li>
+
+        <!-- ================= VEHICLE MANAGEMENT ================= -->
+        <li class="menu-label">{% trans "Vehicle Management" %}</li>
+        <li>
+            <a href="{% url 'transportation:vehicle_list' %}">
+                <i class="bx bx-car"></i> {% trans "Vehicles" %}
+            </a>
+        </li>
+
+        <!-- ================= ROUTE MANAGEMENT ================= -->
+        <li class="menu-label">{% trans "Route Management" %}</li>
+        <li>
+            <a href="{% url 'transportation:route_list' %}">
+                <i class="bx bx-map"></i> {% trans "Routes" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'transportation:stop_list' %}">
+                <i class="bx bx-map-pin"></i> {% trans "Route Stops" %}
+            </a>
+        </li>
+
+        <!-- ================= ALLOCATIONS ================= -->
+        <li class="menu-label">{% trans "Student Allocation" %}</li>
+        <li>
+            <a href="{% url 'transportation:allocation_list' %}">
+                <i class="bx bx-user-check"></i> {% trans "Allocations" %}
+            </a>
+        </li>
+
+        <!-- ================= ATTENDANCE ================= -->
+        <li class="menu-label">{% trans "Attendance" %}</li>
+        <li>
+            <a href="{% url 'transportation:attendance_list' %}">
+                <i class="bx bx-calendar-check"></i> {% trans "Transport Attendance" %}
+            </a>
+        </li>
+
+        <!-- ================= MAINTENANCE ================= -->
+        <li class="menu-label">{% trans "Maintenance" %}</li>
+        <li>
+            <a href="{% url 'transportation:maintenance_list' %}">
+                <i class="bx bx-wrench"></i> {% trans "Vehicle Maintenance" %}
+            </a>
+        </li>
+
+        <!-- ================= FUEL ================= -->
+        <li class="menu-label">{% trans "Fuel Management" %}</li>
+        <li>
+            <a href="{% url 'transportation:fuel_list' %}">
+                <i class="bx bx-gas-pump"></i> {% trans "Fuel Records" %}
+            </a>
+        </li>
     </ul>
 </li>

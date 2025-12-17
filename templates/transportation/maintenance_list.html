@@ -1,0 +1,63 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Maintenance Records" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'transportation/partials/sub_menu.html' %}
+    
+    {% url 'transportation:maintenance_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Maintenance Records") current_text=_("Maintenance") action_url=create_url action_text=_("Add Record") %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="maintenanceTable" data-datatable data-export-columns="[0, 1, 2, 3, 4, 5]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th>{% trans "Vehicle" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Workshop" %}</th>
+                            <th>{% trans "Cost" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ record.maintenance_date|date:"M d, Y" }}</td>
+                            <td>{{ record.vehicle.vehicle_number }}</td>
+                            <td>{{ record.get_maintenance_type_display }}</td>
+                            <td>{{ record.workshop_name }}</td>
+                            <td>{{ record.total_cost }}</td>
+                            <td>
+                                {% if record.is_completed %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Completed" %}</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning">{% trans "In Progress" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'transportation:maintenance_update' record.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'transportation:maintenance_delete' record.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

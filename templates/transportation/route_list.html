@@ -1,0 +1,62 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Routes" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% include 'transportation/partials/sub_menu.html' %}
+    
+    {% url 'transportation:route_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Routes") current_text=_("Routes") action_url=create_url action_text=_("Add Route") %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="routeTable" data-datatable data-export-columns="[0, 1, 2, 3, 4, 5]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Route" %}</th>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Distance" %}</th>
+                            <th>{% trans "Vehicle" %}</th>
+                            <th>{% trans "Fees" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for route in routes %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                {{ route.name }}
+                                <br><small class="text-muted">{{ route.start_point }} <i class="bx bx-right-arrow-alt"></i> {{ route.end_point }}</small>
+                            </td>
+                            <td>{{ route.code }}</td>
+                            <td>{{ route.total_distance }} km<br><small class="text-muted">{{ route.estimated_duration }} mins</small></td>
+                            <td>{{ route.vehicle.vehicle_number|default:"-" }}</td>
+                            <td>{{ route.monthly_fee }}</td>
+                            <td>
+                                {% if route.is_active %}<span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>{% else %}<span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>{% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'transportation:route_update' route.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'transportation:route_delete' route.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}
