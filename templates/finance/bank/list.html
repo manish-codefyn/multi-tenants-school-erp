@@ -1,0 +1,68 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Bank Accounts" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:bank_account_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Bank Accounts") current_text=_("Accounts") action_url=create_url action_text=_("Add Account") %}
+
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="bankTable" data-datatable data-export-columns="[0,1,2,3,4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-3">{% trans "Account Name" %}</th>
+                            <th>{% trans "Bank Name" %}</th>
+                            <th>{% trans "Account #" %}</th>
+                            <th>{% trans "Balance" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-3">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in bank_accounts %}
+                        <tr>
+                            <td class="ps-3 fw-bold">
+                                <a href="{% url 'finance:bank_account_detail' account.pk %}" class="text-decoration-none text-dark">{{ account.account_name }}</a>
+                            </td>
+                            <td>{{ account.bank_name }}</td>
+                            <td class="font-monospace">{{ account.account_number }}</td>
+                            <td class="fw-bold text-success">₹{{ account.current_balance|intcomma }}</td>
+                            <td>
+                                {% if account.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-3">
+                                <div class="btn-group">
+                                    <a href="{% url 'finance:bank_account_detail' account.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{% url 'finance:bank_account_update' account.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

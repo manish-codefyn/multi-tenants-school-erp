@@ -1,13 +1,50 @@
+{% load i18n %}
+
 <li>
     <a href="javascript:;" class="has-arrow">
-        <div class="parent-icon"><i class="bx bx-dollar-circle"></i></div>
-        <div class="menu-title">Finance</div>
+        <div class="parent-icon"><i class="bx bx-money"></i></div>
+        <div class="menu-title">{% trans "Finance" %}</div>
     </a>
+
     <ul>
-        <li><a href="{% url 'finance:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
-        <li><a href="{% url 'finance:invoice_list' %}"><i class="bx bx-radio-circle"></i>Invoices</a></li>
-        <li><a href="{% url 'finance:payment_list' %}"><i class="bx bx-radio-circle"></i>Payments</a></li>
-        <li><a href="{% url 'finance:fee_structure_list' %}"><i class="bx bx-radio-circle"></i>Fee Structures</a></li>
-        <li><a href="{% url 'finance:fee_discount_list' %}"><i class="bx bx-radio-circle"></i>Discounts</a></li>
+        <!-- QUICK ACCESS -->
+        <li>
+            <a href="{% url 'finance:dashboard' %}">
+                <i class="bx bx-home-alt"></i> {% trans "Dashboard" %}
+            </a>
+        </li>
+
+        <!-- FEE SECTION -->
+        <li class="menu-label">{% trans "Fees" %}</li>
+        <li><a href="{% url 'finance:fee_structure_list' %}"><i class="bx bx-layer"></i> {% trans "Fee Structures" %}</a></li>
+        <li><a href="{% url 'finance:invoice_list' %}"><i class="bx bx-receipt"></i> {% trans "Invoices" %}</a></li>
+        <li><a href="{% url 'finance:payment_list' %}"><i class="bx bx-credit-card"></i> {% trans "Payments" %}</a></li>
+        <li><a href="{% url 'finance:fee_discount_list' %}"><i class="bx bx-discount"></i> {% trans "Discounts" %}</a></li>
+
+        <!-- BUDGET SECTION -->
+        <li class="menu-label">{% trans "Budget" %}</li>
+        <li><a href="{% url 'finance:budget_list' %}"><i class="bx bx-pie-chart-alt"></i> {% trans "Budgets" %}</a></li>
+        <li><a href="{% url 'finance:budget_category_list' %}"><i class="bx bx-category"></i> {% trans "Budget Categories" %}</a></li>
+        <li><a href="{% url 'finance:budget_template_list' %}"><i class="bx bx-file"></i> {% trans "Budget Templates" %}</a></li>
+        <li><a href="{% url 'finance:expense_list' %}"><i class="bx bx-wallet"></i> {% trans "Expenses" %}</a></li>
+        <li><a href="{% url 'finance:bank_account_list' %}"><i class="bx bx-bank"></i> {% trans "Bank Accounts" %}</a></li>
+
+        <!-- REPORTS SECTION -->
+        <li class="menu-label">{% trans "Reports" %}</li>
+        <li><a href="{% url 'finance:financial_report_list' %}"><i class="bx bx-file"></i> {% trans "All Reports" %}</a></li>
+        <li><a href="{% url 'finance:report_fee_collection' %}"><i class="bx bx-collection"></i> {% trans "Collections" %}</a></li>
+        <li><a href="{% url 'finance:report_expense_summary' %}"><i class="bx bx-bar-chart-alt"></i> {% trans "Expenses" %}</a></li>
+
+        <!-- STUDENT/PARENT VIEW -->
+        {% if user.role in 'student,parent'|make_list %}
+        <li class="menu-label">{% trans "My Account" %}</li>
+        <li><a href="{% url 'finance:my_invoices' %}"><i class="bx bx-receipt"></i> {% trans "My Invoices" %}</a></li>
+        <li><a href="{% url 'finance:my_payments' %}"><i class="bx bx-history"></i> {% trans "Payment History" %}</a></li>
+        {% endif %}
+
+        <!-- UTILITIES -->
+        <li class="menu-label">{% trans "Utilities" %}</li>
+        <li><a href="{% url 'finance:generate_invoices' %}"><i class="bx bx-plus-circle"></i> {% trans "Generate Invoices" %}</a></li>
+        <li><a href="{% url 'finance:send_reminders' %}"><i class="bx bx-bell"></i> {% trans "Send Reminders" %}</a></li>
     </ul>
 </li>

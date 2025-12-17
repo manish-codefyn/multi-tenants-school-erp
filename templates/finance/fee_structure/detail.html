@@ -1,0 +1,118 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n humanize %}
+
+{% block title %}{{ fee_structure.name }}{% endblock %}
+
+{% block content %}
+    {% url 'finance:fee_structure_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=fee_structure.name current_text=_("Detail") parent_text=_("Fee Structures") parent_url=list_url %}
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Fee Information" %}</h5>
+                    <div>
+                        <a href="{% url 'finance:fee_structure_update' fee_structure.pk %}" class="btn btn-sm btn-primary">
+                            <i class='bx bx-edit me-1'></i> {% trans "Edit" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Name" %}</div>
+                        <div class="col-md-8 fw-semibold">{{ fee_structure.name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Fee Type" %}</div>
+                        <div class="col-md-8">{{ fee_structure.get_fee_type_display }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Frequency" %}</div>
+                        <div class="col-md-8">{{ fee_structure.get_frequency_display }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Amount" %}</div>
+                        <div class="col-md-8 fw-bold text-success display-6 h6">₹{{ fee_structure.amount|intcomma }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Applicable Class" %}</div>
+                        <div class="col-md-8">
+                            {% if fee_structure.class_name %}
+                                <span class="badge bg-info-subtle text-info">{{ fee_structure.class_name }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary">{% trans "All Classes" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Academic Year" %}</div>
+                        <div class="col-md-8">{{ fee_structure.academic_year }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Status" %}</div>
+                        <div class="col-md-8">
+                            {% if fee_structure.is_active %}
+                                <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">{% trans "Late Fees & Rules" %}</h5>
+                </div>
+                <div class="card-body">
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Due Day" %}</div>
+                        <div class="col-md-8">{% trans "Day" %} {{ fee_structure.due_day }} {% trans "of the month/period" %}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Late Fee Applicable" %}</div>
+                        <div class="col-md-8">
+                            {% if fee_structure.late_fee_applicable %}
+                                <i class='bx bx-check-circle text-success'></i> {% trans "Yes" %}
+                            {% else %}
+                                <i class='bx bx-x-circle text-muted'></i> {% trans "No" %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if fee_structure.late_fee_applicable %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Late Fee Amount" %}</div>
+                        <div class="col-md-8 fw-bold text-danger">₹{{ fee_structure.late_fee_amount|intcomma }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Incurred After" %}</div>
+                        <div class="col-md-8">{{ fee_structure.late_fee_after_days }} {% trans "days post-due" %}</div>
+                    </div>
+                    {% endif %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Discount Allowed" %}</div>
+                        <div class="col-md-8">
+                            {% if fee_structure.discount_allowed %}
+                                <i class='bx bx-check-circle text-success'></i> {% trans "Yes" %} (Max: {{ fee_structure.max_discount_percentage }}%)
+                            {% else %}
+                                <i class='bx bx-x-circle text-muted'></i> {% trans "No" %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+             <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title text-white-50">{% trans "Quick Actions" %}</h6>
+                    <p class="small">{% trans "Generate invoices for this fee structure manually (usually automated)." %}</p>
+                    <a href="#" class="btn btn-light w-100 disabled">{% trans "Generate Invoices" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

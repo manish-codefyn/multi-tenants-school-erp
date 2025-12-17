@@ -1,0 +1,44 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+    {% url 'finance:expense_category_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=category.name current_text=_("Detail") parent_text=_("Categories") parent_url=list_url %}
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Category Information" %}</h5>
+                    <a href="{% url 'finance:expense_category_update' category.pk %}" class="btn btn-sm btn-primary">
+                        <i class='bx bx-edit me-1'></i> {% trans "Edit" %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Name" %}</div>
+                        <div class="col-md-8 fw-semibold">{{ category.name }}</div>
+                    </div>
+                    {% if category.description %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Description" %}</div>
+                        <div class="col-md-8">{{ category.description|linebreaks }}</div>
+                    </div>
+                    {% endif %}
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Status" %}</div>
+                        <div class="col-md-8">
+                             {% if category.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

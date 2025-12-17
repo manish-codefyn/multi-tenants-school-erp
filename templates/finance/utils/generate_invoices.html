@@ -1,0 +1,60 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static crispy_forms_tags %}
+
+{% block title %}{% trans "Generate Monthly Invoices" %}{% endblock %}
+
+{% block content %}
+    {% url 'finance:invoice_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Generate Monthly Invoices") current_text=_("Generate Invoices") parent_text=_("Invoices") parent_url=list_url %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="avatar bg-primary-subtle text-primary rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; line-height: 56px;">
+                            <i class='bx bx-hive fs-1'></i>
+                        </div>
+                        <h4 class="card-title">{% trans "Bulk Invoice Generation" %}</h4>
+                        <p class="text-muted">
+                            {% trans "Automatically generate tuition fee invoices for all active students for a specific month. This process will create pending invoices based on the fee structure." %}
+                        </p>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-info border-0 bg-info-subtle text-info mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class='bx bx-info-circle fs-4 me-2'></i>
+                                <div>
+                                    <strong>{% trans "Note:" %}</strong> {% trans "Invoices will only be generated for students who have an assigned fee structure for the selected academic year." %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">{% trans "Billing Month" %}</label>
+                                <input type="month" name="billing_month" class="form-control" required>
+                                <div class="form-text">{% trans "Select the month and year for this billing cycle." %}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{% trans "Due Date" %}</label>
+                                <input type="date" name="due_date" class="form-control" required>
+                                <div class="form-text">{% trans "Set the payment due date for these invoices." %}</div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class='bx bx-cog me-2'></i>{% trans "Generate Invoices" %}
+                            </button>
+                            <a href="{{ list_url }}" class="btn btn-light btn-lg">{% trans "Cancel" %}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

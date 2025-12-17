@@ -1,0 +1,74 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Send Payment Reminders" %}{% endblock %}
+
+{% block content %}
+    {% url 'finance:invoice_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Send Payment Reminders") current_text=_("Send Reminders") parent_text=_("Invoices") parent_url=list_url %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="avatar bg-warning-subtle text-warning rounded-circle mx-auto mb-3" style="width: 60px; height: 60px; line-height: 56px;">
+                            <i class='bx bx-bell fs-1'></i>
+                        </div>
+                        <h4 class="card-title">{% trans "Send Payment Reminders" %}</h4>
+                        <p class="text-muted">
+                            {% trans "Identify overdue invoices and send payment reminders to students/guardians via email/SMS." %}
+                        </p>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        
+                         <div class="alert alert-warning border-0 bg-warning-subtle text-warning mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class='bx bx-error-circle fs-4 me-2'></i>
+                                <div>
+                                    <strong>{% trans "Confirm Action:" %}</strong> {% trans "This will process all overdue invoices and queue reminder notifications." %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-1 text-danger">{{ overdue_count }}</h3>
+                                        <div class="small text-muted">{% trans "Overdue Invoices" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-1 text-dark">₹{{ overdue_amount|intcomma }}</h3>
+                                        <div class="small text-muted">{% trans "Total Outstanding" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                             <div class="col-md-4">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body text-center">
+                                        <h3 class="mb-1 text-primary">{{ students_affected }}</h3>
+                                        <div class="small text-muted">{% trans "Students Affected" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class='bx bx-envelope me-2'></i>{% trans "Send Reminders Now" %}
+                            </button>
+                            <a href="{{ list_url }}" class="btn btn-light btn-lg">{% trans "Cancel" %}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

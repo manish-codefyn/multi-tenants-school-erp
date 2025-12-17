@@ -1,0 +1,181 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n humanize %}
+
+{% block title %}{{ budget.name }}{% endblock %}
+
+{% block content %}
+    {% url 'finance:budget_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=budget.name current_text=_("Detail") parent_text=_("Budgets") parent_url=list_url %}
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Budget Profile" %}</h5>
+                    <div>
+                         {% if budget.status == 'DRAFT' and perms.finance.approve_budget %}
+                         <form action="{% url 'finance:budget_approve' budget.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class='bx bx-check me-1'></i> {% trans "Approve" %}
+                                </button>
+                        </form>
+                        {% endif %}
+                         {% if budget.status == 'APPROVED' and perms.finance.change_budget %}
+                         <form action="{% url 'finance:budget_activate' budget.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class='bx bx-check-double me-1'></i> {% trans "Activate" %}
+                                </button>
+                        </form>
+                        {% endif %}
+                         {% if budget.status == 'DRAFT' %}
+                        <a href="{% url 'finance:budget_update' budget.pk %}" class="btn btn-sm btn-light ms-1">
+                            <i class='bx bx-edit me-1'></i> {% trans "Edit" %}
+                        </a>
+                        <!-- Add Delete Button -->
+                         <a href="{% url 'finance:budget_delete' budget.pk %}" class="btn btn-sm btn-danger ms-1">
+                            <i class='bx bx-trash me-1'></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Name" %}</div>
+                        <div class="col-md-8 fw-semibold">{{ budget.name }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Budget Type" %}</div>
+                        <div class="col-md-8">{{ budget.get_budget_type_display }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Total Amount" %}</div>
+                        <div class="col-md-8 fw-bold text-dark display-6 h6">₹{{ budget.total_amount|intcomma }}</div>
+                    </div>
+                    {% if budget.notes %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Notes" %}</div>
+                        <div class="col-md-8">{{ budget.notes|linebreaks }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Budget Items -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">{% trans "Budget Items" %}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Category" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Allocated" %}</th>
+                                    <th>{% trans "Spent" %}</th>
+                                    <th class="pe-4">{% trans "Status" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in items %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-semibold">{{ item.category.name }}</div>
+                                        <small class="text-muted">{{ item.category.code }}</small>
+                                    </td>
+                                    <td>{{ item.description }}</td>
+                                    <td class="fw-semibold">₹{{ item.allocated_amount|intcomma }}</td>
+                                    <td>₹{{ item.spent_amount|intcomma }}</td>
+                                    <td class="pe-4">
+                                        <div class="progress" style="height: 6px; width: 80px;">
+                                            <div class="progress-bar {% if item.utilization_percentage > 90 %}bg-danger{% elif item.utilization_percentage > 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ item.utilization_percentage }}%">
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ item.utilization_percentage|floatform:0 }}%</small>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">{% trans "No budget items found." %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+             <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                     <h6 class="card-title text-muted mb-3">{% trans "Status & Timeline" %}</h6>
+                     <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "Status" %}</div>
+                        <div class="col-7 text-end">
+                            <span class="badge 
+                                {% if budget.status == 'ACTIVE' %}bg-success-subtle text-success
+                                {% elif budget.status == 'APPROVED' %}bg-primary-subtle text-primary
+                                {% elif budget.status == 'CLOSED' %}bg-secondary-subtle text-secondary
+                                {% else %}bg-warning-subtle text-warning{% endif %}">
+                                {{ budget.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                     <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "Academic Year" %}</div>
+                        <div class="col-7 text-end">{{ budget.academic_year }}</div>
+                    </div>
+                     <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "Start Date" %}</div>
+                        <div class="col-7 text-end">{{ budget.start_date|date:"M d, Y" }}</div>
+                    </div>
+                     <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "End Date" %}</div>
+                        <div class="col-7 text-end">{{ budget.end_date|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "Prepared By" %}</div>
+                        <div class="col-7 text-end">{{ budget.prepared_by.get_full_name|default:budget.prepared_by.username }}</div>
+                    </div>
+                </div>
+            </div>
+            
+             <!-- Utilization -->
+             <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-3">{% trans "Budget Utilization" %}</h6>
+                    
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-semibold">{{ budget.utilization_percentage|floatform:1 }}%</span>
+                        <span class="text-muted small">{% trans "Used" %}</span>
+                    </div>
+                     <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar {% if budget.utilization_percentage > 90 %}bg-danger{% elif budget.utilization_percentage > 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ budget.utilization_percentage }}%" 
+                             aria-valuenow="{{ budget.utilization_percentage }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>{% trans "Spent" %}: ₹{{ budget.total_expenses|intcomma }}</span>
+                        <span>{% trans "Total" %}: ₹{{ budget.total_amount|intcomma }}</span>
+                    </div>
+                    
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">{% trans "Remaining" %}</span>
+                        <span class="fw-bold text-success">₹{{ budget.remaining_budget|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

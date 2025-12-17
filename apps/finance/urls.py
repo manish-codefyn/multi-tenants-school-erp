@@ -1,9 +1,11 @@
 from django.urls import path, include
+from django.contrib.auth.decorators import login_required
 from rest_framework.routers import DefaultRouter
 from . import views
 
 app_name = 'finance'
 
+# ==================== API ROUTER ====================
 router = DefaultRouter()
 router.register(r'fee-structures', views.FeeStructureAPIViewSet)
 router.register(r'invoices', views.InvoiceAPIViewSet)
@@ -11,99 +13,164 @@ router.register(r'payments', views.PaymentAPIViewSet)
 router.register(r'expenses', views.ExpenseAPIViewSet)
 
 urlpatterns = [
-    # Dashboard
-    path('', views.FinanceDashboardView.as_view(), name='dashboard'),
-    
-    # Fee Structure
-    path('fee-structures/', views.FeeStructureListView.as_view(), name='fee_structure_list'),
-    path('fee-structures/create/', views.FeeStructureCreateView.as_view(), name='fee_structure_create'),
-    path('fee-structures/<uuid:pk>/', views.FeeStructureDetailView.as_view(), name='fee_structure_detail'),
-    path('fee-structures/<uuid:pk>/update/', views.FeeStructureUpdateView.as_view(), name='fee_structure_update'),
-    path('fee-structures/<uuid:pk>/delete/', views.FeeStructureDeleteView.as_view(), name='fee_structure_delete'),
-    
-    # Fee Discount
-    path('discounts/', views.FeeDiscountListView.as_view(), name='fee_discount_list'),
-    path('discounts/create/', views.FeeDiscountCreateView.as_view(), name='fee_discount_create'),
-    path('discounts/<uuid:pk>/', views.FeeDiscountDetailView.as_view(), name='fee_discount_detail'),
-    path('discounts/<uuid:pk>/update/', views.FeeDiscountUpdateView.as_view(), name='fee_discount_update'),
-    
-    # Invoice
-    path('invoices/', views.InvoiceListView.as_view(), name='invoice_list'),
-    path('invoices/create/', views.InvoiceCreateView.as_view(), name='invoice_create'),
-    path('invoices/<uuid:pk>/', views.InvoiceDetailView.as_view(), name='invoice_detail'),
-    path('invoices/<uuid:pk>/update/', views.InvoiceUpdateView.as_view(), name='invoice_update'),
-    path('invoices/<uuid:pk>/print/', views.InvoicePrintView.as_view(), name='invoice_print'),
-    path('invoices/<uuid:pk>/send/', views.InvoiceSendView.as_view(), name='invoice_send'),
-    path('invoices/<uuid:pk>/apply-discount/', views.InvoiceApplyDiscountView.as_view(), name='invoice_apply_discount'),
-    path('invoices/bulk-action/', views.BulkInvoiceActionView.as_view(), name='invoice_bulk_action'),
-    
-    # Payment
-    path('payments/', views.PaymentListView.as_view(), name='payment_list'),
-    path('payments/create/', views.PaymentCreateView.as_view(), name='payment_create'),
-    path('payments/<uuid:pk>/', views.PaymentDetailView.as_view(), name='payment_detail'),
-    path('payments/<uuid:pk>/verify/', views.PaymentVerifyView.as_view(), name='payment_verify'),
-    
-    # Expense
-    path('expenses/', views.ExpenseListView.as_view(), name='expense_list'),
-    path('expenses/create/', views.ExpenseCreateView.as_view(), name='expense_create'),
-    path('expenses/<uuid:pk>/', views.ExpenseDetailView.as_view(), name='expense_detail'),
-    path('expenses/<uuid:pk>/update/', views.ExpenseUpdateView.as_view(), name='expense_update'),
-    path('expenses/<uuid:pk>/approve/', views.ExpenseApproveView.as_view(), name='expense_approve'),
-    path('expenses/<uuid:pk>/reject/', views.ExpenseRejectView.as_view(), name='expense_reject'),
-    
-    # Reports
-    path('reports/fee-collection/', views.FeeCollectionReportView.as_view(), name='report_fee_collection'),
-    path('reports/due-fees/', views.DueFeesReportView.as_view(), name='report_due_fees'),
-    path('reports/expense-summary/', views.ExpenseSummaryReportView.as_view(), name='report_expense_summary'),
-    path('reports/budget-vs-actual/', views.BudgetVsActualReportView.as_view(), name='report_budget_vs_actual'),
-    
-    # Utilities
-    path('generate-invoices/', views.GenerateMonthlyInvoicesView.as_view(), name='generate_invoices'),
-    path('send-reminders/', views.SendPaymentRemindersView.as_view(), name='send_reminders'),
-    
-    # Student/Parent Portal
-    path('my-invoices/', views.MyInvoicesView.as_view(), name='my_invoices'),
-    path('my-payments/', views.MyPaymentsView.as_view(), name='my_payments'),
-    path('payment-gateway/<uuid:invoice_id>/', views.PaymentGatewayView.as_view(), name='payment_gateway'),
-    
-# Budget URLs
-path('budgets/', views.BudgetListView.as_view(), name='budget_list'),
-path('budgets/create/', views.BudgetCreateView.as_view(), name='budget_create'),
-path('budgets/<uuid:pk>/', views.BudgetDetailView.as_view(), name='budget_detail'),
-path('budgets/<uuid:pk>/update/', views.BudgetUpdateView.as_view(), name='budget_update'),
-path('budgets/<uuid:pk>/approve/', views.BudgetApproveView.as_view(), name='budget_approve'),
-path('budgets/<uuid:pk>/activate/', views.BudgetActivateView.as_view(), name='budget_activate'),
+    # ==================== DASHBOARD ====================
+    path('', login_required(views.FinanceDashboardView.as_view()), name='dashboard'),
 
-# Refund URLs
-path('refunds/', views.RefundListView.as_view(), name='refund_list'),
-path('refunds/create/', views.RefundCreateView.as_view(), name='refund_create'),
-path('refunds/<uuid:pk>/', views.RefundDetailView.as_view(), name='refund_detail'),
-path('refunds/<uuid:pk>/approve/', views.RefundApproveView.as_view(), name='refund_approve'),
-path('refunds/<uuid:pk>/process/', views.RefundProcessView.as_view(), name='refund_process'),
-path('refunds/<uuid:pk>/complete/', views.RefundCompleteView.as_view(), name='refund_complete'),
+    # ==================== FEE STRUCTURE ====================
+    path('fee-structures/', include([
+        path('', login_required(views.FeeStructureListView.as_view()), name='fee_structure_list'),
+        path('create/', login_required(views.FeeStructureCreateView.as_view()), name='fee_structure_create'),
+        path('<uuid:pk>/', include([
+            path('', login_required(views.FeeStructureDetailView.as_view()), name='fee_structure_detail'),
+            path('edit/', login_required(views.FeeStructureUpdateView.as_view()), name='fee_structure_update'),
+            path('delete/', login_required(views.FeeStructureDeleteView.as_view()), name='fee_structure_delete'),
+        ])),
+    ])),
 
-# Bank Account URLs
-path('bank-accounts/', views.BankAccountListView.as_view(), name='bank_account_list'),
-path('bank-accounts/create/', views.BankAccountCreateView.as_view(), name='bank_account_create'),
-path('bank-accounts/<uuid:pk>/', views.BankAccountDetailView.as_view(), name='bank_account_detail'),
-path('bank-accounts/<uuid:pk>/update/', views.BankAccountUpdateView.as_view(), name='bank_account_update'),
+    # ==================== FEE DISCOUNTS ====================
+    path('discounts/', include([
+        path('', login_required(views.FeeDiscountListView.as_view()), name='fee_discount_list'),
+        path('create/', login_required(views.FeeDiscountCreateView.as_view()), name='fee_discount_create'),
+        path('<uuid:pk>/', include([
+            path('', login_required(views.FeeDiscountDetailView.as_view()), name='fee_discount_detail'),
+            path('edit/', login_required(views.FeeDiscountUpdateView.as_view()), name='fee_discount_update'),
+        ])),
+    ])),
 
-# Expense Category URLs
-path('expense-categories/', views.ExpenseCategoryListView.as_view(), name='expense_category_list'),
-path('expense-categories/create/', views.ExpenseCategoryCreateView.as_view(), name='expense_category_create'),
-path('expense-categories/<uuid:pk>/', views.ExpenseCategoryDetailView.as_view(), name='expense_category_detail'),
-path('expense-categories/<uuid:pk>/update/', views.ExpenseCategoryUpdateView.as_view(), name='expense_category_update'),
+    # ==================== INVOICES ====================
+    path('invoices/', include([
+        path('', login_required(views.InvoiceListView.as_view()), name='invoice_list'),
+        path('create/', login_required(views.InvoiceCreateView.as_view()), name='invoice_create'),
+        path('bulk-action/', login_required(views.BulkInvoiceActionView.as_view()), name='invoice_bulk_action'),
+        path('<uuid:pk>/', include([
+            path('', login_required(views.InvoiceDetailView.as_view()), name='invoice_detail'),
+            path('edit/', login_required(views.InvoiceUpdateView.as_view()), name='invoice_update'),
+            path('print/', login_required(views.InvoicePrintView.as_view()), name='invoice_print'),
+            path('send/', login_required(views.InvoiceSendView.as_view()), name='invoice_send'),
+            path('apply-discount/', login_required(views.InvoiceApplyDiscountView.as_view()), name='invoice_apply_discount'),
+        ])),
+    ])),
 
-# Financial Transaction URLs
-path('financial-transactions/', views.FinancialTransactionListView.as_view(), name='financial_transaction_list'),
-path('financial-transactions/create/', views.FinancialTransactionCreateView.as_view(), name='financial_transaction_create'),
-path('financial-transactions/<uuid:pk>/', views.FinancialTransactionDetailView.as_view(), name='financial_transaction_detail'),
+    # ==================== PAYMENTS ====================
+    path('payments/', include([
+        path('', login_required(views.PaymentListView.as_view()), name='payment_list'),
+        path('create/', login_required(views.PaymentCreateView.as_view()), name='payment_create'),
+        path('<uuid:pk>/', include([
+            path('', login_required(views.PaymentDetailView.as_view()), name='payment_detail'),
+            path('verify/', login_required(views.PaymentVerifyView.as_view()), name='payment_verify'),
+            path('print/', login_required(views.PaymentPrintView.as_view()), name='payment_print'),
+        ])),
+    ])),
 
-# Financial Report URLs
-path('financial-reports/', views.FinancialReportListView.as_view(), name='financial_report_list'),
-path('financial-reports/create/', views.FinancialReportCreateView.as_view(), name='financial_report_create'),
-path('financial-reports/<uuid:pk>/', views.FinancialReportDetailView.as_view(), name='financial_report_detail'),
-path('financial-reports/<uuid:pk>/download/', views.FinancialReportDownloadView.as_view(), name='financial_report_download'),
-    # API
+    # ==================== EXPENSES ====================
+    path('expenses/', include([
+        path('', login_required(views.ExpenseListView.as_view()), name='expense_list'),
+        path('create/', login_required(views.ExpenseCreateView.as_view()), name='expense_create'),
+        path('<uuid:pk>/', include([
+            path('', login_required(views.ExpenseDetailView.as_view()), name='expense_detail'),
+            path('edit/', login_required(views.ExpenseUpdateView.as_view()), name='expense_update'),
+            path('approve/', login_required(views.ExpenseApproveView.as_view()), name='expense_approve'),
+            path('reject/', login_required(views.ExpenseRejectView.as_view()), name='expense_reject'),
+        ])),
+    ])),
+
+    # ==================== BUDGET MANAGEMENT ====================
+    path('budgets/', include([
+        path('', login_required(views.BudgetListView.as_view()), name='budget_list'),
+        path('create/', login_required(views.BudgetCreateView.as_view()), name='budget_create'),
+        
+        # Categories
+        path('categories/', include([
+             path('', login_required(views.BudgetCategoryListView.as_view()), name='budget_category_list'),
+             path('create/', login_required(views.BudgetCategoryCreateView.as_view()), name='budget_category_create'),
+             path('<uuid:pk>/edit/', login_required(views.BudgetCategoryUpdateView.as_view()), name='budget_category_update'),
+             path('<uuid:pk>/delete/', login_required(views.BudgetCategoryDeleteView.as_view()), name='budget_category_delete'),
+        ])),
+
+        # Templates
+        path('templates/', include([
+             path('', login_required(views.BudgetTemplateListView.as_view()), name='budget_template_list'),
+             path('create/', login_required(views.BudgetTemplateCreateView.as_view()), name='budget_template_create'),
+             path('<uuid:pk>/edit/', login_required(views.BudgetTemplateUpdateView.as_view()), name='budget_template_update'),
+             path('<uuid:pk>/delete/', login_required(views.BudgetTemplateDeleteView.as_view()), name='budget_template_delete'),
+        ])),
+
+        path('<uuid:pk>/', include([
+            path('', login_required(views.BudgetDetailView.as_view()), name='budget_detail'),
+            path('edit/', login_required(views.BudgetUpdateView.as_view()), name='budget_update'),
+            path('delete/', login_required(views.BudgetDeleteView.as_view()), name='budget_delete'),
+            path('approve/', login_required(views.BudgetApproveView.as_view()), name='budget_approve'),
+            path('activate/', login_required(views.BudgetActivateView.as_view()), name='budget_activate'),
+        ])),
+    ])),
+
+    # ==================== REFUNDS ====================
+    path('refunds/', include([
+        path('', login_required(views.RefundListView.as_view()), name='refund_list'),
+        path('create/', login_required(views.RefundCreateView.as_view()), name='refund_create'),
+        path('<uuid:pk>/', include([
+            path('', login_required(views.RefundDetailView.as_view()), name='refund_detail'),
+            path('approve/', login_required(views.RefundApproveView.as_view()), name='refund_approve'),
+            path('process/', login_required(views.RefundProcessView.as_view()), name='refund_process'),
+            path('complete/', login_required(views.RefundCompleteView.as_view()), name='refund_complete'),
+        ])),
+    ])),
+
+    # ==================== BANK ACCOUNTS ====================
+    path('bank-accounts/', include([
+        path('', login_required(views.BankAccountListView.as_view()), name='bank_account_list'),
+        path('create/', login_required(views.BankAccountCreateView.as_view()), name='bank_account_create'),
+        path('<uuid:pk>/', include([
+            path('', login_required(views.BankAccountDetailView.as_view()), name='bank_account_detail'),
+            path('edit/', login_required(views.BankAccountUpdateView.as_view()), name='bank_account_update'),
+        ])),
+    ])),
+
+    # ==================== EXPENSE CATEGORIES ====================
+    path('expense-categories/', include([
+        path('', login_required(views.ExpenseCategoryListView.as_view()), name='expense_category_list'),
+        path('create/', login_required(views.ExpenseCategoryCreateView.as_view()), name='expense_category_create'),
+        path('<uuid:pk>/', include([
+            path('', login_required(views.ExpenseCategoryDetailView.as_view()), name='expense_category_detail'),
+            path('edit/', login_required(views.ExpenseCategoryUpdateView.as_view()), name='expense_category_update'),
+        ])),
+    ])),
+
+    # ==================== REPORTS ====================
+    path('reports/', include([
+        path('fee-collection/', login_required(views.FeeCollectionReportView.as_view()), name='report_fee_collection'),
+        path('due-fees/', login_required(views.DueFeesReportView.as_view()), name='report_due_fees'),
+        path('expense-summary/', login_required(views.ExpenseSummaryReportView.as_view()), name='report_expense_summary'),
+        path('budget-vs-actual/', login_required(views.BudgetVsActualReportView.as_view()), name='report_budget_vs_actual'),
+    path('financial/', include([
+            path('', login_required(views.FinancialReportListView.as_view()), name='financial_report_list'),
+            path('create/', login_required(views.FinancialReportCreateView.as_view()), name='financial_report_create'),
+            path('<uuid:pk>/', include([
+                path('', login_required(views.FinancialReportDetailView.as_view()), name='financial_report_detail'),
+                path('download/', login_required(views.FinancialReportDownloadView.as_view()), name='financial_report_download'),
+            ])),
+        ])),
+    ])),
+
+    # ==================== TRANSACTIONS ====================
+    path('transactions/', include([
+        path('', login_required(views.FinancialTransactionListView.as_view()), name='financial_transaction_list'),
+        path('create/', login_required(views.FinancialTransactionCreateView.as_view()), name='financial_transaction_create'),
+        path('<uuid:pk>/', login_required(views.FinancialTransactionDetailView.as_view()), name='financial_transaction_detail'),
+    ])),
+
+    # ==================== UTILITIES ====================
+    path('generate-invoices/', login_required(views.GenerateMonthlyInvoicesView.as_view()), name='generate_invoices'),
+    path('send-reminders/', login_required(views.SendPaymentRemindersView.as_view()), name='send_reminders'),
+
+    # ==================== STUDENT / PARENT PORTAL ====================
+    path('my/', include([
+        path('invoices/', login_required(views.MyInvoicesView.as_view()), name='my_invoices'),
+        path('payments/', login_required(views.MyPaymentsView.as_view()), name='my_payments'),
+        path('payment-gateway/<uuid:invoice_id>/', login_required(views.PaymentGatewayView.as_view()), name='payment_gateway'),
+        path('payment-callback/', views.PaymentCallbackView.as_view(), name='payment_callback'),
+    ])),
+
+    # ==================== API ====================
     path('api/', include(router.urls)),
 ]

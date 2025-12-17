@@ -1,0 +1,189 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n humanize %}
+
+{% block title %}{{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+    {% url 'finance:invoice_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=invoice.invoice_number current_text=_("Detail") parent_text=_("Invoices") parent_url=list_url %}
+
+    <div class="row g-4 mb-4">
+        <!-- Actions -->
+        <div class="col-12 d-flex justify-content-end gap-2">
+            {% if invoice.status == 'DRAFT' %}
+                <form action="{% url 'finance:invoice_send' invoice.pk %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">
+                        <i class='bx bx-send me-1'></i> {% trans "Issue Invoice" %}
+                    </button>
+                </form>
+                <a href="{% url 'finance:invoice_update' invoice.pk %}" class="btn btn-primary">
+                    <i class='bx bx-edit me-1'></i> {% trans "Edit" %}
+                </a>
+            {% else %}
+                {% if invoice.due_amount > 0 %}
+                <a href="{% url 'finance:payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-primary">
+                    <i class='bx bx-money me-1'></i> {% trans "Record Payment" %}
+                </a>
+                {% endif %}
+            {% endif %}
+             <a href="{% url 'finance:invoice_print' invoice.pk %}" target="_blank" class="btn btn-light">
+                <i class='bx bx-printer me-1'></i> {% trans "Print" %}
+            </a>
+            <a href="{% url 'finance:invoice_print' invoice.pk %}?format=pdf" class="btn btn-light">
+                <i class='bx bx-download me-1'></i> {% trans "PDF" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <!-- Invoice Template View -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-5">
+                    <div class="d-flex justify-content-between border-bottom pb-4 mb-4">
+                        <div>
+                             <h4 class="fw-bold text-primary mb-1">{{ request.tenant.name|default:"Institute Name" }}</h4>
+                             <p class="text-muted small mb-0">{{ request.tenant.address|default:"Institute Address" }}</p>
+                        </div>
+                        <div class="text-end">
+                            <h2 class="fw-bold mb-1">{% trans "INVOICE" %}</h2>
+                            <p class="text-muted mb-0">#{{ invoice.invoice_number }}</p>
+                            <span class="badge 
+                                {% if invoice.status == 'PAID' %}bg-success
+                                {% elif invoice.status == 'OVERDUE' %}bg-danger
+                                {% elif invoice.status == 'DRAFT' %}bg-secondary
+                                {% else %}bg-warning{% endif %}">
+                                {{ invoice.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <h6 class="text-muted text-uppercase small fw-bold mb-2">{% trans "Bill To" %}</h6>
+                            <h5 class="fw-bold mb-1">{{ invoice.student.full_name }}</h5>
+                            <p class="text-muted small mb-0">
+                                {% trans "ID" %}: {{ invoice.student.admission_number }}<br>
+                                {% trans "Class" %}: {{ invoice.student.current_class.name }}
+                            </p>
+                        </div>
+                        <div class="col-sm-6 text-end">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-1"><span class="text-muted me-2">{% trans "Issue Date" %}:</span> {{ invoice.issue_date|date:"M d, Y" }}</li>
+                                <li class="mb-1"><span class="text-muted me-2">{% trans "Due Date" %}:</span> {{ invoice.due_date|date:"M d, Y" }}</li>
+                                <li><span class="text-muted me-2">{% trans "Term" %}:</span> {{ invoice.academic_year }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>{% trans "Description" %}</th>
+                                    <th class="text-end" style="width: 150px;">{% trans "Amount" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in invoice.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ item.fee_structure.name }}</div>
+                                        {% if item.description %}
+                                        <div class="small text-muted">{{ item.description }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">₹{{ item.amount|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td class="text-end fw-bold">{% trans "Subtotal" %}</td>
+                                    <td class="text-end fw-bold">₹{{ invoice.subtotal|intcomma }}</td>
+                                </tr>
+                                {% if invoice.discount_amount > 0 %}
+                                <tr>
+                                    <td class="text-end text-success">{% trans "Discount" %}</td>
+                                    <td class="text-end text-success">-₹{{ invoice.discount_amount|intcomma }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if invoice.tax_amount > 0 %}
+                                <tr>
+                                    <td class="text-end">{% trans "Tax" %}</td>
+                                    <td class="text-end">₹{{ invoice.tax_amount|intcomma }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td class="text-end fw-bold fs-5 bg-light">{% trans "Total" %}</td>
+                                    <td class="text-end fw-bold fs-5 bg-light">₹{{ invoice.total_amount|intcomma }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    {% if invoice.notes %}
+                    <div class="mb-4">
+                        <h6 class="text-muted text-uppercase small fw-bold mb-2">{% trans "Notes" %}</h6>
+                        <p class="text-muted small">{{ invoice.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Payment History -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">{% trans "Payment History" %}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for payment in invoice.payments.all %}
+                        {% if payment.status == 'COMPLETED' %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">₹{{ payment.amount|intcomma }}</h6>
+                                <small class="text-muted">{{ payment.payment_date|date:"M d, Y" }} • {{ payment.get_payment_method_display }}</small>
+                            </div>
+                            <span class="badge bg-success-subtle text-success">{% trans "Paid" %}</span>
+                        </li>
+                        {% endif %}
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted py-3">
+                            {% trans "No payments recorded yet." %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>{% trans "Paid" %}</span>
+                            <span class="text-success">₹{{ invoice.paid_amount|intcomma }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold mt-1">
+                            <span>{% trans "Balance Due" %}</span>
+                            <span class="text-danger">₹{{ invoice.due_amount|intcomma }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attributes -->
+             <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-6 text-muted">{% trans "Created By" %}</div>
+                        <div class="col-6 text-end">{{ invoice.issued_by.get_full_name|default:"System" }}</div>
+                    </div>
+                     <div class="row mb-2">
+                        <div class="col-6 text-muted">{% trans "Created On" %}</div>
+                        <div class="col-6 text-end">{{ invoice.created_at|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

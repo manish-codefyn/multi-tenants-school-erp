@@ -1,0 +1,86 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "Edit Expense" %}
+    {% else %}
+        {% trans "Submit Expense" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:expense_list' as list_url %}
+    {% if form.instance.pk %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Edit Expense") current_text=_("Edit") parent_text=_("Expenses") parent_url=list_url %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Submit Expense") current_text=_("Submit") parent_text=_("Expenses") parent_url=list_url %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-4">{% trans "Expense Details" %}</h5>
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.title|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.category|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                        {{ form.amount|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        {{ form.expense_date|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.payment_method|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                         {{ form.vendor_name|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                         {{ form.vendor_contact|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                     <div class="col-md-3 mb-3">
+                         {{ form.reference_number|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                         {{ form.bill_number|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                         {{ form.bill_date|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                         {{ form.supporting_documents|as_crispy_field }}
+                    </div>
+                </div>
+
+                 <div class="row">
+                    <div class="col-md-12 mb-3">
+                        {{ form.description|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if form.instance.pk %}
+                            {% trans "Update Expense" %}
+                        {% else %}
+                            {% trans "Submit Expense" %}
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Fee Discounts" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:fee_discount_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Fee Discounts") current_text=_("Fee Discounts") action_url=create_url action_text=_("Add Discount Rule") %}
+
+    {% if discounts %}
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="discountTable" data-datatable data-export-columns="[0,1,2,3,4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Value" %}</th>
+                            <th>{% trans "Validity" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for discount in discounts %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'finance:fee_discount_detail' discount.pk %}" class="text-decoration-none text-dark">{{ discount.name }}</a>
+                                <div class="small text-muted">{{ discount.get_applicable_to_display }}</div>
+                            </td>
+                            <td><span class="badge bg-dark">{{ discount.code }}</span></td>
+                            <td class="fw-bold">
+                                {% if discount.discount_type == 'PERCENTAGE' %}
+                                    {{ discount.value }}%
+                                {% else %}
+                                    ₹{{ discount.value|intcomma }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if discount.valid_until %}
+                                    <span class="text-muted small">{% trans "Until" %} {{ discount.valid_until|date:"M d, Y" }}</span>
+                                {% else %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Forever" %}</span>
+                                {% endif %}
+                            </td>
+                             <td>
+                                {% if discount.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'finance:fee_discount_detail' discount.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{% url 'finance:fee_discount_update' discount.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                <i class="bx bx-purchase-tag-alt text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h5 class="text-muted">{% trans "No discount rules found" %}</h5>
+            <p class="text-muted mb-4">{% trans "Create a new discount rule to get started." %}</p>
+            <a href="{{ create_url }}" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i>{% trans "Add Discount Rule" %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

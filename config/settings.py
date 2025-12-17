@@ -579,3 +579,6 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
+
+# PDF Generation Configuration
+WKHTMLTOPDF_CMD = env('WKHTMLTOPDF_CMD', default=None)

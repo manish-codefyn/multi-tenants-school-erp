@@ -49,19 +49,6 @@ logger = logging.getLogger(__name__)
 # BASE VIEW CLASSES
 # ============================================================================
 
-from django.views import View
-from django.views.generic import TemplateView, CreateView
-from django.contrib import messages
-from django.urls import reverse_lazy
-from django.shortcuts import redirect
-from django.core.exceptions import PermissionDenied
-from django.db import transaction
-import logging
-from django.conf import settings
-
-logger = logging.getLogger(__name__)
-
-
 class BaseView(TenantRequiredMixin, RoleBasedViewMixin, View):
     """
     Base view with authentication, role checking, and audit logging
@@ -205,52 +192,15 @@ class BaseView(TenantRequiredMixin, RoleBasedViewMixin, View):
     
     def get_success_url(self):
         """Default success URL - override in subclasses"""
-        # First, try explicit success_url if defined in subclass (like CreateView/UpdateView)
-        if hasattr(self, 'success_url') and self.success_url:
-            return str(self.success_url)
-
-        # Try to get model-based URL first
-
-        if hasattr(self, 'model'):
-            app_label = self.model._meta.app_label
-            model_name = self.model._meta.model_name
-            # Try to resolve URL using standard name
-            from django.urls import reverse, NoReverseMatch
-            try:
-                # Try simple model name (e.g. 'finance:invoice_list')
-                # For BudgetTemplate, model_name is 'budgettemplate'
-                return reverse(f'{app_label}:{model_name}_list')
-            except NoReverseMatch:
-                try:
-                    # Try snake_case version (e.g. 'finance:budget_template_list')
-                    # We can get this from class name manually
-                    cls_name = self.model.__name__
-                    # Simple CamelCase to snake_case conversion
-                    import re
-                    snake_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls_name).lower()
-                    return reverse(f'{app_label}:{snake_name}_list')
-                except NoReverseMatch:
-                    pass
-
-        
-        # Fall back to home
         return reverse_lazy('home')
-
-
     
     def handle_no_permission(self):
-        """Handle permission denied with better redirect logic"""
+        """Handle permission denied"""
         messages.error(
             self.request,
             "You don't have permission to access this page."
         )
-        
-        # Redirect based on user authentication
-        if not self.request.user.is_authenticated:
-            return redirect('login')
-        else:
-            # For authenticated users without permission, redirect to home
-            return redirect('home')
+        return redirect('login')
 
 
 class BaseTemplateView(BaseView, TemplateView):
@@ -262,105 +212,10 @@ class BaseTemplateView(BaseView, TemplateView):
         
         # Add tenant-specific template if tenant exists
         if self.tenant and hasattr(self.tenant, 'schema_name'):
-            # Create tenant-specific template name
-            # Example: "budget/form.html" becomes "budget/form_tenantname.html"
-            template_parts = self.template_name.split('.')
-            if len(template_parts) >= 2:
-                base_name = '.'.join(template_parts[:-1])  # Remove extension
-                extension = template_parts[-1]
-                tenant_template = f"{base_name}_{self.tenant.schema_name}.{extension}"
-                template_names.insert(0, tenant_template)
+            tenant_template = f"{self.template_name.split('.')[0]}_{self.tenant.schema_name}.html"
+            template_names.insert(0, tenant_template)
         
         return template_names
-
-
-class BaseCreateView(BaseView, CreateView):
-    """
-    Base create view with tenant integration and audit logging
-    """
-    
-    # Form configuration
-    form_class = None  # Should be a TenantAwareModelForm subclass
-    
-    def get_form_class(self):
-        """Get form class with tenant integration"""
-        if self.form_class:
-            return self.form_class
-        
-        # Auto-generate form from model
-        from django.forms import modelform_factory
-        from apps.core.forms import TenantAwareModelForm
-        
-        class AutoForm(TenantAwareModelForm):
-            class Meta:
-                model = self.model
-                fields = '__all__'
-                exclude = ['tenant', 'created_by', 'updated_by']
-        
-        return AutoForm
-    
-    def get_form_kwargs(self):
-        """Add tenant and user to form kwargs"""
-        kwargs = super().get_form_kwargs()
-        
-        # Add tenant to form
-        if self.tenant:
-            kwargs['tenant'] = self.tenant
-        
-        # Add user to form
-        if self.request.user.is_authenticated:
-            kwargs['user'] = self.request.user
-        
-        return kwargs
-    
-    def form_valid(self, form):
-        """Handle successful form submission"""
-        # Save the instance first
-        self.object = form.save()
-        
-        # Add success message
-        model_name = self.model.__name__ if hasattr(self, 'model') else 'Object'
-        messages.success(
-            self.request,
-            f"{model_name} created successfully!"
-        )
-        
-        # Audit the creation
-        if self.audit_enabled:
-            AuditService.log_creation(
-                user=self.request.user,
-                instance=form.instance,
-                request=self.request,
-                extra_data={'created_via': 'web_form'}
-            )
-        
-        return super().form_valid(form)
-    
-    def form_invalid(self, form):
-        """Handle invalid form submission"""
-        # Log form errors
-        logger.warning(f"Form validation failed: {form.errors}")
-        
-        # Add error message
-        messages.error(
-            self.request,
-            "Please correct the errors below."
-        )
-        
-        # Add non-field errors as specific messages
-        if '__all__' in form.errors:
-            for error in form.errors['__all__']:
-                messages.error(self.request, error)
-        
-        return super().form_invalid(form)
-    
-    def get_success_url(self):
-        """Get success URL with proper fallback handling"""
-        if self.success_url:
-            return super().get_success_url()
-        
-        return super().get_success_url()
-
 
 
 class BaseListView(BaseView, ListView):
@@ -547,6 +402,96 @@ class BaseDetailView(BaseView, DetailView):
         
         return True
 
+
+class BaseCreateView(BaseView, CreateView):
+    """
+    Base create view with tenant integration and audit logging
+    """
+    
+    # Form configuration
+    form_class = None  # Should be a TenantAwareModelForm subclass
+    
+    def get_form_class(self):
+        """Get form class with tenant integration"""
+        if self.form_class:
+            return self.form_class
+        
+        # Auto-generate form from model
+        from django.forms import modelform_factory
+        from apps.core.forms import TenantAwareModelForm
+        
+        class AutoForm(TenantAwareModelForm):
+            class Meta:
+                model = self.model
+                fields = '__all__'
+                exclude = ['tenant', 'created_by', 'updated_by']
+        
+        return AutoForm
+    
+    def get_form_kwargs(self):
+        """Add tenant and user to form kwargs"""
+        kwargs = super().get_form_kwargs()
+        
+        # Add tenant to form
+        if self.tenant:
+            kwargs['tenant'] = self.tenant
+        
+        # Add user to form
+        if self.request.user.is_authenticated:
+            kwargs['user'] = self.request.user
+        
+        return kwargs
+    
+    def form_valid(self, form):
+        """Handle successful form submission"""
+        response = super().form_valid(form)
+        
+        # Add success message
+        model_name = self.model.__name__ if hasattr(self, 'model') else 'Object'
+        messages.success(
+            self.request,
+            f"{model_name} created successfully!"
+        )
+        
+        # Audit the creation
+        if self.audit_enabled:
+            AuditService.log_creation(
+                user=self.request.user,
+                instance=form.instance,
+                request=self.request,
+                extra_data={'created_via': 'web_form'}
+            )
+        
+        return response
+    
+    def form_invalid(self, form):
+        """Handle invalid form submission"""
+        # Log form errors
+        logger.warning(f"Form validation failed: {form.errors}")
+        
+        # Add error message
+        messages.error(
+            self.request,
+            "Please correct the errors below."
+        )
+        
+        # Add non-field errors as specific messages
+        if '__all__' in form.errors:
+            for error in form.errors['__all__']:
+                messages.error(self.request, error)
+        
+        return super().form_invalid(form)
+    
+    def get_success_url(self):
+        """Get success URL - override in subclasses"""
+        if self.success_url:
+            return super().get_success_url()
+
+        if hasattr(self, 'model'):
+            return reverse_lazy(f'{self.model._meta.app_label}:{self.model._meta.model_name}_list')
+        return super().get_success_url()
+
+
 class BaseUpdateView(BaseView, UpdateView):
     """
     Base update view with tenant isolation and change tracking
@@ -621,34 +566,20 @@ class BaseUpdateView(BaseView, UpdateView):
         return response
     
     def get_success_url(self):
-        """Get success URL - defaults to updated object list"""
+        """Get success URL"""
         if self.success_url:
             return super().get_success_url()
 
-        # Default to list view which users prefer over detail view
-        if hasattr(self, 'model'):
-            app_label = self.model._meta.app_label
-            model_name = self.model._meta.model_name
-            from django.urls import reverse, NoReverseMatch
-            try:
-                return reverse(f'{app_label}:{model_name}_list')
-            except NoReverseMatch:
-                try:
-                    # Try snake_case version
-                    cls_name = self.model.__name__
-                    import re
-                    snake_name = re.sub(r'(?<!^)(?=[A-Z])', '_', cls_name).lower()
-                    return reverse(f'{app_label}:{snake_name}_list')
-
-                except NoReverseMatch:
-                    pass
-        
-        # Fallback to absolute url (detail) or home
         if hasattr(self.object, 'get_absolute_url'):
             return self.object.get_absolute_url()
-            
+        
+        if hasattr(self, 'model'):
+            return reverse_lazy(
+                f'{self.model._meta.app_label}:{self.model._meta.model_name}_detail',
+                kwargs={'pk': self.object.pk}
+            )
+        
         return super().get_success_url()
-
 
     def form_invalid(self, form):
         """Handle invalid form submission"""

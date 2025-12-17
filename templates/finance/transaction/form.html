@@ -1,0 +1,77 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "Edit Transaction" %}
+    {% else %}
+        {% trans "Record Transaction" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:financial_transaction_list' as list_url %}
+    {% if form.instance.pk %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Edit Transaction") current_text=_("Edit") parent_text=_("Transactions") parent_url=list_url %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Record Transaction") current_text=_("Create") parent_text=_("Transactions") parent_url=list_url %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-4">{% trans "Transaction Details" %}</h5>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.transaction_type|as_crispy_field }}
+                    </div>
+                     <div class="col-md-4 mb-3">
+                        {{ form.amount|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                         {{ form.transaction_date|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.debit_account|as_crispy_field }}
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        {{ form.credit_account|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                     <div class="col-md-4 mb-3">
+                        {{ form.reference|as_crispy_field }}
+                    </div>
+                     <div class="col-md-4 mb-3">
+                        {{ form.related_invoice|as_crispy_field }}
+                    </div>
+                     <div class="col-md-4 mb-3">
+                        {{ form.related_expense|as_crispy_field }}
+                    </div>
+                </div>
+
+                 <div class="row">
+                    <div class="col-md-12 mb-3">
+                        {{ form.description|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if form.instance.pk %}
+                            {% trans "Update Transaction" %}
+                        {% else %}
+                            {% trans "Record Transaction" %}
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

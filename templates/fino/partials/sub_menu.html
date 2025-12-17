@@ -1,0 +1,13 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-dollar-circle"></i></div>
+        <div class="menu-title">Finance</div>
+    </a>
+    <ul>
+        <li><a href="{% url 'finance:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
+        <li><a href="{% url 'finance:invoice_list' %}"><i class="bx bx-radio-circle"></i>Invoices</a></li>
+        <li><a href="{% url 'finance:payment_list' %}"><i class="bx bx-radio-circle"></i>Payments</a></li>
+        <li><a href="{% url 'finance:fee_structure_list' %}"><i class="bx bx-radio-circle"></i>Fee Structures</a></li>
+        <li><a href="{% url 'finance:fee_discount_list' %}"><i class="bx bx-radio-circle"></i>Discounts</a></li>
+    </ul>
+</li>

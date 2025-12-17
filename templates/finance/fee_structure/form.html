@@ -1,0 +1,92 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "Edit Fee Structure" %}
+    {% else %}
+        {% trans "Create Fee Structure" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:fee_structure_list' as list_url %}
+    {% if form.instance.pk %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Edit Fee Structure") current_text=_("Edit") parent_text=_("Fee Structures") parent_url=list_url %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Create Fee Structure") current_text=_("Create") parent_text=_("Fee Structures") parent_url=list_url %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-4">{% trans "Fee Details" %}</h5>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.name|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.academic_year|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                         {{ form.class_name|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        {{ form.fee_type|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.frequency|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.amount|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                        {{ form.due_day|as_crispy_field }}
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                <h6 class="text-muted mb-3">{% trans "Late Fees & Discounts" %}</h6>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        {{ form.late_fee_applicable|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.late_fee_amount|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                        {{ form.late_fee_after_days|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        {{ form.discount_allowed|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.max_discount_percentage|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3 d-flex align-items-center">
+                        {{ form.is_active|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if form.instance.pk %}
+                            {% trans "Update Fee Structure" %}
+                        {% else %}
+                            {% trans "Create Fee Structure" %}
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

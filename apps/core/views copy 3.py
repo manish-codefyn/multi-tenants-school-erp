@@ -205,12 +205,7 @@ class BaseView(TenantRequiredMixin, RoleBasedViewMixin, View):
     
     def get_success_url(self):
         """Default success URL - override in subclasses"""
-        # First, try explicit success_url if defined in subclass (like CreateView/UpdateView)
-        if hasattr(self, 'success_url') and self.success_url:
-            return str(self.success_url)
-
         # Try to get model-based URL first
-
         if hasattr(self, 'model'):
             app_label = self.model._meta.app_label
             model_name = self.model._meta.model_name

@@ -1,0 +1,71 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Financial Transactions" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:financial_transaction_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Financial Transactions") current_text=_("Transactions") action_url=create_url action_text=_("Record Transaction") %}
+
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="transactionTable" data-datatable data-export-columns="[0,1,2,3,4,5]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Reference" %}</th>
+                            <th class="text-end pe-4">{% trans "Created By" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td class="ps-4">{{ transaction.transaction_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if transaction.transaction_type == 'INCOME' %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Income" %}</span>
+                                {% elif transaction.transaction_type == 'EXPENSE' %}
+                                    <span class="badge bg-danger-subtle text-danger">{% trans "Expense" %}</span>
+                                {% elif transaction.transaction_type == 'TRANSFER' %}
+                                    <span class="badge bg-info-subtle text-info">{% trans "Transfer" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{{ transaction.get_transaction_type_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ transaction.description|truncatechars:50 }}</div>
+                                {% if transaction.related_invoice %}
+                                    <small class="text-muted">{% trans "Invoice" %}: {{ transaction.related_invoice.invoice_number }}</small>
+                                {% elif transaction.related_expense %}
+                                    <small class="text-muted">{% trans "Expense" %}: {{ transaction.related_expense.title }}</small>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold {% if transaction.transaction_type == 'INCOME' %}text-success{% elif transaction.transaction_type == 'EXPENSE' %}text-danger{% endif %}">
+                                ₹{{ transaction.amount|intcomma }}
+                            </td>
+                            <td>{{ transaction.reference|default:"-" }}</td>
+                            <td class="text-end pe-4">
+                                <small class="text-muted">{{ transaction.created_by.get_full_name|default:"System" }}</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

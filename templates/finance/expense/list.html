@@ -1,0 +1,153 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Expenses" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:expense_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Expenses") current_text=_("Expenses") action_url=create_url action_text=_("Submit Expense") %}
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted fw-bold text-uppercase small mb-3">{% trans "Expense Breakdown (Paid)" %}</h6>
+                    <div class="row g-3">
+                        {% for cat in category_breakdown %}
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-between align-items-end mb-1">
+                                <span class="small">{{ cat.name }}</span>
+                                <span class="fw-bold text-dark">₹{{ cat.amount|intcomma }}</span>
+                            </div>
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar" role="progressbar" style="width: {{ cat.percentage }}%;" aria-valuenow="{{ cat.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="card border-0 shadow-sm h-100 bg-danger-subtle border-start border-4 border-danger">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small fw-bold">{% trans "Total Expenses" %}</h6>
+                    <h3 class="fw-bold mb-0 text-danger">₹{{ total_amount|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded-3">
+             <form method="get" class="row g-3">
+                 <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "Search" %}</label>
+                     <input type="text" name="search" class="form-control" placeholder="Title, description..." value="{{ filter.form.search.value|default:'' }}">
+                 </div>
+                 <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "Category" %}</label>
+                     {{ filter.form.category }}
+                 </div>
+                 <div class="col-md-2">
+                     <label class="form-label small text-muted">{% trans "Status" %}</label>
+                     {{ filter.form.status }}
+                 </div>
+                 <div class="col-md-2">
+                     <label class="form-label small text-muted">{% trans "Date" %}</label>
+                     <input type="date" name="expense_date" class="form-control" value="{{ filter.form.expense_date.value|default:'' }}">
+                 </div>
+                 <div class="col-md-2 d-flex align-items-end">
+                     <button type="submit" class="btn btn-primary w-100">{% trans "Filter" %}</button>
+                 </div>
+             </form>
+        </div>
+    </div>
+
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            {% if expenses %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="expenseTable" data-datatable data-export-columns="[0,1,2,3,4,5]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Title" %}</th>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Submitted By" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'finance:expense_detail' expense.pk %}" class="text-decoration-none text-dark">{{ expense.title }}</a>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ expense.category.name }}</span></td>
+                            <td class="fw-bold text-danger">₹{{ expense.amount|intcomma }}</td>
+                            <td>{{ expense.expense_date|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-xs me-2 bg-secondary-subtle text-secondary rounded-circle">
+                                        {{ expense.submitted_by.username|slice:":1"|upper }}
+                                    </div>
+                                    <span class="small">{{ expense.submitted_by.get_full_name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if expense.status == 'APPROVED' %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Approved" %}</span>
+                                {% elif expense.status == 'REJECTED' %}
+                                    <span class="badge bg-danger-subtle text-danger">{% trans "Rejected" %}</span>
+                                {% elif expense.status == 'PAID' %}
+                                    <span class="badge bg-info-subtle text-info">{% trans "Paid" %}</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning">{% trans "Pending" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'finance:expense_detail' expense.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                     {% if expense.status == 'SUBMITTED' %}
+                                    <a href="{% url 'finance:expense_update' expense.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="avatar avatar-xl bg-light text-muted rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class='bx bx-receipt fs-1'></i>
+                </div>
+                <h4 class="fw-bold text-muted">{% trans "No Expenses Found" %}</h4>
+                <p class="text-muted">{% trans "There are no expense records matching your criteria." %}</p>
+                <a href="{% url 'finance:expense_create' %}" class="btn btn-primary mt-2">
+                    <i class='bx bx-plus me-1'></i> {% trans "Submit Expense" %}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from decimal import Decimal
 from django.utils.translation import gettext_lazy as _
 from apps.core.models import BaseModel
 
@@ -595,7 +594,7 @@ class InvoiceItem(BaseModel):
         if not self.tax_amount and self.invoice.tenant:
             config = FinancialConfiguration.get_for_tenant(self.invoice.tenant)
             if config.tax_enabled:
-                self.tax_amount = round((self.amount * config.tax_rate) / 100, 2)
+                self.tax_amount = (self.amount * config.tax_rate) / 100
                 
         super().save(*args, **kwargs)
         
@@ -1252,644 +1251,112 @@ class Expense(BaseModel):
         self.payment_date = payment_date or timezone.now().date()
         self.save()
 
+
 class Budget(BaseModel):
     """
-    Annual budget planning with user-friendly inputs
+    Annual budget planning
     """
-    
-    # Budget status constants
-    STATUS_DRAFT = "DRAFT"
-    STATUS_SUBMITTED = "SUBMITTED"
-    STATUS_APPROVED = "APPROVED"
-    STATUS_ACTIVE = "ACTIVE"
-    STATUS_CLOSED = "CLOSED"
-    
     BUDGET_STATUS_CHOICES = (
-        (STATUS_DRAFT, _("📝 Draft")),
-        (STATUS_SUBMITTED, _("📤 Submitted for Approval")),
-        (STATUS_APPROVED, _("✅ Approved")),
-        (STATUS_ACTIVE, _("▶️ Active")),
-        (STATUS_CLOSED, _("🔒 Closed")),
+        ("DRAFT", _("Draft")),
+        ("SUBMITTED", _("Submitted")),
+        ("APPROVED", _("Approved")),
+        ("ACTIVE", _("Active")),
+        ("CLOSED", _("Closed")),
     )
-    
-    # Budget types
-    BUDGET_TYPES = [
-        ("ACADEMIC", _("Academic Budget")),
-        ("OPERATIONAL", _("Operational Budget")),
-        ("DEVELOPMENT", _("Development Budget")),
-        ("SPECIAL", _("Special Projects Budget")),
-        ("ANNUAL", _("Annual Budget")),
-    ]
-    
-    # Basic Information
-    name = models.CharField(
-        max_length=200, 
-        verbose_name=_("Budget Name"),
-        help_text=_("Enter a descriptive name (e.g., 'Academic Year 2024-25 Operating Budget')")
-    )
-    
-    budget_type = models.CharField(
-        max_length=20,
-        choices=BUDGET_TYPES,
-        default="ANNUAL",
-        verbose_name=_("Budget Type"),
-        help_text=_("Select the type of budget")
-    )
-    
+
+    name = models.CharField(max_length=200, verbose_name=_("Budget Name"))
     academic_year = models.ForeignKey(
         "academics.AcademicYear",
         on_delete=models.CASCADE,
         related_name="budgets",
-        verbose_name=_("Academic Year"),
-        help_text=_("Select the academic year this budget applies to")
+        verbose_name=_("Academic Year")
     )
-    
-    # Financial Information
     total_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        verbose_name=_("Total Budget Amount"),
-        help_text=_("Total allocated budget amount in ₹"),
-        validators=[MinValueValidator(Decimal('0.01'))]
+        verbose_name=_("Total Budget Amount")
     )
-    
     status = models.CharField(
         max_length=20,
         choices=BUDGET_STATUS_CHOICES,
-        default=STATUS_DRAFT,
-        verbose_name=_("Status"),
-        help_text=_("Current status of the budget")
+        default="DRAFT",
+        verbose_name=_("Status")
     )
     
     # Budget Period
-    start_date = models.DateField(
-        verbose_name=_("Start Date"),
-        help_text=_("Budget start date (format: YYYY-MM-DD)")
-    )
+    start_date = models.DateField(verbose_name=_("Start Date"))
+    end_date = models.DateField(verbose_name=_("End Date"))
     
-    end_date = models.DateField(
-        verbose_name=_("End Date"),
-        help_text=_("Budget end date (format: YYYY-MM-DD)")
-    )
-    
-    # Approval Information
+    # Approval
     prepared_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="prepared_budgets",
-        verbose_name=_("Prepared By"),
-        help_text=_("User who created this budget")
+        verbose_name=_("Prepared By")
     )
-    
     approved_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="approved_budgets",
-        verbose_name=_("Approved By"),
-        help_text=_("User who approved this budget")
+        verbose_name=_("Approved By")
     )
-    
     approval_date = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name=_("Approval Date"),
-        help_text=_("Date when budget was approved")
+        verbose_name=_("Approval Date")
     )
     
-    # Notes
-    notes = models.TextField(
-        blank=True, 
-        verbose_name=_("Notes"),
-        help_text=_("Additional notes or comments about this budget")
+    # Budget Items
+    budget_items = models.JSONField(
+        default=list,
+        verbose_name=_("Budget Items"),
+        help_text=_("Detailed budget breakdown by categories")
     )
-    
-    # Audit fields
-   
-    last_reviewed = models.DateTimeField(null=True, blank=True, verbose_name=_("Last Reviewed"))
-    
+    notes = models.TextField(blank=True, verbose_name=_("Notes"))
+
     class Meta:
         db_table = "finance_budgets"
         verbose_name = _("Budget")
         verbose_name_plural = _("Budgets")
         unique_together = [['academic_year', 'name']]
         ordering = ["-academic_year", "name"]
-        permissions = [
-            ("can_approve_budget", "Can approve budgets"),
-            ("can_activate_budget", "Can activate budgets"),
-            ("can_submit_budget", "Can submit budgets for approval"),
-        ]
 
     def __str__(self):
         return f"{self.name} - {self.academic_year}"
-    
-    # Helper Properties
-    @property
-    def is_status_active(self):
-        """Check if budget is currently active"""
-        return self.status == self.STATUS_ACTIVE
-    
-    @property
-    def can_edit(self):
-        """Check if budget can be edited"""
-        return self.status in [self.STATUS_DRAFT, self.STATUS_SUBMITTED]
-    
-    @property
-    def duration_days(self):
-        """Get budget duration in days"""
-        return (self.end_date - self.start_date).days
-    
-    @property
-    def days_remaining(self):
-        """Get days remaining in budget period"""
-        today = timezone.now().date()
-        if today > self.end_date:
-            return 0
-        return (self.end_date - today).days
-    
+
     @property
     def total_expenses(self):
-        """Calculate total expenses from budget items"""
-        # Sum of all expenses from budget items
-        total = self.budget_items.filter(expense_record__isnull=False).aggregate(
-            total=models.Sum('expense_record__amount')
-        )['total'] or 0
-        return Decimal(total)
-    
+        current_year = self.academic_year.start_date.year
+        from_date = self.start_date
+        to_date = self.end_date
+        
+        return Expense.objects.filter(
+            expense_date__range=[from_date, to_date],
+            status="PAID"
+        ).aggregate(total=models.Sum('amount'))['total'] or 0
+
     @property
     def remaining_budget(self):
-        """Calculate remaining budget"""
         return self.total_amount - self.total_expenses
-    
+
     @property
     def utilization_percentage(self):
-        """Calculate budget utilization percentage"""
         if self.total_amount > 0:
             return (self.total_expenses / self.total_amount) * 100
         return 0
-    
+
     def activate(self):
         """Activate the budget"""
         # Deactivate other active budgets for the same academic year
         Budget.objects.filter(
             academic_year=self.academic_year,
-            status=self.STATUS_ACTIVE
-        ).update(status=self.STATUS_CLOSED)
+            status="ACTIVE"
+        ).update(status="CLOSED")
         
-        self.status = self.STATUS_ACTIVE
-        self.save(update_fields=['status'])
-    
-    def submit_for_approval(self, user):
-        """Submit budget for approval"""
-        if self.status == self.STATUS_DRAFT:
-            self.status = self.STATUS_SUBMITTED
-            self.save(update_fields=['status'])
-            return True
-        return False
-    
-    def approve(self, user):
-        """Approve the budget"""
-        if self.status in [self.STATUS_SUBMITTED, self.STATUS_DRAFT]:
-            self.status = self.STATUS_APPROVED
-            self.approved_by = user
-            self.approval_date = timezone.now()
-            self.save(update_fields=['status', 'approved_by', 'approval_date'])
-            return True
-        return False
-
-
-class BudgetCategory(BaseModel):
-    """
-    Budget categories for organizing budget items
-    """
-    CATEGORY_TYPES = [
-        ("INCOME", _("Income")),
-        ("EXPENSE", _("Expense")),
-        ("CAPITAL", _("Capital Expenditure")),
-        ("REVENUE", _("Revenue Expenditure")),
-    ]
-    
-    name = models.CharField(
-        max_length=100,
-        verbose_name=_("Category Name"),
-        help_text=_("Enter category name (e.g., 'Salaries', 'Infrastructure')")
-    )
-    
-    code = models.CharField(
-        max_length=20,
-        unique=True,
-        verbose_name=_("Category Code"),
-        help_text=_("Short code for category (e.g., 'SAL', 'INFRA')")
-    )
-    
-    category_type = models.CharField(
-        max_length=20,
-        choices=CATEGORY_TYPES,
-        default="EXPENSE",
-        verbose_name=_("Category Type"),
-        help_text=_("Type of budget category")
-    )
-    
-    description = models.TextField(
-        blank=True,
-        verbose_name=_("Description"),
-        help_text=_("Description of what this category includes")
-    )
-    
-    parent_category = models.ForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="sub_categories",
-        verbose_name=_("Parent Category"),
-        help_text=_("Select parent category if this is a sub-category")
-    )
-    
-    is_active = models.BooleanField(
-        default=True,
-        verbose_name=_("Is Active"),
-        help_text=_("Uncheck to deactivate this category")
-    )
-    
-    display_order = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_("Display Order"),
-        help_text=_("Order in which categories appear in lists")
-    )
-    
-    class Meta:
-        db_table = "finance_budget_categories"
-        verbose_name = _("Budget Category")
-        verbose_name_plural = _("Budget Categories")
-        ordering = ["display_order", "name"]
-    
-    def __str__(self):
-        return f"{self.name} ({self.code})"
-
-
-class BudgetItem(BaseModel):
-    """
-    Individual budget item - user-friendly alternative to JSON field
-    """
-    budget = models.ForeignKey(
-        Budget,
-        on_delete=models.CASCADE,
-        related_name="budget_items",
-        verbose_name=_("Budget"),
-        help_text=_("Select the budget this item belongs to")
-    )
-    
-    category = models.ForeignKey(
-        BudgetCategory,
-        on_delete=models.PROTECT,
-        related_name="budget_items",
-        verbose_name=_("Category"),
-        help_text=_("Select budget category for this item")
-    )
-    
-    description = models.CharField(
-        max_length=500,
-        verbose_name=_("Description"),
-        help_text=_("Detailed description of this budget item")
-    )
-    
-    allocated_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))],
-        verbose_name=_("Allocated Amount"),
-        help_text=_("Amount allocated for this item in ₹")
-    )
-    
-    # Monthly breakdown (optional)
-    january = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("January"),
-        help_text=_("Amount allocated for January")
-    )
-    
-    february = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("February")
-    )
-    
-    march = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("March")
-    )
-    
-    april = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("April")
-    )
-    
-    may = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("May")
-    )
-    
-    june = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("June")
-    )
-    
-    july = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("July")
-    )
-    
-    august = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("August")
-    )
-    
-    september = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("September")
-    )
-    
-    october = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("October")
-    )
-    
-    november = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("November")
-    )
-    
-    december = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0,
-        validators=[MinValueValidator(Decimal('0.00'))],
-        verbose_name=_("December")
-    )
-    
-    # Additional fields
-    is_fixed = models.BooleanField(
-        default=False,
-        verbose_name=_("Is Fixed Cost"),
-        help_text=_("Check if this is a fixed/regular cost")
-    )
-    
-    is_discretionary = models.BooleanField(
-        default=False,
-        verbose_name=_("Is Discretionary"),
-        help_text=_("Check if this expense is discretionary/optional")
-    )
-    
-    priority = models.IntegerField(
-        choices=[(1, "High"), (2, "Medium"), (3, "Low")],
-        default=2,
-        verbose_name=_("Priority"),
-        help_text=_("Priority level for this budget item")
-    )
-    
-    notes = models.TextField(
-        blank=True,
-        verbose_name=_("Notes"),
-        help_text=_("Additional notes about this budget item")
-    )
-    
-    # For tracking actual expenses
-    expense_record = models.ForeignKey(
-        'finance.Expense',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="budget_items",
-        verbose_name=_("Expense Record"),
-        help_text=_("Link to actual expense record if applicable")
-    )
-    
-    # Display order
-    display_order = models.PositiveIntegerField(
-        default=0,
-        verbose_name=_("Display Order")
-    )
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        db_table = "finance_budget_items"
-        verbose_name = _("Budget Item")
-        verbose_name_plural = _("Budget Items")
-        ordering = ["display_order", "category__name"]
-    
-    def __str__(self):
-        return f"{self.category.name} - {self.description[:50]}"
-    
-    # Helper properties
-    @property
-    def monthly_allocations(self):
-        """Get monthly allocations as a dictionary"""
-        return {
-            'january': float(self.january),
-            'february': float(self.february),
-            'march': float(self.march),
-            'april': float(self.april),
-            'may': float(self.may),
-            'june': float(self.june),
-            'july': float(self.july),
-            'august': float(self.august),
-            'september': float(self.september),
-            'october': float(self.october),
-            'november': float(self.november),
-            'december': float(self.december),
-        }
-    
-    @property
-    def total_monthly_allocations(self):
-        """Sum of all monthly allocations"""
-        monthly = self.monthly_allocations.values()
-        return sum(monthly)
-    
-    @property
-    def remaining_amount(self):
-        """Calculate remaining amount after expenses"""
-        if self.expense_record:
-            spent = self.expense_record.amount
-        else:
-            spent = Decimal('0.00')
-        return self.allocated_amount - spent
-    
-    @property
-    def spent_amount(self):
-        """Get amount spent on this item"""
-        if self.expense_record:
-            return self.expense_record.amount
-        return Decimal('0.00')
-    
-    @property
-    def utilization_percentage(self):
-        """Calculate percentage of allocated amount spent"""
-        if self.allocated_amount > 0:
-            return (self.spent_amount / self.allocated_amount) * 100
-        return 0
-    
-    def get_allocation_for_month(self, month_name):
-        """Get allocation for specific month"""
-        month_name = month_name.lower()
-        return getattr(self, month_name, Decimal('0.00'))
-
-
-class BudgetTemplate(BaseModel):
-    """
-    Predefined budget templates for easy budget creation
-    """
-    name = models.CharField(
-        max_length=200,
-        verbose_name=_("Template Name"),
-        help_text=_("Name of the budget template")
-    )
-    
-    description = models.TextField(
-        blank=True,
-        verbose_name=_("Description"),
-        help_text=_("Description of when to use this template")
-    )
-    
-    budget_type = models.CharField(
-        max_length=20,
-        choices=Budget.BUDGET_TYPES,
-        verbose_name=_("Budget Type")
-    )
-    
-    template_items = models.ManyToManyField(
-        'finance.BudgetItem',
-        related_name='template_items',
-        verbose_name=_("Template Items"),
-        help_text=_("Items to include in this template")
-    )
-    
-    is_active = models.BooleanField(default=True)
-
-    
-    class Meta:
-        db_table = "finance_budget_templates"
-        verbose_name = _("Budget Template")
-        verbose_name_plural = _("Budget Templates")
-    
-    def __str__(self):
-        return self.name
-    
-    def create_budget_from_template(self, budget_name, academic_year, prepared_by):
-        """Create a new budget from this template"""
-        from django.db import transaction
-        
-        with transaction.atomic():
-            # Create budget
-            budget = Budget.objects.create(
-                name=budget_name,
-                academic_year=academic_year,
-                prepared_by=prepared_by,
-                budget_type=self.budget_type,
-                start_date=academic_year.start_date,
-                end_date=academic_year.end_date,
-                total_amount=Decimal('0.00')  # Will be updated
-            )
-            
-            total_amount = Decimal('0.00')
-            
-            # Create budget items from template
-            for template_item in self.template_items.all():
-                budget_item = BudgetItem.objects.create(
-                    budget=budget,
-                    category=template_item.category,
-                    description=template_item.description,
-                    allocated_amount=template_item.default_amount,
-                    is_fixed=template_item.is_fixed,
-                    is_discretionary=template_item.is_discretionary,
-                    priority=template_item.priority,
-                )
-                total_amount += template_item.default_amount
-            
-            # Update budget total
-            budget.total_amount = total_amount
-            budget.save()
-            
-            return budget
-
-
-class BudgetTemplateItem(BaseModel):
-    """
-    Item in a budget template
-    """
-    category = models.ForeignKey(
-        BudgetCategory,
-        on_delete=models.CASCADE,
-        verbose_name=_("Category")
-    )
-
-    template = models.ForeignKey(
-        BudgetTemplate,
-        on_delete=models.CASCADE,
-        related_name="items",
-        verbose_name=_("Template"),
-        null=True,  # Initially null until we migrate existing data or recreate schema
-        blank=True
-    )
-    
-    description = models.CharField(
-        max_length=500,
-        verbose_name=_("Description")
-    )
-    
-    default_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        verbose_name=_("Default Amount"),
-        help_text=_("Default amount for this item in templates")
-    )
-    
-    is_fixed = models.BooleanField(default=False)
-    is_discretionary = models.BooleanField(default=False)
-    priority = models.IntegerField(choices=[(1, "High"), (2, "Medium"), (3, "Low")], default=2)
-    
-    class Meta:
-        db_table = "finance_budget_template_items"
-        verbose_name = _("Budget Template Item")
-        verbose_name_plural = _("Budget Template Items")
-    
-    def __str__(self):
-        return f"{self.category.name}: {self.description}"
+        self.status = "ACTIVE"
+        self.save()
 
 
 class FinancialTransaction(BaseModel):

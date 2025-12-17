@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+{% load i18n humanize static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ invoice.invoice_number }}</title>
+    <!-- Use a simple CSS for print/PDF -->
+    <style>
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 14px; line-height: 1.5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .invoice-title { font-size: 24px; font-weight: bold; color: #0d6efd; margin: 0; }
+        .invoice-meta { text-align: right; }
+        .row { display: flex; margin-bottom: 30px; }
+        .col { flex: 1; }
+        .text-end { text-align: right; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #eee; }
+        th { text-align: left; background-color: #f8f9fa; font-weight: bold; }
+        .total-row td { font-weight: bold; font-size: 16px; border-top: 2px solid #333; border-bottom: none; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; text-align: center; color: #666; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; background-color: #6c757d; }
+        .badge.paid { background-color: #198754; }
+        .badge.overdue { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h2 style="margin: 0; margin-bottom: 5px;">{{ request.tenant.name|default:"Institute Name" }}</h2>
+                <div style="color: #666;">{{ request.tenant.address|default:"Institute Address" }}</div>
+                <div style="color: #666;">{{ request.tenant.email|default:"" }}</div>
+            </div>
+            <div class="invoice-meta">
+                <h1 class="invoice-title">INVOICE</h1>
+                <div style="margin-top: 5px; color: #666;">#{{ invoice.invoice_number }}</div>
+                <div style="margin-top: 10px;">
+                    {% if invoice.status == 'PAID' %}
+                        <span class="badge paid">PAID</span>
+                    {% elif invoice.status == 'OVERDUE' %}
+                        <span class="badge overdue">OVERDUE</span>
+                    {% else %}
+                        <span class="badge">{{ invoice.get_status_display|upper }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <h4 style="margin-bottom: 10px; color: #666;">BILL TO</h4>
+                <strong>{{ invoice.student.full_name }}</strong><br>
+                {{ invoice.student.admission_number }}<br>
+                Class: {{ invoice.student.current_class.name }}
+            </div>
+            <div class="col text-end">
+                <table style="width: auto; margin-left: auto; border: none;">
+                    <tr>
+                        <td style="padding: 5px 15px; border: none; color: #666;">Issue Date:</td>
+                        <td style="padding: 5px 0; border: none; font-weight: bold;">{{ invoice.issue_date|date:"d M, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 15px; border: none; color: #666;">Due Date:</td>
+                        <td style="padding: 5px 0; border: none; font-weight: bold;">{{ invoice.due_date|date:"d M, Y" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>
+                        <strong>{{ item.fee_structure.name }}</strong>
+                        {% if item.description %}<br><span style="font-size: 12px; color: #666;">{{ item.description }}</span>{% endif %}
+                    </td>
+                    <td class="text-end">₹{{ item.amount|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td class="text-end" style="border-bottom: none; padding-top: 20px;">Subtotal</td>
+                    <td class="text-end" style="border-bottom: none; padding-top: 20px;">₹{{ invoice.subtotal|intcomma }}</td>
+                </tr>
+                {% if invoice.discount_amount > 0 %}
+                <tr>
+                    <td class="text-end" style="border-bottom: none; color: #198754;">Discount</td>
+                    <td class="text-end" style="border-bottom: none; color: #198754;">-₹{{ invoice.discount_amount|intcomma }}</td>
+                </tr>
+                {% endif %}
+                <tr class="total-row">
+                    <td class="text-end">Total</td>
+                    <td class="text-end">₹{{ invoice.total_amount|intcomma }}</td>
+                </tr>
+                 <tr>
+                    <td class="text-end" style="border: none; padding-top: 5px; color: #666;">Amount Paid</td>
+                    <td class="text-end" style="border: none; padding-top: 5px; color: #666;">₹{{ invoice.paid_amount|intcomma }}</td>
+                </tr>
+                 <tr>
+                    <td class="text-end" style="border: none; padding-top: 5px; font-weight: bold;">Balance Due</td>
+                    <td class="text-end" style="border: none; padding-top: 5px; font-weight: bold; color: #dc3545;">₹{{ invoice.due_amount|intcomma }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        {% if invoice.notes %}
+        <div style="margin-top: 20px;">
+            <strong>Notes:</strong><br>
+            <div style="color: #666; font-style: italic;">{{ invoice.notes }}</div>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p>Thank you for your payment!</p>
+            <p style="font-size: 10px;">This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+    </div>
+    <script>
+        // Auto print if not pdf format
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('format') !== 'pdf') {
+             window.print();
+        }
+    </script>
+</body>
+</html>

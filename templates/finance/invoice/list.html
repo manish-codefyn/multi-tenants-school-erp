@@ -1,0 +1,194 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+{% load crispy_forms_tags %}
+{% block title %}{% trans "Invoices" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:invoice_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Invoices") current_text=_("Invoices") action_url=create_url action_text=_("Create Invoice") %}
+
+    <!-- Summary Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-primary-subtle border-start border-4 border-primary">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small fw-bold">{% trans "Total Due" %}</h6>
+                    <h3 class="fw-bold mb-0 text-primary">₹{{ due_amount|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-success-subtle border-start border-4 border-success">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small fw-bold">{% trans "Collected" %}</h6>
+                    <h3 class="fw-bold mb-0 text-success">₹{{ paid_amount|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-light border-start border-4 border-secondary">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small fw-bold">{% trans "Total Invoiced" %}</h6>
+                    <h3 class="fw-bold mb-0 text-dark">₹{{ total_amount|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded-3">
+             <form method="get" class="row g-3">
+                <div class="col-md-4">
+                     <label class="form-label small text-muted">{% trans "Search" %}</label>
+                     <input type="text" name="search" class="form-control" placeholder="Search invoices..." value="{{ filter.form.search.value|default:'' }}">
+                </div>
+                <div class="col-md-2">
+                <label class="form-label small text-muted">
+                        {% trans "Status" %}
+                    </label>
+                    {{ filter.form.status }}
+                </div>
+                 <div class="col-md-2">
+                     <label class="form-label small text-muted">{% trans "Start Date" %}</label>
+                     <input type="date" name="date_min" class="form-control" value="{{ filter.form.date_min.value|default:'' }}">
+                 </div>
+                 <div class="col-md-2">
+                     <label class="form-label small text-muted">{% trans "End Date" %}</label>
+                     <input type="date" name="date_max" class="form-control" value="{{ filter.form.date_max.value|default:'' }}">
+                 </div>
+                 <div class="col-md-2 d-flex align-items-end">
+                     <button type="submit" class="btn btn-primary w-100">{% trans "Filter" %}</button>
+                 </div>
+             </form>
+        </div>
+    </div>
+
+    <!-- List Table -->
+    {% if invoices %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{% trans "All Invoices" %}</h5>
+            <form action="{% url 'finance:invoice_bulk_action' %}" method="post" class="d-flex align-items-center gap-2" id="bulkForm">
+                {% csrf_token %}
+                <select name="action" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">{% trans "Bulk Actions" %}</option>
+                    <option value="issue">{% trans "Issue Selected" %}</option>
+                    <option value="delete">{% trans "Delete Selected" %}</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-dark" disabled id="bulkBtn">{% trans "Apply" %}</button>
+            </form>
+        </div>
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="invoiceTable" data-datatable data-export-columns="[1,2,3,4,5,6]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4" style="width: 40px;">
+                                <input type="checkbox" class="form-check-input" id="checkAll">
+                            </th>
+                            <th>{% trans "Invoice #" %}</th>
+                            <th>{% trans "Student" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Balance" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in invoices %}
+                        <tr>
+                            <td class="ps-4">
+                                <input type="checkbox" name="selected_ids" value="{{ invoice.pk }}" form="bulkForm" class="form-check-input invoice-check">
+                            </td>
+                            <td class="fw-bold">
+                                <a href="{% url 'finance:invoice_detail' invoice.pk %}" class="text-decoration-none text-dark">{{ invoice.invoice_number }}</a>
+                            </td>
+                            <td>
+                                <div>{{ invoice.student.full_name }}</div>
+                                <div class="small text-muted">{{ invoice.student.admission_number }}</div>
+                            </td>
+                            <td>{{ invoice.issue_date|date:"M d, Y" }}</td>
+                            <td>₹{{ invoice.total_amount|intcomma }}</td>
+                            <td class="text-danger fw-semibold">₹{{ invoice.due_amount|intcomma }}</td>
+                            <td>
+                                {% if invoice.status == 'PAID' %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Paid" %}</span>
+                                {% elif invoice.status == 'PARTIAL' %}
+                                    <span class="badge bg-warning-subtle text-warning">{% trans "Partial" %}</span>
+                                {% elif invoice.status == 'OVERDUE' %}
+                                    <span class="badge bg-danger-subtle text-danger">{% trans "Overdue" %}</span>
+                                {% elif invoice.status == 'DRAFT' %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Draft" %}</span>
+                                {% else %}
+                                    <span class="badge bg-info-subtle text-info">{{ invoice.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'finance:invoice_detail' invoice.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    {% if invoice.status == 'DRAFT' %}
+                                    <a href="{% url 'finance:invoice_update' invoice.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'finance:invoice_print' invoice.pk %}?format=pdf" class="btn btn-icon btn-sm btn-light" title="{% trans 'Download' %}">
+                                        <i class="bx bx-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+             <!-- Pagination -->
+             {% if is_paginated %}
+             <div class="card-footer bg-white border-top-0 d-flex justify-content-center pt-3">
+                 {% include 'partials/pagination.html' %}
+             </div>
+             {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                <i class="bx bx-file text-muted" style="font-size: 4rem;"></i>
+            </div>
+            <h5 class="text-muted">{% trans "No invoices found" %}</h5>
+            <p class="text-muted mb-4">{% trans "Create a new invoice to get started." %}</p>
+            <a href="{{ create_url }}" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i>{% trans "Create Invoice" %}
+            </a>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+<script>
+    document.getElementById('checkAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.invoice-check');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        toggleBulkBtn();
+    });
+
+    document.querySelectorAll('.invoice-check').forEach(cb => {
+        cb.addEventListener('change', toggleBulkBtn);
+    });
+
+    function toggleBulkBtn() {
+        const checkedCount = document.querySelectorAll('.invoice-check:checked').length;
+        document.getElementById('bulkBtn').disabled = checkedCount === 0;
+    }
+</script>
+{% endblock %}

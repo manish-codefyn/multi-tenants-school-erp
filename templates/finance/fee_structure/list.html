@@ -1,0 +1,69 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Fee Structures" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:fee_structure_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Fee Structures") current_text=_("Fee Structures") action_url=create_url action_text=_("Add Fee Structure") %}
+
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="feeStructureTable" data-datatable data-export-columns="[0,1,2,3,4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Class" %}</th>
+                            <th>{% trans "Frequency" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in fee_structures %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'finance:fee_structure_detail' fee.pk %}" class="text-decoration-none text-dark">{{ fee.name }}</a>
+                            </td>
+                            <td>{{ fee.class_name|default:"All Classes" }}</td>
+                            <td>{{ fee.get_frequency_display }}</td>
+                            <td class="fw-bold text-success">₹{{ fee.amount|intcomma }}</td>
+                            <td>
+                                {% if fee.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'finance:fee_structure_detail' fee.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{% url 'finance:fee_structure_update' fee.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="{% url 'finance:fee_structure_delete' fee.pk %}" class="btn btn-icon btn-sm btn-danger-subtle text-danger" title="{% trans 'Delete' %}">
+                                        <i class="bx bx-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Expense Summary Report" %}{% endblock %}
+
+{% block content %}
+    {% url 'finance:financial_report_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Expense Summary") current_text=_("Expense Summary") parent_text=_("Reports") parent_url=list_url %}
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded-3">
+             <form method="get" class="row g-3">
+                 <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "Start Date" %}</label>
+                     <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date|default:'' }}">
+                 </div>
+                 <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "End Date" %}</label>
+                     <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date|default:'' }}">
+                 </div>
+                 <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "Category" %}</label>
+                     <select name="category" class="form-select">
+                         <option value="">{% trans "All Categories" %}</option>
+                         <!-- Categories would be populated here dynamically if context provided -->
+                     </select>
+                 </div>
+                 <div class="col-md-3 d-flex align-items-end">
+                     <button type="submit" class="btn btn-primary w-100">{% trans "Update Report" %}</button>
+                 </div>
+             </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">{% trans "Expenses Overview" %}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Placeholder for Chart -->
+                    <canvas id="expenseChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+             <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">{% trans "Quick Stats" %}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{% trans "Total Expenses" %}</span>
+                            <span class="fw-bold">₹0</span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{% trans "Highest Category" %}</span>
+                            <span class="fw-bold">-</span>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{% trans "Average Daily" %}</span>
+                            <span class="fw-bold">₹0</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Placeholder Chart Configuration
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Expenses',
+                data: [12000, 19000, 3000, 5000, 2000, 3000],
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}

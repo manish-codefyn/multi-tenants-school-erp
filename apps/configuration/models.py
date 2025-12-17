@@ -474,6 +474,7 @@ class FinancialConfiguration(BaseModel):
     # Payment Configuration
     payment_methods = models.JSONField(
         default=list,
+        blank=True,
         verbose_name=_("Available Payment Methods")
     )
     online_payment_enabled = models.BooleanField(
@@ -505,6 +506,7 @@ class FinancialConfiguration(BaseModel):
     # Bank Account Configuration
     bank_accounts = models.JSONField(
         default=list,
+        blank=True,
         verbose_name=_("Bank Accounts")
     )
     default_bank_account = models.UUIDField(
@@ -543,15 +545,34 @@ class FinancialConfiguration(BaseModel):
 
     @classmethod
     def get_for_tenant(cls, tenant):
-        obj, created = cls.objects.get_or_create(tenant=tenant)
+        """Get or create financial config with defaults"""
+        today = timezone.now().date()
+        current_year = today.year
+        
+        # Default to April 1st - March 31st (standard fiscal year)
+        if today.month < 4:
+            start_date = today.replace(year=current_year - 1, month=4, day=1)
+            end_date = today.replace(year=current_year, month=3, day=31)
+        else:
+            start_date = today.replace(month=4, day=1)
+            end_date = today.replace(year=current_year + 1, month=3, day=31)
+            
+        obj, created = cls.objects.get_or_create(
+            tenant=tenant,
+            defaults={
+                'financial_year_start': start_date,
+                'financial_year_end': end_date
+            }
+        )
         return obj
 
     def clean(self):
         """Financial configuration validation"""
-        if self.financial_year_start >= self.financial_year_end:
-            raise ValidationError({
-                'financial_year_end': _('Financial year end must be after start')
-            })
+        if self.financial_year_start and self.financial_year_end:
+            if self.financial_year_start >= self.financial_year_end:
+                raise ValidationError({
+                    'financial_year_end': _('Financial year end must be after start')
+                })
 
 
 class SecurityConfiguration(BaseModel):

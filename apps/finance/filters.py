@@ -94,7 +94,8 @@ class InvoiceFilter(django_filters.FilterSet):
     )
     status = django_filters.ChoiceFilter(
         choices=Invoice.INVOICE_STATUS_CHOICES,
-        empty_label='All Statuses'
+        empty_label='All Statuses',
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     is_overdue = django_filters.BooleanFilter(
         widget=forms.CheckboxInput(),
@@ -138,11 +139,13 @@ class PaymentFilter(django_filters.FilterSet):
     )
     payment_method = django_filters.ChoiceFilter(
         choices=Payment.PAYMENT_METHOD_CHOICES,
-        empty_label='All Methods'
+        empty_label='All Methods',
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     status = django_filters.ChoiceFilter(
         choices=Payment.PAYMENT_STATUS_CHOICES,
-        empty_label='All Statuses'
+        empty_label='All Statuses',
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     received_by = django_filters.CharFilter(
         method='filter_received_by',
@@ -194,6 +197,10 @@ class RefundFilter(django_filters.FilterSet):
 
 
 class ExpenseFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='Search'
+    )
     title = django_filters.CharFilter(
         lookup_expr='icontains',
         label='Expense Title'
@@ -202,17 +209,24 @@ class ExpenseFilter(django_filters.FilterSet):
         lookup_expr='icontains',
         label='Vendor Name'
     )
+    category = django_filters.ModelChoiceFilter(
+        queryset=ExpenseCategory.objects.all(),
+        empty_label='All Categories',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
     status = django_filters.ChoiceFilter(
         choices=Expense.EXPENSE_STATUS_CHOICES,
-        empty_label='All Statuses'
+        empty_label='All Statuses',
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     payment_method = django_filters.ChoiceFilter(
         choices=Expense.PAYMENT_METHOD_CHOICES,
-        empty_label='All Methods'
+        empty_label='All Methods',
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
-    expense_date = django_filters.DateFromToRangeFilter(
-        widget=django_filters.widgets.RangeWidget(attrs={'type': 'date'}),
-        label='Expense Date Range'
+    expense_date = django_filters.DateFilter(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        label='Expense Date'
     )
     amount_min = django_filters.NumberFilter(
         field_name='amount',
@@ -227,7 +241,14 @@ class ExpenseFilter(django_filters.FilterSet):
     
     class Meta:
         model = Expense
-        fields = ['category', 'title', 'vendor_name', 'status', 'payment_method']
+        fields = ['category', 'status', 'payment_method']
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(title__icontains=value) |
+            Q(description__icontains=value) |
+            Q(vendor_name__icontains=value)
+        )
 
 
 class BudgetFilter(django_filters.FilterSet):
@@ -323,9 +344,9 @@ class FinancialTransactionFilter(django_filters.FilterSet):
 
 
 class ExpenseCategoryFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(
-        lookup_expr='icontains',
-        label='Category Name'
+    search = django_filters.CharFilter(
+        method='filter_search',
+        label='Search'
     )
     code = django_filters.CharFilter(
         lookup_expr='icontains',
@@ -333,16 +354,28 @@ class ExpenseCategoryFilter(django_filters.FilterSet):
     )
     category_type = django_filters.ChoiceFilter(
         choices=ExpenseCategory.CATEGORY_TYPE_CHOICES,
-        empty_label='All Types'
+        empty_label='All Types',
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
-    is_active = django_filters.BooleanFilter(
-        widget=forms.CheckboxInput(),
-        label='Active Only'
+    is_active = django_filters.ChoiceFilter(
+        choices=[(True, 'Active'), (False, 'Inactive')],
+        empty_label='All Statuses',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Status'
     )
     
     class Meta:
         model = ExpenseCategory
-        fields = ['name', 'code', 'category_type', 'is_active']
+        fields = ['search', 'code', 'category_type', 'is_active']
+    
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(name__icontains=value) |
+            Q(description__icontains=value)
+        )
+
+    
+
 
 
 # Custom filter for student/parent portal

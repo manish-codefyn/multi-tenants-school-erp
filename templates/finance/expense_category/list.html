@@ -1,0 +1,107 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Expense Categories" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:expense_category_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Expense Categories") current_text=_("Categories") action_url=create_url action_text=_("Add Category") %}
+
+    <!-- Filter Form -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">{% trans "Search" %}</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bx bx-search text-muted"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" 
+                               value="{{ request.GET.search|default:'' }}" 
+                               placeholder="{% trans 'Search categories...' %}">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">{% trans "Type" %}</label>
+                    {{ filter.form.category_type }}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">{% trans "Status" %}</label>
+                    {{ filter.form.is_active }}
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bx bx-filter-alt me-1"></i> {% trans "Filter" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            {% if categories %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="categoryTable" data-datatable data-export-columns="[0,1,2]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                {{ category.name }}
+                            </td>
+                            <td>{{ category.description|truncatechars:50|default:"-" }}</td>
+                            <td>
+                                {% if category.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'finance:expense_category_detail' category.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{% url 'finance:expense_category_update' category.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="avatar avatar-xl bg-light text-muted rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class='bx bx-category fs-1'></i>
+                </div>
+                <h4 class="fw-bold text-muted">{% trans "No Categories Found" %}</h4>
+                <p class="text-muted">{% trans "There are no expense categories created yet." %}</p>
+                <a href="{% url 'finance:expense_category_create' %}" class="btn btn-primary mt-2">
+                    <i class='bx bx-plus me-1'></i> {% trans "Add Category" %}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "Edit Invoice" %}
+    {% else %}
+        {% trans "Create Invoice" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:invoice_list' as list_url %}
+    {% if form.instance.pk %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Edit Invoice") current_text=_("Edit") parent_text=_("Invoices") parent_url=list_url %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Create Invoice") current_text=_("Create") parent_text=_("Invoices") parent_url=list_url %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-4">{% trans "Invoice Details" %}</h5>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.student|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.academic_year|as_crispy_field }}
+                    </div>
+                     <div class="col-md-3 mb-3">
+                         {{ form.billing_period|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        {{ form.issue_date|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.due_date|as_crispy_field }}
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        {{ form.notes|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-muted mb-0">{% trans "Invoice Items" %}</h6>
+                </div>
+
+                <!-- This section would typically handle inline formsets for items -->
+                <!-- For now, assuming standard form handling or add items after creation -->
+                <div class="alert alert-info">
+                    <i class='bx bx-info-circle me-1'></i> {% trans "You can add line items after saving the basic details." %}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if form.instance.pk %}
+                            {% trans "Update Invoice" %}
+                        {% else %}
+                            {% trans "Create & Add Items" %}
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

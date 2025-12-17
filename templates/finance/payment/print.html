@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+{% load i18n humanize static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Receipt #{{ payment.transaction_id }}</title>
+    <!-- Use a simple CSS for print/PDF -->
+    <style>
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 14px; line-height: 1.5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .receipt-title { font-size: 24px; font-weight: bold; color: #198754; margin: 0; }
+        .receipt-meta { text-align: right; }
+        .row { display: flex; margin-bottom: 30px; }
+        .col { flex: 1; }
+        .text-end { text-align: right; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #eee; }
+        th { text-align: left; background-color: #f8f9fa; font-weight: bold; }
+        .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; text-align: center; color: #666; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; background-color: #6c757d; }
+        .badge.completed { background-color: #198754; }
+        .badge.pending { background-color: #ffc107; color: #000; }
+        .badge.failed { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h2 style="margin: 0; margin-bottom: 5px;">{{ request.tenant.name|default:"Institute Name" }}</h2>
+                <div style="color: #666;">{{ request.tenant.address|default:"Institute Address" }}</div>
+                <div style="color: #666;">{{ request.tenant.email|default:"" }}</div>
+            </div>
+            <div class="receipt-meta">
+                <h1 class="receipt-title">RECEIPT</h1>
+                <div style="margin-top: 5px; color: #666;">TXN: {{ payment.transaction_id }}</div>
+                <div style="margin-top: 10px;">
+                    {% if payment.status == 'COMPLETED' %}
+                        <span class="badge completed">COMPLETED</span>
+                    {% elif payment.status == 'PENDING' %}
+                        <span class="badge pending">PENDING</span>
+                    {% else %}
+                        <span class="badge failed">{{ payment.get_status_display|upper }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <h4 style="margin-bottom: 10px; color: #666;">RECEIVED FROM</h4>
+                <strong>{{ payment.invoice.student.full_name }}</strong><br>
+                {{ payment.invoice.student.admission_number }}<br>
+                Class: {{ payment.invoice.student.current_class.name }}
+            </div>
+            <div class="col text-end">
+                <table style="width: auto; margin-left: auto; border: none;">
+                    <tr>
+                        <td style="padding: 5px 15px; border: none; color: #666;">Payment Date:</td>
+                        <td style="padding: 5px 0; border: none; font-weight: bold;">{{ payment.payment_date|date:"d M, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 15px; border: none; color: #666;">Method:</td>
+                        <td style="padding: 5px 0; border: none; font-weight: bold;">{{ payment.get_payment_method_display }}</td>
+                    </tr>
+                    {% if payment.reference_number %}
+                    <tr>
+                        <td style="padding: 5px 15px; border: none; color: #666;">Reference:</td>
+                        <td style="padding: 5px 0; border: none; font-weight: bold;">{{ payment.reference_number }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>Payment for Invoice #{{ payment.invoice.invoice_number }}</strong>
+                    </td>
+                    <td class="text-end">₹{{ payment.amount|intcomma }}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                 <tr>
+                    <td class="text-end" style="border: none; padding-top: 20px; font-weight: bold; font-size: 16px;">Total Paid</td>
+                    <td class="text-end" style="border: none; padding-top: 20px; font-weight: bold; font-size: 16px; color: #198754;">₹{{ payment.amount|intcomma }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        {% if payment.notes %}
+        <div style="margin-top: 20px;">
+            <strong>Notes:</strong><br>
+            <div style="color: #666; font-style: italic;">{{ payment.notes }}</div>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p>Thank you for your payment!</p>
+            <p style="font-size: 10px;">This receipt is computer-generated and maintains the record of your transaction.</p>
+        </div>
+    </div>
+    <script>
+        // Auto print if not pdf format
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('format') !== 'pdf') {
+             window.print();
+        }
+    </script>
+</body>
+</html>

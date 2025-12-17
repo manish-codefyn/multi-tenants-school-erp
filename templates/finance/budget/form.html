@@ -1,0 +1,110 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        {% trans "Edit Budget" %}
+    {% else %}
+        {% trans "Create Budget" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:budget_list' as list_url %}
+    {% if form.instance.pk %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Edit Budget") current_text=_("Edit") parent_text=_("Budgets") parent_url=list_url %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Create Budget") current_text=_("Create") parent_text=_("Budgets") parent_url=list_url %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-4">{% trans "Budget Details" %}</h5>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.name|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.budget_type|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.academic_year|as_crispy_field }}
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        {{ form.total_amount|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                     <div class="col-md-6 mb-3">
+                        {{ form.start_date|as_crispy_field }}
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        {{ form.end_date|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Budget Items Formset -->
+                <h5 class="mt-4 mb-3">{% trans "Budget Items" %}</h5>
+                <div class="table-responsive mb-3">
+                    {% if items.non_form_errors %}
+                        <div class="alert alert-danger">
+                            {{ items.non_form_errors }}
+                        </div>
+                    {% endif %}
+                    {{ items.management_form }}
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;">{% trans "Category" %}</th>
+                                <th style="width: 40%;">{% trans "Description" %}</th>
+                                <th style="width: 20%;">{% trans "Allocated Amount" %}</th>
+                                <th style="width: 5%;">{% trans "Delete" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item_form in items %}
+                            <tr>
+                                {% for hidden in item_form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                                <td>{{ item_form.category|as_crispy_field }}</td>
+                                <td>{{ item_form.description|as_crispy_field }}</td>
+                                <td>{{ item_form.allocated_amount|as_crispy_field }}</td>
+                                <td class="text-center align-middle">
+                                    {% if items.can_delete %}
+                                        {{ item_form.DELETE }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                 <div class="row">
+                    <div class="col-md-12 mb-3">
+                        {{ form.notes|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-primary">
+                        {% if form.instance.pk %}
+                            {% trans "Update Budget" %}
+                        {% else %}
+                            {% trans "Create Budget" %}
+                        {% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

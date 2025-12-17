@@ -1,0 +1,112 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Financial Reports" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:financial_report_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Financial Reports") current_text=_("Reports") action_url=create_url action_text=_("Generate Report") %}
+
+    <!-- Report Types -->
+     <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar bg-primary-subtle text-primary rounded me-3">
+                            <i class='bx bx-pie-chart-alt fs-4'></i>
+                        </div>
+                        <h6 class="mb-0 fw-bold">{% trans "Expense Summary" %}</h6>
+                    </div>
+                    <p class="small text-muted mb-3">{% trans "Breakdown of expenses by category over time." %}</p>
+                    <a href="{% url 'finance:report_expense_summary' %}" class="btn btn-sm btn-outline-primary w-100">{% trans "View Report" %}</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar bg-success-subtle text-success rounded me-3">
+                            <i class='bx bx-bar-chart-alt-2 fs-4'></i>
+                        </div>
+                        <h6 class="mb-0 fw-bold">{% trans "Budget vs Actual" %}</h6>
+                    </div>
+                    <p class="small text-muted mb-3">{% trans "Compare allocated budget with actual spending." %}</p>
+                    <a href="{% url 'finance:report_budget_vs_actual' %}" class="btn btn-sm btn-outline-success w-100">{% trans "View Report" %}</a>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                         <div class="avatar bg-info-subtle text-info rounded me-3">
+                            <i class='bx bx-file fs-4'></i>
+                        </div>
+                        <h6 class="mb-0 fw-bold">{% trans "Custom Reports" %}</h6>
+                    </div>
+                    <p class="small text-muted mb-3">{% trans "Generate and download custom PDF/Excel reports." %}</p>
+                    <a href="{{ create_url }}" class="btn btn-sm btn-outline-info w-100">{% trans "Generate New" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0">{% trans "Generated Reports" %}</h5>
+        </div>
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="reportTable" data-datatable>
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Report Name" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Period" %}</th>
+                            <th>{% trans "Date Range" %}</th>
+                            <th>{% trans "Generated On" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'finance:financial_report_detail' report.pk %}" class="text-decoration-none text-dark">{{ report.report_name }}</a>
+                            </td>
+                            <td>{{ report.get_report_type_display }}</td>
+                            <td>{{ report.get_period_display }}</td>
+                            <td>
+                                <div class="small">{{ report.start_date|date:"d/m/Y" }} - {{ report.end_date|date:"d/m/Y" }}</div>
+                            </td>
+                            <td>{{ report.created_at|date:"M d, Y H:i" }}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'finance:financial_report_detail' report.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                     <a href="{% url 'finance:financial_report_download' report.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Download' %}">
+                                        <i class="bx bx-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

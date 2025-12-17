@@ -1,13 +1,12 @@
 from django import forms
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
 import json
 
 from .models import (
     FeeStructure, FeeDiscount, Invoice, InvoiceItem,
     Payment, Refund, ExpenseCategory, Expense, 
-    Budget, BudgetItem, BudgetCategory, BudgetTemplate, BudgetTemplateItem, BankAccount, FinancialReport, AppliedDiscount, FinancialTransaction
+    Budget, BankAccount, FinancialReport, AppliedDiscount,FinancialTransaction
 )
 
 from apps.core.forms import BaseForm,TenantAwareModelForm
@@ -61,7 +60,8 @@ class FeeDiscountForm(TenantAwareModelForm):
         widgets = {
             'valid_from': forms.DateInput(attrs={'type': 'date'}),
             'valid_until': forms.DateInput(attrs={'type': 'date'}),
-         
+            'applicable_categories': forms.Textarea(attrs={'rows': 3}),
+            'required_documents': forms.Textarea(attrs={'rows': 3}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -73,7 +73,24 @@ class FeeDiscountForm(TenantAwareModelForm):
                 tenant=self.user.tenant
             )
     
-
+    def clean_applicable_categories(self):
+        data = self.cleaned_data.get('applicable_categories', '[]')
+        try:
+            if data:
+                json.loads(data)
+        except json.JSONDecodeError:
+            raise ValidationError("Please enter valid JSON format for categories")
+        return data
+    
+    def clean_required_documents(self):
+        data = self.cleaned_data.get('required_documents', '[]')
+        try:
+            if data:
+                json.loads(data)
+        except json.JSONDecodeError:
+            raise ValidationError("Please enter valid JSON format for required documents")
+        return data
+    
     def clean(self):
         cleaned_data = super().clean()
         valid_from = cleaned_data.get('valid_from')
@@ -313,7 +330,7 @@ class ExpenseForm(TenantAwareModelForm):
             'expense_date': forms.DateInput(attrs={'type': 'date'}),
             'bill_date': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 3}),
-            'supporting_documents': forms.Select(attrs={'class': 'form-control'}),
+            'supporting_documents': forms.Textarea(attrs={'rows': 3}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -326,7 +343,15 @@ class ExpenseForm(TenantAwareModelForm):
                 is_active=True
             )
     
-
+    def clean_supporting_documents(self):
+        data = self.cleaned_data.get('supporting_documents', '[]')
+        try:
+            if data:
+                json.loads(data)
+        except json.JSONDecodeError:
+            raise ValidationError("Please enter valid JSON format for supporting documents")
+        return data
+    
     def clean(self):
         cleaned_data = super().clean()
         bill_date = cleaned_data.get('bill_date')
@@ -341,36 +366,18 @@ class ExpenseForm(TenantAwareModelForm):
         return cleaned_data
 
 
-class BudgetCategoryForm(TenantAwareModelForm):
-    class Meta:
-        model = BudgetCategory
-        fields = [
-            'name', 'code', 'category_type', 'description', 
-            'parent_category', 'is_active', 'display_order'
-        ]
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Filter parent category to avoid self-reference or cycles if possible
-        # For now simple filtering by tenant (handled by TenantAwareModelForm if setup correctly, 
-        # but BudgetCategory inherits from BaseModel which has tenant)
-        pass
-
-
 class BudgetForm(TenantAwareModelForm):
     class Meta:
         model = Budget
         fields = [
-            'name', 'budget_type', 'academic_year', 'total_amount', 
-            'start_date', 'end_date', 'notes'
+            'name', 'academic_year', 'total_amount',
+            'start_date', 'end_date', 'budget_items', 'notes'
         ]
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
             'notes': forms.Textarea(attrs={'rows': 3}),
+            'budget_items': forms.Textarea(attrs={'rows': 10}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -381,7 +388,23 @@ class BudgetForm(TenantAwareModelForm):
             self.fields['academic_year'].queryset = self.fields['academic_year'].queryset.filter(
                 tenant=self.user.tenant
             )
-
+    
+    def clean_budget_items(self):
+        data = self.cleaned_data.get('budget_items', '[]')
+        try:
+            if data:
+                items = json.loads(data)
+                if not isinstance(items, list):
+                    raise ValidationError("Budget items must be a JSON array")
+                
+                # Validate each item has required fields
+                for item in items:
+                    if not all(key in item for key in ['category', 'amount']):
+                        raise ValidationError("Each budget item must have 'category' and 'amount' fields")
+        except json.JSONDecodeError as e:
+            raise ValidationError(f"Invalid JSON format: {str(e)}")
+        return data
+    
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
@@ -404,55 +427,8 @@ class BudgetForm(TenantAwareModelForm):
                     raise ValidationError({
                         'end_date': f'End date cannot be after academic year end date ({academic_year.end_date}).'
                     })
+        
         return cleaned_data
-
-
-class BudgetItemForm(TenantAwareModelForm):
-    class Meta:
-        model = BudgetItem
-        fields = [
-            'category', 'description', 'allocated_amount', 
-            'is_fixed', 'is_discretionary', 'priority', 'notes',
-            'january', 'february', 'march', 'april', 'may', 'june',
-            'july', 'august', 'september', 'october', 'november', 'december'
-        ]
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 2}),
-            'notes': forms.Textarea(attrs={'rows': 2}),
-        }
-
-
-class BudgetTemplateForm(TenantAwareModelForm):
-    template_items = forms.ModelMultipleChoiceField(
-        queryset=BudgetItem.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        label=_("Template Items"),
-        help_text=_("Select existing budget items to include in this template.")
-    )
-
-    class Meta:
-        model = BudgetTemplate
-        fields = ['name', 'description', 'budget_type', 'template_items', 'is_active']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.tenant:
-            self.fields['template_items'].queryset = BudgetItem.objects.filter(budget__tenant=self.tenant)
-
-
-
-class BudgetTemplateItemForm(TenantAwareModelForm):
-    class Meta:
-        model = BudgetTemplateItem
-        fields = [
-            'category', 'description', 'default_amount', 
-            'is_fixed', 'is_discretionary', 'priority'
-        ]
-
 
 
 class BankAccountForm(TenantAwareModelForm):

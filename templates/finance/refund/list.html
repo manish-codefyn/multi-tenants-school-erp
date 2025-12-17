@@ -1,0 +1,80 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Refunds" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:refund_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Refund Requests") current_text=_("Refunds") action_url=create_url action_text=_("Request Refund") %}
+
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            {% if refunds %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="refundTable" data-datatable data-export-columns="[0,1,2,3,4,5]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Reference" %}</th>
+                            <th>{% trans "Student" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Requested On" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for refund in refunds %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'finance:refund_detail' refund.pk %}" class="text-decoration-none text-dark">REF-{{ refund.pk|stringformat:"04d" }}</a>
+                            </td>
+                            <td>{{ refund.payment.invoice.student.full_name }}</td>
+                            <td class="fw-bold text-danger">₹{{ refund.amount|intcomma }}</td>
+                            <td>{{ refund.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                {% if refund.status == 'COMPLETED' %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Completed" %}</span>
+                                {% elif refund.status == 'APPROVED' %}
+                                    <span class="badge bg-primary-subtle text-primary">{% trans "Approved" %}</span>
+                                {% elif refund.status == 'PROCESSING' %}
+                                    <span class="badge bg-info-subtle text-info">{% trans "Processing" %}</span>
+                                {% elif refund.status == 'REJECTED' %}
+                                    <span class="badge bg-danger-subtle text-danger">{% trans "Rejected" %}</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning">{% trans "Requested" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'finance:refund_detail' refund.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                    <i class="bx bx-show"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="avatar avatar-xl bg-light text-muted rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class='bx bx-refresh fs-1'></i>
+                </div>
+                <h4 class="fw-bold text-muted">{% trans "No Refund Requests" %}</h4>
+                <p class="text-muted">{% trans "There are no refund requests at the moment." %}</p>
+                <a href="{% url 'finance:refund_create' %}" class="btn btn-primary mt-2">
+                    <i class='bx bx-plus me-1'></i> {% trans "Request Refund" %}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

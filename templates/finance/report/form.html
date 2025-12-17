@@ -1,0 +1,49 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Generate Report" %}{% endblock %}
+
+{% block content %}
+    {% url 'finance:financial_report_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Generate Report") current_text=_("Generate") parent_text=_("Reports") parent_url=list_url %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-4">{% trans "Report Configuration" %}</h5>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.report_name|as_crispy_field }}
+                    </div>
+                     <div class="col-md-6 mb-3">
+                        {{ form.report_type|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.period|as_crispy_field }}
+                    </div>
+                     <div class="col-md-4 mb-3">
+                        {{ form.start_date|as_crispy_field }}
+                    </div>
+                     <div class="col-md-4 mb-3">
+                        {{ form.end_date|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <i class='bx bx-info-circle me-1'></i> {% trans "The report will be generated in the background and you will be notified once it is ready." %}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class='bx bx-cog me-1'></i> {% trans "Generate Report" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n humanize %}
+
+{% block title %}{{ bank_account.account_holder_name }}{% endblock %}
+
+{% block content %}
+    {% url 'finance:bank_account_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=bank_account.bank_name current_text=_("Detail") parent_text=_("Accounts") parent_url=list_url %}
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Account Information" %}</h5>
+                    <a href="{% url 'finance:bank_account_update' bank_account.pk %}" class="btn btn-sm btn-primary">
+                        <i class='bx bx-edit me-1'></i> {% trans "Edit" %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Holder Name" %}</div>
+                        <div class="col-md-8 fw-semibold">{{ bank_account.account_holder_name }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Bank & Branch" %}</div>
+                        <div class="col-md-8">{{ bank_account.bank_name }} - {{ bank_account.branch_name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Account Number" %}</div>
+                        <div class="col-md-8 font-monospace">{{ bank_account.account_number }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "IFSC Code" %}</div>
+                        <div class="col-md-8 font-monospace">{{ bank_account.ifsc_code }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Type" %}</div>
+                        <div class="col-md-8">{{ bank_account.get_account_type_display }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Current Balance" %}</div>
+                        <div class="col-md-8 fw-bold text-success h5">₹{{ bank_account.current_balance|intcomma }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

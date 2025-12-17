@@ -1,0 +1,97 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Fee Collection Report" %}{% endblock %}
+
+{% block content %}
+    {% url 'finance:financial_report_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Fee Collection Report") current_text=_("Fee Collection") parent_text=_("Reports") parent_url=list_url %}
+
+     <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded-3">
+             <form method="get" class="row g-3">
+                 <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "Start Date" %}</label>
+                     <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                 </div>
+                 <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "End Date" %}</label>
+                     <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                 </div>
+                 <div class="col-md-3">
+                     <label class="form-label small text-muted">{% trans "Class" %}</label>
+                     <select name="class_name" class="form-select">
+                         <option value="">{% trans "All Classes" %}</option>
+                         <!-- Classes would be populated here dynamically -->
+                     </select>
+                 </div>
+                 <div class="col-md-3 d-flex align-items-end">
+                     <button type="submit" class="btn btn-primary w-100">{% trans "Generate Report" %}</button>
+                 </div>
+             </form>
+        </div>
+    </div>
+
+    <!-- Report Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{% trans "Collection Details" %}</h5>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-secondary btn-sm">
+                    <i class='bx bx-export me-1'></i>{% trans "Export" %}
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+             <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Date" %}</th>
+                            <th>{% trans "Receipt #" %}</th>
+                            <th>{% trans "Student" %}</th>
+                            <th>{% trans "Class" %}</th>
+                            <th>{% trans "Fee Type" %}</th>
+                            <th>{% trans "Mode" %}</th>
+                            <th class="text-end pe-4">{% trans "Amount" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Placeholder for when backend logic is implemented -->
+                        {% for payment in payments %}
+                        <tr>
+                            <td class="ps-4">{{ payment.payment_date|date:"d M Y" }}</td>
+                            <td>{{ payment.payment_number }}</td>
+                            <td>{{ payment.student.get_full_name }}</td>
+                            <td>{{ payment.student.current_class }}</td>
+                            <td>{{ payment.get_fee_type_display }}</td>
+                             <td>{{ payment.get_payment_method_display }}</td>
+                            <td class="text-end pe-4 fw-bold">₹{{ payment.amount|intcomma }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class='bx bx-search-alt fs-1 d-block mb-3 opacity-50'></i>
+                                {% if request.GET.start_date %}
+                                    {% trans "No records found for the selected criteria." %}
+                                {% else %}
+                                    {% trans "Please select a date range to generate the report." %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if payments %}
+                    <tfoot class="bg-light">
+                        <tr>
+                            <td colspan="6" class="text-end fw-bold py-3">{% trans "Total Collection" %}:</td>
+                            <td class="text-end pe-4 fw-bold py-3">₹{{ total_amount|intcomma }}</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+             </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static humanize %}
+
+{% block title %}{% trans "Budgets" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'finance:budget_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Budgets") current_text=_("Budgets") action_url=create_url action_text=_("Create Budget") %}
+
+    <!-- List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 display" id="budgetTable" data-datatable data-export-columns="[0,1,2,3,4,5]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Academic Year" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Start - End Date" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for budget in budgets %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'finance:budget_detail' budget.pk %}" class="text-decoration-none text-dark">{{ budget.name }}</a>
+                            </td>
+                            <td>{{ budget.get_budget_type_display }}</td>
+                            <td>{{ budget.academic_year }}</td>
+                            <td class="fw-bold">₹{{ budget.total_amount|intcomma }}</td>
+                            <td>
+                                <div class="small">{{ budget.start_date|date:"M Y" }} - {{ budget.end_date|date:"M Y" }}</div>
+                            </td>
+                            <td>
+                                {% if budget.status == 'ACTIVE' %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% elif budget.status == 'APPROVED' %}
+                                    <span class="badge bg-primary-subtle text-primary">{% trans "Approved" %}</span>
+                                {% elif budget.status == 'CLOSED' %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Closed" %}</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning">{% trans "Draft" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'finance:budget_detail' budget.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                     {% if budget.status == 'DRAFT' %}
+                                    <a href="{% url 'finance:budget_update' budget.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="{% url 'finance:budget_delete' budget.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Delete' %}">
+                                        <i class="bx bx-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

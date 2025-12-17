@@ -1,0 +1,107 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n humanize %}
+
+{% block title %}{% trans "Refund Request" %}{% endblock %}
+
+{% block content %}
+    {% url 'finance:refund_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Refund Details") current_text=_("Detail") parent_text=_("Refunds") parent_url=list_url %}
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Request Information" %}</h5>
+                    <div>
+                        <!-- Workflow Actions -->
+                        {% if refund.status == 'REQUESTED' and perms.finance.approve_refund %}
+                         <form action="{% url 'finance:refund_approve' refund.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class='bx bx-check me-1'></i> {% trans "Approve" %}
+                                </button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if refund.status == 'APPROVED' and perms.finance.change_refund %}
+                         <form action="{% url 'finance:refund_process' refund.pk %}" method="post" class="d-inline ms-1">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-info btn-sm text-white">
+                                    <i class='bx bx-loader-alt me-1'></i> {% trans "Process" %}
+                                </button>
+                        </form>
+                        {% endif %}
+
+                         {% if refund.status == 'PROCESSING' and perms.finance.change_refund %}
+                         <form action="{% url 'finance:refund_complete' refund.pk %}" method="post" class="d-inline ms-1">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class='bx bx-check-double me-1'></i> {% trans "Complete" %}
+                                </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Refund Amount" %}</div>
+                        <div class="col-md-8 fw-bold text-danger display-6 h6">₹{{ refund.amount|intcomma }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Original Payment" %}</div>
+                        <div class="col-md-8">
+                            <a href="{% url 'finance:payment_detail' refund.payment.pk %}" class="text-decoration-none">
+                                {{ refund.payment.transaction_id }} (₹{{ refund.payment.amount|intcomma }})
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Student" %}</div>
+                        <div class="col-md-8">{{ refund.payment.invoice.student.full_name }}</div>
+                    </div>
+                     <div class="row mb-3">
+                        <div class="col-md-4 text-muted">{% trans "Reason" %}</div>
+                        <div class="col-md-8">{{ refund.reason|linebreaks }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+             <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                     <h6 class="card-title text-muted mb-3">{% trans "Status" %}</h6>
+                     <div class="d-grid gap-2">
+                         <div class="p-3 rounded bg-light border text-center">
+                             <div class="fw-bold mb-1">{{ refund.get_status_display }}</div>
+                             <div class="small text-muted">{% trans "Current Status" %}</div>
+                         </div>
+                     </div>
+                     
+                     <hr>
+                     
+                      <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "Requested By" %}</div>
+                        <div class="col-7 text-end">{{ refund.requested_by.get_full_name }}</div>
+                    </div>
+                     <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "Requested On" %}</div>
+                        <div class="col-7 text-end">{{ refund.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    {% if refund.approved_by %}
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "Approved By" %}</div>
+                        <div class="col-7 text-end text-success">{{ refund.approved_by.get_full_name }}</div>
+                    </div>
+                    {% endif %}
+                     {% if refund.refunded_date %}
+                    <div class="row mb-2">
+                        <div class="col-5 text-muted">{% trans "Refunded On" %}</div>
+                        <div class="col-7 text-end">{{ refund.refunded_date|date:"M d, Y" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
