@@ -1,0 +1,132 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Financial Configuration" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:dashboard' %}">{% trans "Configuration" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Financial" %}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Financial Configuration" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <h6 class="mb-3">{% trans "Currency & Tax" %}</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form.base_currency|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.currency_symbol|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.decimal_places|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form.tax_enabled|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.tax_rate|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.tax_number|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "Invoicing" %}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.invoice_prefix|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.invoice_start_number|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.invoice_terms|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.invoice_notes|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "Payments & Details" %}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.online_payment_enabled|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.payment_gateway_name|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.payment_methods|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.bank_accounts_count|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.default_bank_account_name|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3">{% trans "Fee Management" %}</h6>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.auto_late_fee|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.late_fee_calculation|as_crispy_field }}
+                            </div>
+                         </div>
+                         
+                        <hr>
+                        <h6 class="mb-3">{% trans "Reporting" %}</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form.financial_year_start|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.financial_year_end|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.default_report_period|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.chart_field|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-1"></i> {% trans "Save Configuration" %}
+                            </button>
+                            <a href="{% url 'configuration:dashboard' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

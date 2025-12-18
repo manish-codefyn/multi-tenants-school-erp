@@ -1,0 +1,63 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "KPI Historical Values" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("History") parent=_("Analytics") child=_("KPI Values") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "Metric Track Records" %}</h6>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="kpi-values-table" class="table table-striped table-bordered w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "KPI" %}</th>
+                            <th>{% trans "Value" %}</th>
+                            <th>{% trans "Target" %}</th>
+                            <th>{% trans "Period" %}</th>
+                            <th>{% trans "Status" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for val in object_list %}
+                        <tr>
+                            <td>{{ val.kpi.name }}</td>
+                            <td>{{ val.value }}</td>
+                            <td>{{ val.target_value|default:"--" }}</td>
+                            <td>{{ val.period_start|date:"M d" }} - {{ val.period_end|date:"M d, Y" }}</td>
+                            <td>
+                                {% if val.is_anomaly %}
+                                <span class="badge bg-danger">{% trans "Anomaly" %}</span>
+                                {% else %}
+                                <span class="badge bg-success">{% trans "Normal" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#kpi-values-table').DataTable({
+            responsive: true,
+            order: [[3, 'desc']]
+        });
+    });
+</script>
+{% endblock %}

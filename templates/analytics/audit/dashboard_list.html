@@ -1,0 +1,60 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Audit Dashboards" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("Audit Dashboards") parent=_("Analytics") child=_("Dashboards") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "System Health Dashboards" %}</h6>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="audit-dashboards-table" class="table table-striped table-bordered w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Default" %}</th>
+                            <th>{% trans "Refresh" %}</th>
+                            <th>{% trans "Owner" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dashboard in object_list %}
+                        <tr>
+                            <td>{{ dashboard.name }}</td>
+                            <td>
+                                {% if dashboard.is_default %}
+                                <span class="badge bg-success">{% trans "Yes" %}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{% trans "No" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ dashboard.refresh_interval_minutes }}m</td>
+                            <td>{{ dashboard.owner.get_full_name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#audit-dashboards-table').DataTable({
+            responsive: true
+        });
+    });
+</script>
+{% endblock %}

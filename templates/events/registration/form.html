@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if object %}{% trans "Edit Registration" %}{% else %}{% trans "Add Registration" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-1">{% if object %}{% trans "Edit Registration" %}{% else %}{% trans "Add Registration" %}{% endif %}</h4>
+                    <p class="text-muted mb-0">{% trans "Register participants for an upcoming event." %}</p>
+                </div>
+                <div>
+                    <a href="{% url 'events:registration_list' %}" class="btn btn-outline-secondary">
+                        <i class="bx bx-arrow-back me-1"></i> {% trans "Back to List" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Event & Person Selection -->
+                        <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">{% trans "1. Event & Participant Selection" %}</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold small">{{ form.event.label }}</label>
+                                {{ form.event }}
+                                {% if form.event.errors %}<div class="text-danger small">{{ form.event.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">{% trans "Internal Student" %} / {{ form.student.label }}</label>
+                                {{ form.student }}
+                                <small class="text-muted">{% trans "Select if the participant is a student." %}</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">{% trans "Internal User" %} / {{ form.user.label }}</label>
+                                {{ form.user }}
+                                <small class="text-muted">{% trans "Select if the participant is a staff or parent." %}</small>
+                            </div>
+                        </div>
+
+                        <!-- External Guest Info -->
+                        <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">{% trans "2. External Guest Details" %} <small class="text-muted fw-normal">({% trans "Fill if not an internal user" %})</small></h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">{{ form.external_name.label }}</label>
+                                {{ form.external_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">{{ form.external_email.label }}</label>
+                                {{ form.external_email }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">{{ form.external_phone.label }}</label>
+                                {{ form.external_phone }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">{{ form.external_organization.label }}</label>
+                                {{ form.external_organization }}
+                            </div>
+                        </div>
+
+                        <!-- Registration Details -->
+                        <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">{% trans "3. Registration Details" %}</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold small">{{ form.registration_type.label }}</label>
+                                {{ form.registration_type }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold small">{{ form.status.label }}</label>
+                                {{ form.status }}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold small">{{ form.special_requirements.label }}</label>
+                                {{ form.special_requirements }}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold small">{{ form.dietary_restrictions.label }}</label>
+                                {{ form.dietary_restrictions }}
+                            </div>
+                        </div>
+
+                        <!-- Emergency & Internal -->
+                        <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">{% trans "4. Emergency & Notes" %}</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">{{ form.emergency_contact.label }}</label>
+                                {{ form.emergency_contact }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">{{ form.emergency_phone.label }}</label>
+                                {{ form.emergency_phone }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold small">{{ form.internal_notes.label }}</label>
+                                {{ form.internal_notes }}
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4 text-muted opacity-25">
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="submit" class="btn btn-primary px-5 py-2">
+                                <i class="bx bx-check me-1"></i> 
+                                {% if object %}{% trans "Update Registration" %}{% else %}{% trans "Register Now" %}{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

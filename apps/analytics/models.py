@@ -47,6 +47,19 @@ class AuditAnalysisReport(UUIDModel, TimeStampedModel, TenantAwareModel):
         ('HTML', 'HTML'),
     ]
     
+    # Filters
+    FILTER_CHOICES = [
+        ('ALL', 'All Activities'),
+        ('LOGIN_ONLY', 'Login Activities'),
+        ('SECURITY_EVENTS', 'Security Events'),
+        ('DATA_CHANGES', 'Data Changes'),
+        ('FAILED_ACTIONS', 'Failed Actions'),
+        ('USER_SPECIFIC', 'Specific User'),
+        ('TENANT_WIDE', 'Tenant Wide'),
+        ('COMPLIANCE_ONLY', 'Compliance Events'),
+        ('CUSTOM', 'Custom Filter'),
+    ]
+
     name = models.CharField(max_length=200)
     report_type = models.CharField(max_length=50, choices=REPORT_TYPES)
     format = models.CharField(max_length=10, choices=FORMATS, default='PDF')
@@ -55,8 +68,19 @@ class AuditAnalysisReport(UUIDModel, TimeStampedModel, TenantAwareModel):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     
-    # Filters
-    filters = models.JSONField(default=dict)
+    filter_type = models.CharField(
+        max_length=30,
+        choices=FILTER_CHOICES,
+        default='ALL',
+        verbose_name=_("Filter Type")
+    )
+
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
+    )
     
     # Generated content
     file_path = models.FileField(upload_to='audit_reports/', null=True, blank=True)
@@ -79,6 +103,7 @@ class AuditAnalysisReport(UUIDModel, TimeStampedModel, TenantAwareModel):
         User,
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name='generated_audit_reports'
     )
     generation_time = models.DateTimeField(null=True, blank=True)
@@ -101,6 +126,24 @@ class AuditAnalysisReport(UUIDModel, TimeStampedModel, TenantAwareModel):
     
     def __str__(self):
         return f"{self.name} - {self.get_report_type_display()}"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'TABLE',
+                'options': {
+                    'title': self.name,
+                    'show_legend': True,
+                    'animate': True,
+                    'colors': ['#007bff', '#28a745', '#dc3545', '#ffc107']
+                },
+                'data': {
+                    'labels': [],
+                    'datasets': []
+                }
+            }
+        super().save(*args, **kwargs)
 
 
 class AuditPattern(UUIDModel, TimeStampedModel, TenantAwareModel):
@@ -129,7 +172,15 @@ class AuditPattern(UUIDModel, TimeStampedModel, TenantAwareModel):
     severity = models.CharField(max_length=20, choices=SEVERITY_LEVELS, default='MEDIUM')
     
     # Detection criteria
-    detection_rules = models.JSONField()
+    detection_rules = models.JSONField(default=dict, blank=True)
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
+    )
+    
     threshold = models.FloatField(default=1.0)
     time_window_minutes = models.IntegerField(default=60)
     
@@ -143,8 +194,27 @@ class AuditPattern(UUIDModel, TimeStampedModel, TenantAwareModel):
     is_auto_remediate = models.BooleanField(default=False)
     
     # Actions
-    recommended_actions = models.JSONField(default=list)
-    
+    RECOMMENDED_ACTION_CHOICES = [
+        ('NO_ACTION', 'No Action Required'),
+        ('NOTIFY_ADMIN', 'Notify Administrator'),
+        ('NOTIFY_SECURITY', 'Notify Security Team'),
+        ('LOCK_USER', 'Lock User Account'),
+        ('FORCE_LOGOUT', 'Force Logout'),
+        ('RESET_PASSWORD', 'Force Password Reset'),
+        ('ENABLE_MFA', 'Enable Multi-Factor Authentication'),
+        ('BLOCK_IP', 'Block IP Address'),
+        ('ESCALATE', 'Escalate to Management'),
+        ('GENERATE_REPORT', 'Generate Detailed Report'),
+        ('CUSTOM', 'Custom Action'),
+    ]
+
+    recommended_action = models.CharField(
+        max_length=30,
+        choices=RECOMMENDED_ACTION_CHOICES,
+        default='NO_ACTION',
+        verbose_name=_("Recommended Action")
+    )
+        
     class Meta:
         ordering = ['-severity', '-last_detected']
         indexes = [
@@ -156,6 +226,36 @@ class AuditPattern(UUIDModel, TimeStampedModel, TenantAwareModel):
     
     def __str__(self):
         return f"{self.name} ({self.get_severity_display()})"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'BAR',
+                'options': {
+                    'title': f"{self.name} Pattern",
+                    'x_axis_label': 'Time',
+                    'y_axis_label': 'Occurrences',
+                    'show_legend': True,
+                    'stacked': False,
+                    'colors': self._get_severity_colors()
+                },
+                'data': {
+                    'labels': [],
+                    'datasets': []
+                }
+            }
+        super().save(*args, **kwargs)
+    
+    def _get_severity_colors(self):
+        """Get colors based on severity"""
+        severity_colors = {
+            'LOW': ['#28a745'],
+            'MEDIUM': ['#ffc107'],
+            'HIGH': ['#fd7e14'],
+            'CRITICAL': ['#dc3545']
+        }
+        return severity_colors.get(self.severity, ['#007bff'])
 
 
 class AuditAlert(UUIDModel, TimeStampedModel, TenantAwareModel):
@@ -189,7 +289,14 @@ class AuditAlert(UUIDModel, TimeStampedModel, TenantAwareModel):
     # Alert details
     title = models.CharField(max_length=200)
     description = models.TextField()
-    details = models.JSONField(default=dict)
+    details = models.JSONField(default=dict, blank=True)
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
+    )
     
     # Related audit logs
     related_logs = models.ManyToManyField('core.AuditLog', blank=True)
@@ -245,6 +352,35 @@ class AuditAlert(UUIDModel, TimeStampedModel, TenantAwareModel):
     
     def __str__(self):
         return f"{self.title} - {self.get_severity_display()}"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'TABLE',
+                'options': {
+                    'title': self.title,
+                    'show_timeline': True,
+                    'show_severity': True,
+                    'group_by': 'category',
+                    'colors': self._get_severity_colors()
+                },
+                'data': {
+                    'columns': ['Time', 'Event', 'Severity', 'Details'],
+                    'rows': []
+                }
+            }
+        super().save(*args, **kwargs)
+    
+    def _get_severity_colors(self):
+        """Get colors based on severity"""
+        severity_colors = {
+            'LOW': '#28a745',
+            'MEDIUM': '#ffc107',
+            'HIGH': '#fd7e14',
+            'CRITICAL': '#dc3545'
+        }
+        return severity_colors.get(self.severity, '#007bff')
 
 
 class AuditDashboard(UUIDModel, TimeStampedModel, TenantAwareModel):
@@ -255,8 +391,15 @@ class AuditDashboard(UUIDModel, TimeStampedModel, TenantAwareModel):
     description = models.TextField(null=True, blank=True)
     
     # Layout and configuration
-    layout_config = models.JSONField(default=dict)
-    widget_configs = models.JSONField(default=list)
+    layout_config = models.JSONField(default=dict, blank=True)
+    widget_configs = models.JSONField(default=list, blank=True)
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
+    )
     
     # Access control
     is_shared = models.BooleanField(default=False)
@@ -271,6 +414,7 @@ class AuditDashboard(UUIDModel, TimeStampedModel, TenantAwareModel):
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        blank=True,
         related_name='owned_dashboards'
     )
     
@@ -291,6 +435,20 @@ class AuditDashboard(UUIDModel, TimeStampedModel, TenantAwareModel):
                 owner=self.owner,
                 is_default=True
             ).exclude(id=self.id).update(is_default=False)
+        
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'GRID',
+                'options': {
+                    'layout': 'responsive',
+                    'theme': 'light',
+                    'show_grid': True,
+                    'widget_spacing': 10,
+                    'max_columns': 4
+                },
+                'widgets': []
+            }
         super().save(*args, **kwargs)
 
 
@@ -312,9 +470,16 @@ class AuditMetric(UUIDModel, TimeStampedModel, TenantAwareModel):
     description = models.TextField(null=True, blank=True)
     
     # Query configuration
-    query_filter = models.JSONField(default=dict)
-    group_by_fields = models.JSONField(default=list)
+    query_filter = models.JSONField(default=dict, blank=True)
+    group_by_fields = models.JSONField(default=list, blank=True)
     aggregation_field = models.CharField(max_length=100, null=True, blank=True)
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
+    )
     
     # Schedule
     calculation_schedule = models.CharField(
@@ -347,6 +512,38 @@ class AuditMetric(UUIDModel, TimeStampedModel, TenantAwareModel):
     
     def __str__(self):
         return f"{self.name} ({self.get_metric_type_display()})"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'BAR',
+                'options': {
+                    'title': self.name,
+                    'x_axis_label': 'Time',
+                    'y_axis_label': self._get_y_axis_label(),
+                    'show_thresholds': True,
+                    'animate': True,
+                    'colors': ['#007bff', '#28a745', '#dc3545']
+                },
+                'thresholds': {
+                    'warning': self.warning_threshold,
+                    'critical': self.critical_threshold
+                }
+            }
+        super().save(*args, **kwargs)
+    
+    def _get_y_axis_label(self):
+        """Get Y axis label based on metric type"""
+        labels = {
+            'COUNT': 'Count',
+            'SUM': 'Total',
+            'AVERAGE': 'Average',
+            'RATE': 'Rate (per hour)',
+            'PERCENTAGE': 'Percentage (%)',
+            'DURATION': 'Duration (seconds)'
+        }
+        return labels.get(self.metric_type, 'Value')
 
 
 class AuditMetricValue(UUIDModel, TimeStampedModel):
@@ -499,6 +696,13 @@ class DataSource(BaseModel):
         blank=True,
         verbose_name=_("Tags")
     )
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for health visualization")
+    )
 
     class Meta:
         db_table = "analytics_data_source"
@@ -512,6 +716,31 @@ class DataSource(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.get_source_type_display()})"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'KPI_CARD',
+                'options': {
+                    'title': f"{self.name} Health",
+                    'show_status': True,
+                    'show_last_sync': True,
+                    'show_quality_score': True,
+                    'status_colors': {
+                        'ACTIVE': '#28a745',
+                        'INACTIVE': '#6c757d',
+                        'ERROR': '#dc3545',
+                        'MAINTENANCE': '#ffc107'
+                    }
+                },
+                'metrics': {
+                    'quality_score': float(self.data_quality_score) if self.data_quality_score else 0,
+                    'error_count': self.error_count,
+                    'status': self.status
+                }
+            }
+        super().save(*args, **kwargs)
 
     def test_connection(self):
         """Test data source connection"""
@@ -524,7 +753,7 @@ class DataSource(BaseModel):
         pass
 
 
-class KPI(BaseModel):
+class KPIModel(BaseModel):
     """
     Key Performance Indicators definition and tracking
     """
@@ -647,19 +876,13 @@ class KPI(BaseModel):
     )
     
     # Visualization
-    chart_type = models.CharField(
-        max_length=50,
-        choices=(
-            ("LINE", _("Line Chart")),
-            ("BAR", _("Bar Chart")),
-            ("PIE", _("Pie Chart")),
-            ("GAUGE", _("Gauge")),
-            ("NUMBER", _("Single Number")),
-            ("TABLE", _("Table")),
-        ),
-        default="NUMBER",
-        verbose_name=_("Default Chart Type")
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
     )
+    
     color_scheme = models.CharField(
         max_length=50,
         default="blue",
@@ -679,6 +902,27 @@ class KPI(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.code})"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'NUMBER',
+                'options': {
+                    'title': self.name,
+                    'show_target': self.target_value is not None,
+                    'show_thresholds': self.min_threshold is not None or self.max_threshold is not None,
+                    'format': self.format_string or f"{{value:.{self.decimal_places}f}} {self.unit}",
+                    'color_scheme': self.color_scheme,
+                    'animate': True
+                },
+                'targets': {
+                    'min': float(self.min_threshold) if self.min_threshold else None,
+                    'max': float(self.max_threshold) if self.max_threshold else None,
+                    'target': float(self.target_value) if self.target_value else None
+                }
+            }
+        super().save(*args, **kwargs)
 
     @property
     def performance_status(self):
@@ -719,7 +963,7 @@ class KPIValue(BaseModel):
     Historical values for KPIs
     """
     kpi = models.ForeignKey(
-        KPI,
+        KPIModel,
         on_delete=models.CASCADE,
         related_name="historical_values",
         verbose_name=_("KPI")
@@ -836,6 +1080,7 @@ class Report(BaseModel):
     # Configuration
     config = models.JSONField(
         default=dict,
+        blank=True,
         verbose_name=_("Report Configuration")
     )
     filters = models.JSONField(
@@ -847,6 +1092,13 @@ class Report(BaseModel):
         default=list,
         blank=True,
         verbose_name=_("Report Parameters")
+    )
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
     )
     
     # Access Control
@@ -921,6 +1173,25 @@ class Report(BaseModel):
 
     def __str__(self):
         return f"{self.title} ({self.get_report_type_display()})"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'TABLE',
+                'options': {
+                    'title': self.title,
+                    'show_filters': bool(self.filters),
+                    'exportable': True,
+                    'searchable': True,
+                    'paginate': True,
+                    'page_size': 20,
+                    'sortable': True
+                },
+                'columns': [],
+                'data': []
+            }
+        super().save(*args, **kwargs)
 
     def generate_report(self, parameters=None):
         """Generate report with given parameters"""
@@ -959,6 +1230,7 @@ class ReportExecution(BaseModel):
     executed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        blank=True,
         related_name="report_executions",
         verbose_name=_("Executed By")
     )
@@ -969,6 +1241,14 @@ class ReportExecution(BaseModel):
         blank=True,
         verbose_name=_("Execution Parameters")
     )
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for result visualization")
+    )
+    
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -1051,6 +1331,33 @@ class ReportExecution(BaseModel):
 
     def __str__(self):
         return f"Execution of {self.report.title} by {self.executed_by}"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'TABLE',
+                'options': {
+                    'title': f"Results: {self.report.title}",
+                    'show_execution_info': True,
+                    'show_status': True,
+                    'exportable': True,
+                    'status_colors': {
+                        'COMPLETED': '#28a745',
+                        'FAILED': '#dc3545',
+                        'RUNNING': '#007bff',
+                        'PENDING': '#6c757d',
+                        'CANCELLED': '#ffc107'
+                    }
+                },
+                'execution_info': {
+                    'started_at': self.started_at.isoformat() if self.started_at else None,
+                    'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+                    'duration': str(self.execution_duration) if self.execution_duration else None,
+                    'status': self.status
+                }
+            }
+        super().save(*args, **kwargs)
 
     @property
     def is_completed(self):
@@ -1109,6 +1416,7 @@ class Dashboard(BaseModel):
     # Configuration
     config = models.JSONField(
         default=dict,
+        blank=True,
         verbose_name=_("Dashboard Configuration")
     )
     filters = models.JSONField(
@@ -1116,6 +1424,14 @@ class Dashboard(BaseModel):
         blank=True,
         verbose_name=_("Global Filters")
     )
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for layout visualization")
+    )
+    
     theme = models.CharField(
         max_length=50,
         default="light",
@@ -1162,6 +1478,26 @@ class Dashboard(BaseModel):
 
     def __str__(self):
         return self.title
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'GRID',
+                'options': {
+                    'title': self.title,
+                    'layout': self.layout_type,
+                    'theme': self.theme,
+                    'show_grid': True,
+                    'widget_spacing': 20,
+                    'max_columns': 4,
+                    'responsive': True,
+                    'allow_reorder': True,
+                    'allow_resize': True
+                },
+                'widgets': []
+            }
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse('analytics:dashboard_view', kwargs={'pk': self.pk})
@@ -1217,16 +1553,18 @@ class DashboardWidget(BaseModel):
         choices=WIDGET_TYPE_CHOICES,
         verbose_name=_("Widget Type")
     )
-    chart_type = models.CharField(
-        max_length=20,
-        choices=CHART_TYPE_CHOICES,
+    
+    chart_config = models.JSONField(
+        default=dict,
         blank=True,
-        verbose_name=_("Chart Type")
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
     )
     
     # Configuration
     config = models.JSONField(
         default=dict,
+        blank=True,
         verbose_name=_("Widget Configuration")
     )
     data_source = models.ForeignKey(
@@ -1237,7 +1575,7 @@ class DashboardWidget(BaseModel):
         verbose_name=_("Data Source")
     )
     kpi = models.ForeignKey(
-        KPI,
+        KPIModel,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -1283,11 +1621,67 @@ class DashboardWidget(BaseModel):
         verbose_name_plural = _("Dashboard Widgets")
         indexes = [
             models.Index(fields=['dashboard', 'widget_type']),
-            models.Index(fields=['widget_type', 'chart_type']),
         ]
 
     def __str__(self):
         return f"{self.title} - {self.dashboard.title}"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            default_configs = {
+                'KPI': {
+                    'type': 'NUMBER',
+                    'options': {
+                        'title': self.title,
+                        'show_change': True,
+                        'animate': True,
+                        'color_scheme': self.color_scheme
+                    }
+                },
+                'CHART': {
+                    'type': 'LINE',
+                    'options': {
+                        'title': self.title,
+                        'x_axis_label': 'Time',
+                        'y_axis_label': 'Value',
+                        'show_legend': True,
+                        'animate': True,
+                        'color_scheme': self.color_scheme
+                    }
+                },
+                'TABLE': {
+                    'type': 'TABLE',
+                    'options': {
+                        'title': self.title,
+                        'exportable': True,
+                        'searchable': True,
+                        'paginate': True,
+                        'page_size': 10,
+                        'sortable': True
+                    }
+                },
+                'HEATMAP': {
+                    'type': 'HEATMAP',
+                    'options': {
+                        'title': self.title,
+                        'show_values': True,
+                        'color_scale': 'viridis',
+                        'animate': True
+                    }
+                }
+            }
+            
+            default_config = default_configs.get(self.widget_type, {
+                'type': 'TEXT',
+                'options': {
+                    'title': self.title,
+                    'content': 'Configure widget content...'
+                }
+            })
+            
+            self.chart_config = default_config
+        super().save(*args, **kwargs)
 
     def get_data(self, filters=None):
         """Get widget data with optional filters"""
@@ -1343,11 +1737,19 @@ class PredictiveModel(BaseModel):
     )
     feature_columns = models.JSONField(
         default=list,
+        blank=True,
         verbose_name=_("Feature Columns")
     )
     target_column = models.CharField(
         max_length=100,
         verbose_name=_("Target Column")
+    )
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
     )
     
     # Data Source
@@ -1440,6 +1842,29 @@ class PredictiveModel(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.get_model_type_display()})"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'LINE',
+                'options': {
+                    'title': f"{self.name} Performance",
+                    'x_axis_label': 'Iterations',
+                    'y_axis_label': 'Score',
+                    'show_legend': True,
+                    'show_metrics': True,
+                    'animate': True,
+                    'colors': ['#007bff', '#28a745', '#dc3545', '#ffc107']
+                },
+                'metrics': {
+                    'accuracy': float(self.accuracy) if self.accuracy else 0,
+                    'precision': float(self.precision) if self.precision else 0,
+                    'recall': float(self.recall) if self.recall else 0,
+                    'f1_score': float(self.f1_score) if self.f1_score else 0
+                }
+            }
+        super().save(*args, **kwargs)
 
     def train_model(self):
         """Train the predictive model"""
@@ -1500,6 +1925,7 @@ class StudentPerformanceAnalytics(BaseModel):
     # Subject-wise Performance
     subject_performance = models.JSONField(
         default=dict,
+        blank=True,
         verbose_name=_("Subject-wise Performance")
     )
     strong_subjects = models.JSONField(
@@ -1511,6 +1937,13 @@ class StudentPerformanceAnalytics(BaseModel):
         default=list,
         blank=True,
         verbose_name=_("Weak Subjects")
+    )
+    
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
     )
     
     # Attendance Analytics
@@ -1593,6 +2026,24 @@ class StudentPerformanceAnalytics(BaseModel):
 
     def __str__(self):
         return f"Performance Analytics - {self.student} - {self.academic_year}"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'RADAR',
+                'options': {
+                    'title': f"Performance Analysis - {self.student.get_full_name()}",
+                    'show_subjects': True,
+                    'show_average': True,
+                    'show_trend': True,
+                    'animate': True,
+                    'colors': ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8']
+                },
+                'subjects': list(self.subject_performance.keys()) if self.subject_performance else [],
+                'scores': list(self.subject_performance.values()) if self.subject_performance else []
+            }
+        super().save(*args, **kwargs)
 
     @property
     def percentile_rank(self):
@@ -1673,6 +2124,13 @@ class InstitutionalAnalytics(BaseModel):
         verbose_name=_("Pass Percentage")
     )
     
+    chart_config = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Chart Configuration"),
+        help_text=_("JSON configuration for visualization")
+    )
+    
     # Metadata
     calculated_at = models.DateTimeField(auto_now=True, verbose_name=_("Calculated At"))
 
@@ -1684,6 +2142,31 @@ class InstitutionalAnalytics(BaseModel):
 
     def __str__(self):
         return f"Institutional Analytics - {self.academic_year}"
+    
+    def save(self, *args, **kwargs):
+        # Set default chart config if empty
+        if not self.chart_config:
+            self.chart_config = {
+                'type': 'KPI_CARD',
+                'options': {
+                    'title': f"Institutional Overview - {self.academic_year.name}",
+                    'layout': 'grid',
+                    'show_financials': True,
+                    'show_demographics': True,
+                    'show_academics': True,
+                    'theme': 'corporate',
+                    'animate': True
+                },
+                'metrics': {
+                    'total_students': self.total_students,
+                    'total_revenue': float(self.total_revenue),
+                    'total_expenses': float(self.total_expenses),
+                    'average_attendance': float(self.average_attendance),
+                    'pass_percentage': float(self.pass_percentage),
+                    'student_teacher_ratio': float(self.student_teacher_ratio) if self.student_teacher_ratio else None
+                }
+            }
+        super().save(*args, **kwargs)
 
     def calculate_metrics(self):
         """Calculate institutional metrics"""

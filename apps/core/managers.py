@@ -76,7 +76,12 @@ class SoftDeleteManager(AuditManager):  # Inherit from AuditManager
     Custom manager for soft delete functionality
     """
     def get_queryset(self):
-        return super().get_queryset().filter(is_active=True)
+        queryset = super().get_queryset()
+        try:
+            self.model._meta.get_field('is_active')
+            return queryset.filter(is_active=True)
+        except Exception:
+            return queryset
 
     def deleted(self):
         """
@@ -167,7 +172,11 @@ class TenantSoftDeleteManager(TenantManager, SoftDeleteManager):
         if current_tenant:
             queryset = queryset.filter(tenant=current_tenant)
         
-        return queryset.filter(is_active=True)
+        try:
+            self.model._meta.get_field('is_active')
+            return queryset.filter(is_active=True)
+        except Exception:
+            return queryset
 
     def deleted(self):
         """

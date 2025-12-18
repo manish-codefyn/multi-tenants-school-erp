@@ -1,0 +1,167 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{{ object.incident_id }} - {{ object.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'security:dashboard' %}">{% trans "Security" %}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'security:incident_list' %}">{% trans "Incidents" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ object.incident_id }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div>
+                <a href="{% url 'security:incident_update' object.pk %}" class="btn btn-primary">
+                    <i class="bx bx-edit me-1"></i> {% trans "Update Status" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Details -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            {{ object.title }}
+                            <span class="badge bg-secondary ms-2">{{ object.get_incident_type_display }}</span>
+                        </h5>
+                        <div class="status-badge">
+                             {% if object.status == 'OPEN' %}
+                                <span class="badge bg-danger">{{ object.get_status_display }}</span>
+                            {% elif object.status == 'RESOLVED' %}
+                                <span class="badge bg-success">{{ object.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ object.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-muted">{% trans "Description" %}</h6>
+                    <p>{{ object.description|linebreaks }}</p>
+
+                    <h6 class="text-muted mt-4">{% trans "Affected Systems" %}</h6>
+                    {% if object.affected_systems %}
+                        <ul>
+                            {% for system in object.affected_systems %}
+                            <li>{{ system }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted fst-italic">{% trans "No affected systems specified" %}</p>
+                    {% endif %}
+
+                    {% if object.notes %}
+                    <h6 class="text-muted mt-4">{% trans "Notes" %}</h6>
+                    <div class="bg-light p-3 rounded">
+                        {{ object.notes|linebreaks }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if object.root_cause or object.action_taken %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Investigation & Resolution" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if object.root_cause %}
+                    <h6 class="fw-bold">{% trans "Root Cause" %}</h6>
+                    <p>{{ object.root_cause|linebreaks }}</p>
+                    {% endif %}
+
+                    {% if object.action_taken %}
+                    <h6 class="fw-bold mt-3">{% trans "Action Taken" %}</h6>
+                    <p>{{ object.action_taken|linebreaks }}</p>
+                    {% endif %}
+                    
+                    {% if object.prevention_measures %}
+                    <h6 class="fw-bold mt-3">{% trans "Prevention Measures" %}</h6>
+                    <p>{{ object.prevention_measures|linebreaks }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "Incident Details" %}</h6>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">{% trans "Incident ID" %}</span>
+                        <span class="fw-bold text-monospace">{{ object.incident_id }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">{% trans "Priority" %}</span>
+                         {% if object.priority == 'CRITICAL' %}
+                            <span class="badge bg-danger">{{ object.get_priority_display }}</span>
+                        {% elif object.priority == 'HIGH' %}
+                            <span class="badge bg-warning text-dark">{{ object.get_priority_display }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ object.get_priority_display }}</span>
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">{% trans "Impact Level" %}</span>
+                        <span>{{ object.get_impact_level_display }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">{% trans "Data Compromised" %}</span>
+                         {% if object.data_compromised %}
+                            <span class="badge bg-danger">{% trans "YES" %}</span>
+                        {% else %}
+                            <span class="badge bg-success">{% trans "NO" %}</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "People & Timeline" %}</h6>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <div class="text-muted small">{% trans "Reporter" %}</div>
+                        <div>{{ object.reporter.get_full_name|default:object.reporter.username }}</div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="text-muted small">{% trans "Assigned To" %}</div>
+                        <div>{{ object.assigned_to.get_full_name|default:"Unassigned" }}</div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="text-muted small">{% trans "Detected At" %}</div>
+                        <div>{{ object.detected_at|date:"M d, Y H:i" }}</div>
+                    </li>
+                    {% if object.contained_at %}
+                    <li class="list-group-item">
+                        <div class="text-muted small">{% trans "Contained At" %}</div>
+                        <div>{{ object.contained_at|date:"M d, Y H:i" }}</div>
+                    </li>
+                    {% endif %}
+                     {% if object.resolved_at %}
+                    <li class="list-group-item">
+                        <div class="text-muted small">{% trans "Resolved At" %}</div>
+                        <div>{{ object.resolved_at|date:"M d, Y H:i" }}</div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

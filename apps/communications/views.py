@@ -1,113 +1,188 @@
-from django.views.generic import ListView, DetailView, CreateView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+import logging
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
-from django.db.models import Q
-from .models import Communication, CommunicationChannel
+from django.db.models import Count, Sum, Q
+from django.utils import timezone
+from django.contrib import messages
+
+from apps.core.views import (
+    BaseView, BaseTemplateView, BaseListView, BaseDetailView, 
+    BaseCreateView, BaseUpdateView, BaseDeleteView
+)
+from .models import (
+    CommunicationChannel, CommunicationTemplate, 
+    CommunicationCampaign, Communication, Notification
+)
+from .forms import (
+    CommunicationChannelForm, CommunicationTemplateForm, 
+    CommunicationCampaignForm, CommunicationComposeForm
+)
 from apps.core.utils.tenant import get_current_tenant
-from apps.students.models import Student
-from apps.hr.models import Department, Staff
-from apps.academics.models import AcademicYear
 
-class CommunicationDashboardView(LoginRequiredMixin, TemplateView):
+logger = logging.getLogger(__name__)
+
+# ============================================================================
+# DASHBOARD VIEW
+# ============================================================================
+
+class CommunicationDashboardView(BaseTemplateView):
+    """
+    Dashboard for all communications-related stats and quick actions
+    """
     template_name = 'communications/dashboard.html'
-
+    permission_required = 'communications.view_dashboard'
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        tenant = get_current_tenant()
+        tenant = self.tenant
         
-        # Stats
-        context['total_students'] = Student.objects.filter(
-            tenant=tenant, 
-            status='ACTIVE'
+        # Stats summary
+        context['total_communications'] = Communication.objects.filter(tenant=tenant).count()
+        context['total_sent'] = Communication.objects.filter(tenant=tenant, status='SENT').count()
+        context['total_failed'] = Communication.objects.filter(tenant=tenant, status='FAILED').count()
+        
+        # Channel stats
+        context['channels'] = CommunicationChannel.objects.filter(tenant=tenant).annotate(
+            comm_count=Count('communications')
+        )
+        
+        # Recent communications
+        context['recent_comms'] = Communication.objects.filter(tenant=tenant).order_by('-created_at')[:5]
+        
+        # Active campaigns
+        context['active_campaigns'] = CommunicationCampaign.objects.filter(
+            tenant=tenant, status='RUNNING'
         ).count()
         
-        context['total_teachers'] = Staff.objects.filter(
-            tenant=tenant,
-            employment_status='ACTIVE',
-            designation__category='TEACHING'
-        ).count()
-        
-        context['departments'] = Department.objects.filter(tenant=tenant)
-        
-        context['current_academic_year'] = AcademicYear.objects.filter(
-            tenant=tenant,
-            is_current=True
-        ).first()
-        
-        # Feature flags (simplified for now)
-        context['show_financial_data'] = True
-        context['show_student_management'] = True
-        
+        # Unread notifications for current user
+        if self.request.user.is_authenticated:
+            context['unread_notifications'] = Notification.objects.filter(
+                recipient=self.request.user, is_read=False
+            ).count()
+            
         return context
 
-class MessageListView(LoginRequiredMixin, ListView):
+# ============================================================================
+# CHANNEL VIEWS
+# ============================================================================
+
+class ChannelListView(BaseListView):
+    model = CommunicationChannel
+    template_name = 'communications/channel/list.html'
+    context_object_name = 'channels'
+    permission_required = 'communications.view_communicationchannel'
+    search_fields = ['name', 'code', 'channel_type']
+
+class ChannelCreateView(BaseCreateView):
+    model = CommunicationChannel
+    form_class = CommunicationChannelForm
+    template_name = 'communications/channel/form.html'
+    permission_required = 'communications.add_communicationchannel'
+    success_url = reverse_lazy('communications:channel_list')
+
+class ChannelUpdateView(BaseUpdateView):
+    model = CommunicationChannel
+    form_class = CommunicationChannelForm
+    template_name = 'communications/channel/form.html'
+    permission_required = 'communications.change_communicationchannel'
+    success_url = reverse_lazy('communications:channel_list')
+
+class ChannelDeleteView(BaseDeleteView):
+    model = CommunicationChannel
+    template_name = 'communications/common/confirm_delete.html'
+    permission_required = 'communications.delete_communicationchannel'
+    success_url = reverse_lazy('communications:channel_list')
+
+# ============================================================================
+# TEMPLATE VIEWS
+# ============================================================================
+
+class TemplateListView(BaseListView):
+    model = CommunicationTemplate
+    template_name = 'communications/template/list.html'
+    context_object_name = 'templates'
+    permission_required = 'communications.view_communicationtemplate'
+    search_fields = ['name', 'code', 'subject']
+
+class TemplateCreateView(BaseCreateView):
+    model = CommunicationTemplate
+    form_class = CommunicationTemplateForm
+    template_name = 'communications/template/form.html'
+    permission_required = 'communications.add_communicationtemplate'
+    success_url = reverse_lazy('communications:template_list')
+
+class TemplateUpdateView(BaseUpdateView):
+    model = CommunicationTemplate
+    form_class = CommunicationTemplateForm
+    template_name = 'communications/template/form.html'
+    permission_required = 'communications.change_communicationtemplate'
+    success_url = reverse_lazy('communications:template_list')
+
+class TemplateDeleteView(BaseDeleteView):
+    model = CommunicationTemplate
+    template_name = 'communications/common/confirm_delete.html'
+    permission_required = 'communications.delete_communicationtemplate'
+    success_url = reverse_lazy('communications:template_list')
+
+# ============================================================================
+# CAMPAIGN VIEWS
+# ============================================================================
+
+class CampaignListView(BaseListView):
+    model = CommunicationCampaign
+    template_name = 'communications/campaign/list.html'
+    context_object_name = 'campaigns'
+    permission_required = 'communications.view_communicationcampaign'
+    search_fields = ['name', 'campaign_type']
+
+class CampaignCreateView(BaseCreateView):
+    model = CommunicationCampaign
+    form_class = CommunicationCampaignForm
+    template_name = 'communications/campaign/form.html'
+    permission_required = 'communications.add_communicationcampaign'
+    success_url = reverse_lazy('communications:campaign_list')
+
+class CampaignUpdateView(BaseUpdateView):
+    model = CommunicationCampaign
+    form_class = CommunicationCampaignForm
+    template_name = 'communications/campaign/form.html'
+    permission_required = 'communications.change_communicationcampaign'
+    success_url = reverse_lazy('communications:campaign_list')
+
+class CampaignDeleteView(BaseDeleteView):
+    model = CommunicationCampaign
+    template_name = 'communications/common/confirm_delete.html'
+    permission_required = 'communications.delete_communicationcampaign'
+    success_url = reverse_lazy('communications:campaign_list')
+
+# ============================================================================
+# INDIVIDUAL COMMUNICATION VIEWS
+# ============================================================================
+
+class CommunicationListView(BaseListView):
     model = Communication
-    template_name = 'communications/message_list.html'
-    context_object_name = 'messages'
+    template_name = 'communications/communication/list.html'
+    context_object_name = 'communications'
+    permission_required = 'communications.view_communication'
+    search_fields = ['title', 'subject', 'external_recipient_name', 'external_recipient_email']
     paginate_by = 20
 
-    def get_queryset(self):
-        user = self.request.user
-        folder = self.request.GET.get('folder', 'inbox')
-        
-        queryset = Communication.objects.filter(tenant=get_current_tenant())
-        
-        if folder == 'inbox':
-            # For now, assuming inbox means messages where the user is the recipient
-            # This logic might need adjustment based on how GenericForeignKey is handled for User
-            # But for simplicity, let's assume we filter by recipient_id if it matches user.id
-            queryset = queryset.filter(recipient_id=user.id)
-        elif folder == 'sent':
-            queryset = queryset.filter(sender=user)
-        elif folder == 'drafts':
-            queryset = queryset.filter(sender=user, status='DRAFT')
-            
-        return queryset.order_by('-created_at')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['folder'] = self.request.GET.get('folder', 'inbox')
-        return context
-
-class MessageDetailView(LoginRequiredMixin, DetailView):
+class CommunicationDetailView(BaseDetailView):
     model = Communication
-    template_name = 'communications/message_detail.html'
-    context_object_name = 'message'
+    template_name = 'communications/communication/detail.html'
+    context_object_name = 'communication'
+    permission_required = 'communications.view_communication'
 
-    def get_queryset(self):
-        # Ensure user can only see their own messages
-        user = self.request.user
-        return Communication.objects.filter(
-            Q(sender=user) | Q(recipient_id=user.id),
-            tenant=get_current_tenant()
-        )
+class CommunicationCreateView(BaseCreateView):
+    """
+    Compose a new communication
+    """
+    model = Communication
+    form_class = CommunicationComposeForm
+    template_name = 'communications/communication/form.html'
+    permission_required = 'communications.add_communication'
+    success_url = reverse_lazy('communications:communication_list')
     
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        # Mark as read if user is recipient
-        if obj.recipient_id == self.request.user.id and not obj.read_at:
-            obj.mark_as_read()
-        return obj
-
-class MessageCreateView(LoginRequiredMixin, CreateView):
-    model = Communication
-    template_name = 'communications/message_compose.html'
-    fields = ['recipient_id', 'subject', 'content', 'priority'] # Simplified fields
-    success_url = reverse_lazy('communications:messages')
-
     def form_valid(self, form):
         form.instance.sender = self.request.user
-        form.instance.tenant = get_current_tenant()
-        # Set default channel for now, or handle it in form
-        # form.instance.channel = ... 
         return super().form_valid(form)
-
-class ParentMessageListView(LoginRequiredMixin, ListView):
-    model = Communication
-    template_name = 'communications/parent_message_list.html'
-    context_object_name = 'messages'
-    
-    def get_queryset(self):
-        # Placeholder for parent messages
-        return Communication.objects.none()

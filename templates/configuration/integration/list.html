@@ -1,0 +1,91 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags static %}
+
+{% block title %}{% trans "Integrations" %}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="h3">{% trans "Integrations" %}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'configuration:dashboard' %}">{% trans "Configuration" %}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{% trans "Integrations" %}</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'configuration:integration_create' %}" class="btn btn-primary">
+            <i class="bx bx-plus me-1"></i> {% trans "Add Integration" %}
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>{% trans "Name" %} / {% trans "Provider" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Type" %}</th>
+                    <th>{% trans "Auth Type" %}</th>
+                    <th>{% trans "Last Sync" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for integration in integrations %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ integration.name }}</div>
+                        <small class="text-muted">{{ integration.provider }}</small>
+                    </td>
+                    <td>
+                        {% if integration.is_enabled %}
+                            {% if integration.status == 'ACTIVE' %}
+                                <span class="badge bg-success">{% trans "Active" %}</span>
+                            {% elif integration.status == 'ERROR' %}
+                                <span class="badge bg-danger">{% trans "Error" %}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ integration.get_status_display }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-secondary">{% trans "Disabled" %}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ integration.integration_type }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ integration.get_auth_type_display }}</span>
+                    </td>
+                    <td>
+                        {% if integration.last_sync %}
+                            <div>{{ integration.last_sync|date:"M d, Y" }}</div>
+                            <small class="text-muted">{{ integration.last_sync|time:"H:i" }}</small>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'configuration:integration_update' integration.pk %}" class="btn btn-outline-secondary" title="{% trans 'Edit' %}">
+                                <i class="bx bx-edit"></i>
+                            </a>
+                            <a href="{% url 'configuration:integration_delete' integration.pk %}" class="btn btn-outline-danger" title="{% trans 'Delete' %}">
+                                <i class="bx bx-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">{% trans "No integrations found." %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

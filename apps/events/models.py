@@ -206,6 +206,7 @@ class Event(BaseModel):
         default="MEDIUM",
         verbose_name=_("Priority")
     )
+    is_active = models.BooleanField(default=True, verbose_name=_("Is Active"))
     is_published = models.BooleanField(default=False, verbose_name=_("Is Published"))
     published_at = models.DateTimeField(null=True, blank=True, verbose_name=_("Published At"))
     is_featured = models.BooleanField(default=False, verbose_name=_("Is Featured"))
@@ -339,8 +340,8 @@ class Event(BaseModel):
         return (self.end_date - self.start_date).days + 1
 
     @property
-    def is_active(self):
-        """Check if event is currently active"""
+    def is_current(self):
+        """Check if event is currently occurring based on dates and time"""
         today = timezone.now().date()
         current_time = timezone.now().time()
         
@@ -545,6 +546,7 @@ class EventRegistration(BaseModel):
         auto_now_add=True,
         verbose_name=_("Registration Date")
     )
+    is_active = models.BooleanField(default=True, verbose_name=_("Is Active"))
     
     # Attendance Tracking
     check_in_time = models.DateTimeField(
@@ -757,6 +759,7 @@ class EventDocument(BaseModel):
         upload_to=event_document_upload_path,
         verbose_name=_("File")
     )
+    is_active = models.BooleanField(default=True, verbose_name=_("Is Active"))
     description = models.TextField(blank=True, verbose_name=_("Description"))
     is_public = models.BooleanField(
         default=True,

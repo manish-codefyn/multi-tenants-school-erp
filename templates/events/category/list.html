@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Event Categories" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-1">{% trans "Event Categories" %}</h4>
+                    <p class="text-muted mb-0">{% trans "Organize your events into logical groups." %}</p>
+                </div>
+                <div>
+                    <a href="{% url 'events:category_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus me-1"></i> {% trans "Add Category" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" data-datatable="true">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Color" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Order" %}</th>
+                            <th class="pe-4 text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in categories %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-2 rounded-circle me-3" style="background-color: {{ cat.color }}20;">
+                                        <i class="bx {{ cat.icon|default:'bx-tag' }}" style="color: {{ cat.color }};"></i>
+                                    </div>
+                                    <span class="fw-medium">{{ cat.name }}</span>
+                                </div>
+                            </td>
+                            <td><code class="text-primary">{{ cat.code }}</code></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle me-2" style="width: 15px; height: 15px; background-color: {{ cat.color }}; border: 1px solid #ddd;"></div>
+                                    <small class="text-muted">{{ cat.color }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                {% if cat.is_active %}
+                                    <span class="badge bg-success bg-opacity-10 text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ cat.order }}</td>
+                            <td class="pe-4 text-end">
+                                <a href="{% url 'events:category_update' cat.pk %}" class="btn btn-icon btn-sm btn-outline-success mx-1" title="{% trans 'Edit' %}">
+                                    <i class="bx bx-edit-alt"></i>
+                                </a>
+                                <a href="{% url 'events:category_delete' cat.pk %}" class="btn btn-icon btn-sm btn-outline-danger mx-1" title="{% trans 'Delete' %}">
+                                    <i class="bx bx-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center p-5 text-muted">
+                                <i class="bx bx-info-circle mb-2 fs-2"></i>
+                                <p class="mb-0">{% trans "No Categories found." %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Notification Configuration" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:dashboard' %}">{% trans "Configuration" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Notifications" %}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Notification Configuration" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <h6 class="mb-3">{% trans "Email Settings" %}</h6>
+                        <div class="mb-3">
+                             {{ form.email_enabled|as_crispy_field }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                {{ form.email_host|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.email_port|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.email_username|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.email_password|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.email_from_address|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.email_from_name|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="mb-3">
+                             {{ form.email_use_tls|as_crispy_field }}
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "SMS Settings" %}</h6>
+                         <div class="mb-3">
+                             {{ form.sms_enabled|as_crispy_field }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.sms_provider|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.sms_from_number|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                             <div class="col-md-6">
+                                {{ form.sms_api_key|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.sms_api_secret|as_crispy_field }}
+                            </div>
+                        </div>
+
+                         <hr>
+                        <h6 class="mb-3">{% trans "Other Channels" %}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.push_enabled|as_crispy_field }}
+                                {{ form.push_provider|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.whatsapp_enabled|as_crispy_field }}
+                                {{ form.whatsapp_business_id|as_crispy_field }}
+                                {{ form.whatsapp_access_token|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3">{% trans "Preferences & Templates" %}</h6>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.quiet_hours_start|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.quiet_hours_end|as_crispy_field }}
+                            </div>
+                             <div class="col-12">
+                                {{ form.default_notification_channels|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form.default_email_template|as_crispy_field }}
+                            </div>
+                             <div class="col-12">
+                                {{ form.default_sms_template|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.chart_field|as_crispy_field }}
+                            </div>
+                        </div>
+
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-1"></i> {% trans "Save Configuration" %}
+                            </button>
+                            <a href="{% url 'configuration:dashboard' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

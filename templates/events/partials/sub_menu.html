@@ -1,11 +1,50 @@
+{% load i18n %}
+
 <li>
     <a href="javascript:;" class="has-arrow">
-        <div class="parent-icon"><i class="bx bx-calendar-event"></i></div>
-        <div class="menu-title">Events</div>
+        <div class="parent-icon">
+            <i class="bx bx-calendar-event"></i>
+        </div>
+        <div class="menu-title">{% trans "Events" %}</div>
     </a>
+
     <ul>
-        <li><a href="{% url 'events:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
-        <li><a href="{% url 'events:event_list' %}"><i class="bx bx-radio-circle"></i>All Events</a></li>
-        <li><a href="{% url 'events:category_list' %}"><i class="bx bx-radio-circle"></i>Categories</a></li>
+        <!-- ================= DASHBOARD ================= -->
+        <li>
+            <a href="{% url 'events:dashboard' %}">
+                <i class="bx bx-home-alt"></i> {% trans "Dashboard" %}
+            </a>
+        </li>
+
+        <!-- ================= EVENT MANAGEMENT ================= -->
+        <li class="menu-label">{% trans "Event Management" %}</li>
+        <li>
+            <a href="{% url 'events:event_list' %}">
+                <i class="bx bx-list-check"></i> {% trans "All Events" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'events:event_create' %}">
+                <i class="bx bx-calendar-plus"></i> {% trans "Create Event" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'events:category_list' %}">
+                <i class="bx bx-category"></i> {% trans "Event Categories" %}
+            </a>
+        </li>
+
+        <!-- ================= REGISTRATIONS ================= -->
+        <li class="menu-label">{% trans "Registrations" %}</li>
+        <li>
+            <a href="{% url 'events:registration_list' %}">
+                <i class="bx bx-user-check"></i> {% trans "All Registrations" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'events:registration_create' %}">
+                <i class="bx bx-user-plus"></i> {% trans "New Registration" %}
+            </a>
+        </li>
     </ul>
 </li>

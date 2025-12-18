@@ -1,0 +1,139 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Message Details" %}{% endblock %}
+
+{% block content %}
+    {% url 'communications:communication_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Message Details") parent_text=_("Communications") parent_url=list_url current_text=communication.subject|default:communication.title %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ communication.subject|default:communication.title }}</h5>
+                    <span class="badge 
+                        {% if communication.status == 'SENT' %}bg-success-subtle text-success
+                        {% elif communication.status == 'READ' %}bg-info-subtle text-info
+                        {% elif communication.status == 'FAILED' %}bg-danger-subtle text-danger
+                        {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                        {{ communication.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body p-4 border-top">
+                    <div class="d-flex mb-4">
+                        <div class="flex-shrink-0">
+                            <div class="avatar avatar-md bg-light-primary text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold">
+                                {{ communication.sender.get_initials }}
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-0">{{ communication.sender.get_full_name }} <span class="text-muted fw-normal small">({{ communication.sender.email }})</span></h6>
+                            <div class="small text-muted">{% trans "to" %} <span class="fw-bold">{{ communication.recipient_name }}</span> <span class="fw-normal small">({{ communication.recipient_contact }})</span></div>
+                        </div>
+                        <div class="text-end">
+                            <div class="small text-muted">{{ communication.created_at|date:"M d, Y H:i" }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="communication-content bg-light p-4 rounded mb-4" style="white-space: pre-wrap;">{{ communication.content|safe }}</div>
+                    
+                    {% if communication.attachments.exists %}
+                    <div class="attachments mt-4">
+                        <h6 class="mb-3"><i class="bx bx-paperclip me-1"></i> {% trans "Attachments" %}</h6>
+                        <div class="row g-3">
+                            {% for attachment in communication.attachments.all %}
+                            <div class="col-md-4">
+                                <div class="card border h-100 shadown-none">
+                                    <div class="card-body p-2 d-flex align-items-center">
+                                        <div class="flex-shrink-0 avatar avatar-sm bg-light text-dark rounded d-flex align-items-center justify-content-center">
+                                            <i class="bx bxs-file"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-2 overflow-hidden">
+                                            <div class="small text-truncate mb-0 fw-bold">{{ attachment.file_name }}</div>
+                                            <div class="x-small text-muted">{{ attachment.file_size|filesizeformat }}</div>
+                                        </div>
+                                        <a href="{{ attachment.get_download_url }}" class="btn btn-icon btn-sm btn-primary ms-2">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-0 py-3 d-flex gap-2">
+                    <button class="btn btn-outline-primary"><i class="bx bx-reply me-1"></i> {% trans "Reply" %}</button>
+                    <button class="btn btn-outline-secondary"><i class="bx bx-forward me-1"></i> {% trans "Forward" %}</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">{% trans "Delivery Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                            <span class="text-muted small">{% trans "Channel" %}</span>
+                            <span class="fw-bold small">{{ communication.channel.name }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                            <span class="text-muted small">{% trans "Priority" %}</span>
+                            <span class="badge {% if communication.priority == 'URGENT' %}bg-danger{% elif communication.priority == 'HIGH' %}bg-warning{% else %}bg-primary{% endif %} small">
+                                {{ communication.get_priority_display }}
+                            </span>
+                        </li>
+                        <li class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                            <span class="text-muted small">{% trans "Direction" %}</span>
+                            <span class="small">{{ communication.get_direction_display }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                            <span class="text-muted small">{% trans "Sent At" %}</span>
+                            <span class="small">{{ communication.sent_at|date:"M d, Y H:i"|default:"-" }}</span>
+                        </li>
+                        {% if communication.delivered_at %}
+                        <li class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                            <span class="text-muted small">{% trans "Delivered At" %}</span>
+                            <span class="small">{{ communication.delivered_at|date:"M d, Y H:i" }}</span>
+                        </li>
+                        {% endif %}
+                        {% if communication.read_at %}
+                        <li class="d-flex justify-content-between mb-0 pb-2">
+                            <span class="text-muted small">{% trans "Read At" %}</span>
+                            <span class="small">{{ communication.read_at|date:"M d, Y H:i" }}</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            {% if communication.campaign %}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">{% trans "Part of Campaign" %}</h5>
+                </div>
+                <div class="card-body text-center py-4">
+                    <i class="bx bx-megaphone text-primary mb-3" style="font-size: 2.5rem;"></i>
+                    <h6 class="mb-1">{{ communication.campaign.name }}</h6>
+                    <p class="small text-muted mb-3">{{ communication.campaign.get_campaign_type_display }}</p>
+                    <a href="{% url 'communications:campaign_update' communication.campaign.pk %}" class="btn btn-sm btn-light border">{% trans "View Campaign" %}</a>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if communication.status == 'FAILED' %}
+            <div class="alert alert-danger mb-0">
+                <h6 class="alert-heading small fw-bold mb-2"><i class="bx bx-error-circle me-1"></i> {% trans "Delivery Failure" %}</h6>
+                <p class="small mb-0">{{ communication.error_message }}</p>
+                {% if communication.can_retry %}
+                <button class="btn btn-sm btn-danger mt-3 w-100">{% trans "Retry Sending" %}</button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

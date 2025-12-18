@@ -1,0 +1,120 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Backup Configuration" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:dashboard' %}">{% trans "Configuration" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Backup & Recovery" %}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Backup Configuration" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <h6 class="mb-3">{% trans "Schedule" %}</h6>
+                         <div class="row">
+                             <div class="col-md-4">
+                                {{ form.auto_backup_enabled|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.backup_frequency|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.backup_time|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                             <div class="col-md-6">
+                                {{ form.retain_backup_days|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.max_backup_files|as_crispy_field }}
+                            </div>
+                        </div>
+
+                         <hr>
+                        <h6 class="mb-3">{% trans "Storage & Encryption" %}</h6>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.storage_type|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.backup_path|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.encrypt_backups|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.encryption_key|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "Content" %}</h6>
+                         <div class="row">
+                             <div class="col-md-4">
+                                {{ form.backup_databases|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.backup_media|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.backup_code|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                             <div class="col-12">
+                                {{ form.excluded_tables|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                         <hr>
+                        <h6 class="mb-3">{% trans "Notifications" %}</h6>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.notify_on_backup|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.notify_on_failure|as_crispy_field }}
+                            </div>
+                             <div class="col-12">
+                                {{ form.notification_emails|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.chart_field|as_crispy_field }}
+                            </div>
+                        </div>
+
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-1"></i> {% trans "Save Configuration" %}
+                            </button>
+                            <a href="{% url 'configuration:dashboard' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

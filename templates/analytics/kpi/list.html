@@ -1,0 +1,88 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "KPIs" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("KPIs") parent=_("Analytics") child=_("KPI List") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "Key Performance Indicators" %}</h6>
+                </div>
+                <div class="ms-auto">
+                    <a href="{% url 'analytics:kpi_create' %}" class="btn btn-primary radius-30 px-4">
+                        <i class="bx bx-plus"></i> {% trans "Create KPI" %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="kpis-table" class="table table-striped table-bordered w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Current Value" %}</th>
+                            <th>{% trans "Target" %}</th>
+                            <th>{% trans "Frequency" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kpi in kpis %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="widgets-icons-2 rounded-circle bg-light-{{ kpi.color_scheme|default:"primary" }} text-{{ kpi.color_scheme|default:"primary" }} me-2">
+                                        <i class='bx bx-trending-up'></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ kpi.name }}</h6>
+                                        <code class="small text-secondary">{{ kpi.code }}</code>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ kpi.get_category_display }}</td>
+                            <td>
+                                <h6 class="mb-0">{{ kpi.current_value|default:"--" }} {{ kpi.unit }}</h6>
+                            </td>
+                            <td>{{ kpi.target_value|default:"--" }}</td>
+                            <td>{{ kpi.get_calculation_frequency_display }}</td>
+                            <td>
+                                <span class="badge bg-light-{{ kpi.performance_status|lower }} text-{{ kpi.performance_status|lower }}">
+                                    {{ kpi.performance_status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex order-actions">
+                                    <a href="{% url "analytics:kpi_detail" kpi.pk %}" class="text-info bg-light-info border-0"><i class="bx bxs-show"></i></a>
+                                    <a href="{% url "analytics:kpi_update" kpi.pk %}" class="ms-2 text-primary bg-light-primary border-0"><i class="bx bxs-edit"></i></a>
+                                    <a href="{% url "analytics:kpi_delete" kpi.pk %}" class="ms-2 text-danger bg-light-danger border-0"><i class="bx bxs-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#kpis-table').DataTable({
+            responsive: true,
+            order: [[0, 'asc']]
+        });
+    });
+</script>
+{% endblock %}

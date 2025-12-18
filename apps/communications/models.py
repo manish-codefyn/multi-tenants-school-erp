@@ -522,10 +522,16 @@ class Communication(BaseModel):
     )
     recipient_type = models.ForeignKey(
         ContentType,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         verbose_name=_("Recipient Type")
     )
-    recipient_id = models.UUIDField(verbose_name=_("Recipient ID"))
+    recipient_id = models.UUIDField(
+        null=True,
+        blank=True,
+        verbose_name=_("Recipient ID")
+    )
     recipient = GenericForeignKey('recipient_type', 'recipient_id')
     
     # External recipient (for non-system users)

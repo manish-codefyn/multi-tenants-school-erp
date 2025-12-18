@@ -13,7 +13,7 @@ urlpatterns = [
     # Auth URLs
     path('accounts/', include('apps.auth.urls')),
     path('academics/', include('apps.academics.urls')),
-    path('analytics/', include('apps.analytics.urls')),
+    path('analytics/', include('apps.analytics.urls', namespace='analytics')),
     path('attendance/', include('apps.attendance.urls', namespace='attendance')),
     path('communications/', include('apps.communications.urls')),
     path('admission/', include('apps.admission.urls', namespace='admission')),

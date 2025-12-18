@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Events Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-1">{% trans "Events Management" %}</h4>
+                    <p class="text-muted mb-0">{% trans "Track and manage your institutional events and registrations." %}</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'events:event_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus me-1"></i> {% trans "Add Event" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar avatar-md bg-primary-subtle text-primary rounded">
+                            <i class="bx bx-calendar fs-3"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-muted">{% trans "Total Events" %}</h6>
+                            <h3 class="mb-0 fw-bold">{{ total_events }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar avatar-md bg-success-subtle text-success rounded">
+                            <i class="bx bx-time-five fs-3"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-muted">{% trans "Upcoming" %}</h6>
+                            <h3 class="mb-0 fw-bold">{{ upcoming_events }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar avatar-md bg-warning-subtle text-warning rounded">
+                            <i class="bx bx-play-circle fs-3"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-muted">{% trans "Ongoing" %}</h6>
+                            <h3 class="mb-0 fw-bold">{{ ongoing_events }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar avatar-md bg-info-subtle text-info rounded">
+                            <i class="bx bx-check-circle fs-3"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-muted">{% trans "Completed" %}</h6>
+                            <h3 class="mb-0 fw-bold">{{ completed_events }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Events -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between p-4">
+                    <h5 class="mb-0 fw-bold">{% trans "Recent Events" %}</h5>
+                    <a href="{% url 'events:event_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Event" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th class="pe-4">{% trans "Action" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in recent_events %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            {% if event.featured_image %}
+                                                <img src="{{ event.featured_image.url }}" class="rounded me-3" width="40" height="40" style="object-fit: cover;">
+                                            {% else %}
+                                                <div class="avatar avatar-sm bg-light text-primary rounded me-3">
+                                                    <i class="bx bx-calendar"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0 fw-semibold">{{ event.title }}</h6>
+                                                <small class="text-muted">{{ event.venue }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-nowrap">{{ event.start_date|date:"d M Y" }}</div>
+                                    </td>
+                                    <td>{{ event.get_event_type_display }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if event.status == 'SCHEDULED' %}bg-primary
+                                            {% elif event.status == 'ONGOING' %}bg-warning
+                                            {% elif event.status == 'COMPLETED' %}bg-success
+                                            {% elif event.status == 'CANCELLED' %}bg-danger
+                                            {% else %}bg-secondary{% endif %} bg-opacity-10 
+                                            {% if event.status == 'SCHEDULED' %}text-primary
+                                            {% elif event.status == 'ONGOING' %}text-warning
+                                            {% elif event.status == 'COMPLETED' %}text-success
+                                            {% elif event.status == 'CANCELLED' %}text-danger
+                                            {% else %}text-secondary{% endif %}">
+                                            {{ event.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 text-nowrap">
+                                        <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-icon btn-sm btn-outline-primary">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{% url 'events:event_update' event.pk %}" class="btn btn-icon btn-sm btn-outline-success">
+                                            <i class="bx bx-edit-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center p-5 text-muted">
+                                        <i class="bx bx-info-circle mb-2 fs-2"></i>
+                                        <p class="mb-0">{% trans "No events found." %}</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Distribution -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent border-0 p-4">
+                    <h5 class="mb-0 fw-bold">{% trans "Categories" %}</h5>
+                </div>
+                <div class="card-body p-4 pt-0">
+                    <ul class="list-group list-group-flush">
+                        {% for cat in categories %}
+                        <li class="list-group-item d-flex align-items-center justify-content-between px-0 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="p-2 rounded-circle me-3" style="background-color: {{ cat.color }}20;">
+                                    <i class="bx {{ cat.icon|default:'bx-tag' }}" style="color: {{ cat.color }};"></i>
+                                </div>
+                                <span class="fw-medium">{{ cat.name }}</span>
+                            </div>
+                            <span class="badge bg-light text-dark rounded-pill">{{ cat.event_count }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted">{% trans "No categories." %}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="mt-4">
+                        <a href="{% url 'events:category_list' %}" class="btn btn-outline-primary w-100">{% trans "Manage Categories" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

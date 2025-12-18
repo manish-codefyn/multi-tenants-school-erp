@@ -1,0 +1,82 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Data Sources" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("Data Sources") parent=_("Analytics") child=_("Source List") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "Connected Systems" %}</h6>
+                </div>
+                <div class="ms-auto">
+                    <a href="{% url 'analytics:datasource_create' %}" class="btn btn-primary radius-30 px-4">
+                        <i class="bx bx-plus"></i> {% trans "Connect Source" %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="datasources-table" class="table table-striped table-bordered w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Source Name" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Sync Frequency" %}</th>
+                            <th>{% trans "Last Sync" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for source in datasources %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="widgets-icons-2 rounded-circle bg-light-primary text-primary me-2">
+                                        <i class='bx bx-data'></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ source.name }}</h6>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ source.get_source_type_display }}</td>
+                            <td>{{ source.get_sync_frequency_display }}</td>
+                            <td>{{ source.last_sync|default:"Never" }}</td>
+                            <td>
+                                <span class="badge bg-{% if source.status == 'ACTIVE' %}success{% elif source.status == 'ERROR' %}danger{% else %}warning{% endif %}">
+                                    {{ source.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex order-actions">
+                                    <a href="{% url "analytics:datasource_update" source.pk %}" class="text-primary bg-light-primary border-0"><i class="bx bxs-edit"></i></a>
+                                    <a href="{% url "analytics:datasource_delete" source.pk %}" class="ms-2 text-danger bg-light-danger border-0"><i class="bx bxs-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#datasources-table').DataTable({
+            responsive: true,
+            order: [[0, 'asc']]
+        });
+    });
+</script>
+{% endblock %}

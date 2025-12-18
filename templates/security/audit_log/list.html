@@ -1,0 +1,130 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Audit Logs" %}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="h3">{% trans "Audit Logs" %}</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'security:dashboard' %}">{% trans "Security" %}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{% trans "Audit Logs" %}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body bg-light">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-8">
+                <input type="text" name="q" class="form-control" placeholder="{% trans 'Search by user, description, or IP...' %}" value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-search"></i> {% trans "Search" %}
+                </button>
+                {% if request.GET.q %}
+                    <a href="{% url 'security:audit_log_list' %}" class="btn btn-outline-secondary">
+                        <i class="bx bx-times"></i> {% trans "Clear" %}
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 table-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>{% trans "Timestamp" %}</th>
+                    <th>{% trans "Event" %}</th>
+                    <th>{% trans "User" %}</th>
+                    <th>{% trans "Role" %}</th>
+                    <th>{% trans "IP Address" %}</th>
+                    <th>{% trans "Severity" %}</th>
+                    <th>{% trans "Outcome" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in object_list %}
+                <tr>
+                    <td class="text-nowrap" title="{{ log.created_at }}">
+                        {{ log.created_at|date:"Y-m-d H:i" }}
+                    </td>
+                    <td>
+                        <div class="fw-bold">{{ log.event_type }}</div>
+                        <small class="text-muted d-block text-truncate" style="max-width: 250px;" title="{{ log.description }}">{{ log.description }}</small>
+                    </td>
+                    <td>
+                        {% if log.user %}
+                            {{ log.user.get_full_name|default:log.user.username }}
+                        {% else %}
+                            <span class="text-muted">{% trans "System" %}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.user_role|default:"-" }}</td>
+                    <td>{{ log.ip_address|default:"-" }}</td>
+                    <td>
+                        {% if log.severity == 'CRITICAL' %}
+                            <span class="badge bg-danger">{{ log.get_severity_display }}</span>
+                        {% elif log.severity == 'HIGH' %}
+                            <span class="badge bg-warning text-dark">{{ log.get_severity_display }}</span>
+                        {% else %}
+                             <span class="text-muted small">{{ log.get_severity_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.outcome == 'SUCCESS' %}
+                            <span class="text-success"><i class="bx bx-check-circle"></i></span>
+                        {% elif log.outcome == 'FAILURE' %}
+                            <span class="text-danger"><i class="bx bx-x-circle"></i></span>
+                        {% else %}
+                            <span class="text-muted">{{ log.get_outcome_display }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">{% trans "No audit logs found." %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; First</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Previous</a>
+        </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Next</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Last &raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

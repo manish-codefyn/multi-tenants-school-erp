@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if object %}{% trans "Edit Category" %}{% else %}{% trans "Create Category" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-1">{% if object %}{% trans "Edit Category" %}{% else %}{% trans "Create Category" %}{% endif %}</h4>
+                    <p class="text-muted mb-0">{% trans "Define event categories for better organization." %}</p>
+                </div>
+                <div>
+                    <a href="{% url 'events:category_list' %}" class="btn btn-outline-secondary">
+                        <i class="bx bx-arrow-back me-1"></i> {% trans "Back to List" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.name.label }}</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.code.label }}</label>
+                                {{ form.code }}
+                                {% if form.code.errors %}<div class="text-danger small">{{ form.code.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">{{ form.description.label }}</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">{{ form.color.label }}</label>
+                                {{ form.color }}
+                                {% if form.color.errors %}<div class="text-danger small">{{ form.color.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">{{ form.icon.label }}</label>
+                                {{ form.icon }}
+                                <small class="text-muted">{% trans "e.g., bx-calendar, bx-star" %}</small>
+                                {% if form.icon.errors %}<div class="text-danger small">{{ form.icon.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">{{ form.order.label }}</label>
+                                {{ form.order }}
+                                {% if form.order.errors %}<div class="text-danger small">{{ form.order.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="form-check form-switch mt-2">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label fw-bold ms-2" for="{{ form.is_active.id_for_label }}">
+                                        {{ form.is_active.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4 text-muted opacity-25">
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="submit" class="btn btn-primary px-5 py-2">
+                                <i class="bx bx-check me-1"></i> 
+                                {% if object %}{% trans "Update Category" %}{% else %}{% trans "Create Category" %}{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

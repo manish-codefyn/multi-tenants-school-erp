@@ -1,0 +1,69 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static crispy_forms_tags %}
+
+{% block title %}{{ title }} | {% trans "Analytics" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=title parent=_("Analytics") child=title %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{{ title }}</h6>
+                </div>
+            </div>
+            <hr>
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-12">
+                    {{ form.academic_year|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.total_students|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.male_students|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.female_students|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.other_gender_students|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.total_revenue|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.total_expenses|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.fee_collection_percentage|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.total_staff|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.student_teacher_ratio|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.average_attendance|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.pass_percentage|as_crispy_field }}
+                </div>
+                <div class="col-12">
+                    {{ form.chart_config|as_crispy_field }}
+                </div>
+
+                <div class="col-12 text-end mt-4">
+                    <button type="submit" class="btn btn-primary px-5">
+                        <i class="bx bx-save"></i> {% trans "Save Analytics" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

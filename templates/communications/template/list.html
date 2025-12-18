@@ -1,0 +1,74 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Communication Templates" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'communications:template_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Communication Templates") current_text=_("Templates") action_url=create_url action_text=_("Add Template") %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="templateTable" data-datatable data-title="{% trans 'Communication Templates' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Channel" %}</th>
+                            <th>{% trans "Language" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for template in templates %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                {{ template.name }}
+                                <div class="small text-muted">{{ template.code }}</div>
+                            </td>
+                            <td>{{ template.get_template_type_display }}</td>
+                            <td>{{ template.channel.name }}</td>
+                            <td>{{ template.get_language_display }}</td>
+                            <td>
+                                {% if template.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                                
+                                {% if template.requires_approval %}
+                                    {% if template.is_approved %}
+                                        <span class="badge bg-info-subtle text-info">{% trans "Approved" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning">{% trans "Pending Approval" %}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'communications:template_update' template.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="{% url 'communications:template_delete' template.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="{% trans 'Delete' %}">
+                                        <i class="bx bx-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

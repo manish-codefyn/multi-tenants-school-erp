@@ -1,0 +1,92 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}{% trans "Edit Report" %}{% else %}{% trans "Create Report" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% if form.instance.pk %}
+        {% include 'partials/breadcrumb.html' with title=_("Reports") parent=_("Analytics") child=_("Edit") %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with title=_("Reports") parent=_("Analytics") child=_("Create") %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-xl-9 mx-auto">
+            <div class="card border-top border-0 border-4 border-primary">
+                <div class="card-body p-5">
+                    <div class="card-title d-flex align-items-center">
+                        <div><i class="bx bxs-report me-1 font-22 text-primary"></i>
+                        </div>
+                        <h5 class="mb-0 text-primary">
+                            {% if form.instance.pk %}{% trans "Edit Report Details" %}{% else %}{% trans "New Report Configuration" %}{% endif %}
+                        </h5>
+                    </div>
+                    <hr>
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-8">
+                            {{ form.title|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.report_type|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.description|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.access_level|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.is_active|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.is_template|as_crispy_field }}
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <h6 class="mb-0 border-bottom pb-2">{% trans "Report Configuration" %}</h6>
+                        </div>
+                        <div class="col-12">
+                            {{ form.config|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.filters|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.parameters|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.chart_config|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.allowed_roles|as_crispy_field }}
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <h6 class="mb-0 border-bottom pb-2">{% trans "Scheduling Options" %}</h6>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            {{ form.is_scheduled|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.schedule_frequency|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.schedule_time|as_crispy_field }}
+                        </div>
+
+                        <div class="col-12 text-end mt-4">
+                            <a href="{% url 'analytics:report_list' %}" class="btn btn-light px-5">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary px-5">{% trans "Save Report" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

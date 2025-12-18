@@ -1,116 +1,172 @@
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.db.models import Count
+from django.utils.translation import gettext_lazy as _
+from apps.core.views import (
+    BaseListView, BaseCreateView, BaseUpdateView, 
+    BaseDeleteView, BaseTemplateView, BaseDetailView
+)
 from apps.core.permissions.mixins import PermissionRequiredMixin
 from apps.core.utils.tenant import get_current_tenant
-from .models import SecurityPolicy, AuditLog, SecurityIncident
+from .models import (
+    SecurityPolicy, PasswordPolicy, SessionPolicy, 
+    AccessControlPolicy, SecurityIncident, AuditLog
+)
+from .forms import (
+    SecurityPolicyForm, PasswordPolicyForm, SessionPolicyForm,
+    AccessControlPolicyForm, SecurityIncidentForm, SecurityIncidentUpdateForm
+)
 
-class SecurityDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+# ==================== DASHBOARD ====================
+
+class SecurityDashboardView(BaseTemplateView):
     template_name = 'security/dashboard.html'
     permission_required = 'security.view_securitypolicy'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        tenant = get_current_tenant()
+        tenant = self.tenant
         
-        context['total_policies'] = SecurityPolicy.objects.filter(tenant=tenant, is_active=True).count()
-        context['total_incidents'] = SecurityIncident.objects.filter(tenant=tenant).count()
-        context['open_incidents'] = SecurityIncident.objects.filter(tenant=tenant, status='OPEN').count()
-        context['recent_audits'] = AuditLog.objects.filter(tenant=tenant).count()
+        context['password_policy_count'] = PasswordPolicy.objects.filter(tenant=tenant).count()
+        context['session_policy_count'] = SessionPolicy.objects.filter(tenant=tenant).count()
+        context['access_policy_count'] = AccessControlPolicy.objects.filter(tenant=tenant).count()
+        context['open_incidents_count'] = SecurityIncident.objects.filter(tenant=tenant, status='OPEN').count()
+        context['recent_audits'] = AuditLog.objects.filter(tenant=tenant).order_by('-created_at')[:5]
         
         return context
 
-# ==================== SECURITY POLICY ====================
+# ==================== PASSWORD POLICY ====================
 
-class SecurityPolicyListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = SecurityPolicy
-    template_name = 'security/policy_list.html'
-    context_object_name = 'policies'
-    permission_required = 'security.view_securitypolicy'
+class PasswordPolicyListView(BaseListView):
+    model = PasswordPolicy
+    template_name = 'security/password_policy/list.html'
+    permission_required = 'security.view_passwordpolicy'
+    search_fields = ['name']
 
-class SecurityPolicyCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = SecurityPolicy
-    fields = ['name', 'policy_type', 'code', 'description', 'policy_document', 
-              'version', 'is_mandatory', 'enforcement_level', 'compliance_standard', 
-              'requires_acknowledgement', 'effective_date', 'expiry_date', 'is_active']
-    template_name = 'security/policy_form.html'
-    success_url = reverse_lazy('security:policy_list')
-    permission_required = 'security.add_securitypolicy'
+class PasswordPolicyCreateView(BaseCreateView):
+    model = PasswordPolicy
+    form_class = PasswordPolicyForm
+    template_name = 'security/password_policy/form.html'
+    permission_required = 'security.add_passwordpolicy'
+    success_url = reverse_lazy('security:password_policy_list')
+    success_message = _("Password policy created successfully.")
 
-    def form_valid(self, form):
-        messages.success(self.request, "Security policy created successfully.")
-        return super().form_valid(form)
+class PasswordPolicyUpdateView(BaseUpdateView):
+    model = PasswordPolicy
+    form_class = PasswordPolicyForm
+    template_name = 'security/password_policy/form.html'
+    permission_required = 'security.change_passwordpolicy'
+    success_url = reverse_lazy('security:password_policy_list')
+    success_message = _("Password policy updated successfully.")
 
-class SecurityPolicyUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = SecurityPolicy
-    fields = ['name', 'policy_type', 'code', 'description', 'policy_document', 
-              'version', 'is_mandatory', 'enforcement_level', 'compliance_standard', 
-              'requires_acknowledgement', 'effective_date', 'expiry_date', 'is_active']
-    template_name = 'security/policy_form.html'
-    success_url = reverse_lazy('security:policy_list')
-    permission_required = 'security.change_securitypolicy'
+class PasswordPolicyDeleteView(BaseDeleteView):
+    model = PasswordPolicy
+    template_name = 'security/password_policy/confirm_delete.html'
+    permission_required = 'security.delete_passwordpolicy'
+    success_url = reverse_lazy('security:password_policy_list')
+    success_message = _("Password policy deleted successfully.")
 
-    def form_valid(self, form):
-        messages.success(self.request, "Security policy updated successfully.")
-        return super().form_valid(form)
+# ==================== SESSION POLICY ====================
 
-class SecurityPolicyDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = SecurityPolicy
-    template_name = 'security/confirm_delete.html'
-    success_url = reverse_lazy('security:policy_list')
-    permission_required = 'security.delete_securitypolicy'
+class SessionPolicyListView(BaseListView):
+    model = SessionPolicy
+    template_name = 'security/session_policy/list.html'
+    permission_required = 'security.view_sessionpolicy'
+    search_fields = ['name']
 
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, "Security policy deleted successfully.")
-        return super().delete(request, *args, **kwargs)
+class SessionPolicyCreateView(BaseCreateView):
+    model = SessionPolicy
+    form_class = SessionPolicyForm
+    template_name = 'security/session_policy/form.html'
+    permission_required = 'security.add_sessionpolicy'
+    success_url = reverse_lazy('security:session_policy_list')
+    success_message = _("Session policy created successfully.")
 
-# ==================== AUDIT LOG ====================
+class SessionPolicyUpdateView(BaseUpdateView):
+    model = SessionPolicy
+    form_class = SessionPolicyForm
+    template_name = 'security/session_policy/form.html'
+    permission_required = 'security.change_sessionpolicy'
+    success_url = reverse_lazy('security:session_policy_list')
+    success_message = _("Session policy updated successfully.")
 
-class AuditLogListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = AuditLog
-    template_name = 'security/audit_log_list.html'
-    context_object_name = 'logs'
-    permission_required = 'security.view_auditlog'
-    paginate_by = 50
+class SessionPolicyDeleteView(BaseDeleteView):
+    model = SessionPolicy
+    template_name = 'security/session_policy/confirm_delete.html'
+    permission_required = 'security.delete_sessionpolicy'
+    success_url = reverse_lazy('security:session_policy_list')
+    success_message = _("Session policy deleted successfully.")
 
-# ==================== SECURITY INCIDENT ====================
+# ==================== ACCESS CONTROL POLICY ====================
 
-class SecurityIncidentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class AccessControlPolicyListView(BaseListView):
+    model = AccessControlPolicy
+    template_name = 'security/access_control/list.html'
+    permission_required = 'security.view_accesscontrolpolicy'
+    search_fields = ['name']
+
+class AccessControlPolicyCreateView(BaseCreateView):
+    model = AccessControlPolicy
+    form_class = AccessControlPolicyForm
+    template_name = 'security/access_control/form.html'
+    permission_required = 'security.add_accesscontrolpolicy'
+    success_url = reverse_lazy('security:access_control_list')
+    success_message = _("Access control policy created successfully.")
+
+class AccessControlPolicyUpdateView(BaseUpdateView):
+    model = AccessControlPolicy
+    form_class = AccessControlPolicyForm
+    template_name = 'security/access_control/form.html'
+    permission_required = 'security.change_accesscontrolpolicy'
+    success_url = reverse_lazy('security:access_control_list')
+    success_message = _("Access control policy updated successfully.")
+
+class AccessControlPolicyDeleteView(BaseDeleteView):
+    model = AccessControlPolicy
+    template_name = 'security/access_control/confirm_delete.html'
+    permission_required = 'security.delete_accesscontrolpolicy'
+    success_url = reverse_lazy('security:access_control_list')
+    success_message = _("Access control policy deleted successfully.")
+
+# ==================== SECURITY INCIDENTS ====================
+
+class SecurityIncidentListView(BaseListView):
     model = SecurityIncident
-    template_name = 'security/incident_list.html'
-    context_object_name = 'incidents'
+    template_name = 'security/incident/list.html'
     permission_required = 'security.view_securityincident'
+    search_fields = ['title', 'incident_id']
+    ordering = ['-detected_at']
 
-class SecurityIncidentDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class SecurityIncidentCreateView(BaseCreateView):
     model = SecurityIncident
-    template_name = 'security/incident_detail.html'
-    context_object_name = 'incident'
-    permission_required = 'security.view_securityincident'
-
-class SecurityIncidentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = SecurityIncident
-    fields = ['title', 'incident_type', 'description', 'priority', 'impact_level', 
-              'assigned_to', 'data_compromised']
-    template_name = 'security/incident_form.html'
-    success_url = reverse_lazy('security:incident_list')
+    form_class = SecurityIncidentForm
+    template_name = 'security/incident/form.html'
     permission_required = 'security.add_securityincident'
+    success_url = reverse_lazy('security:incident_list')
+    success_message = _("Security incident reported successfully.")
 
     def form_valid(self, form):
         form.instance.reporter = self.request.user
-        messages.success(self.request, "Security incident created successfully.")
         return super().form_valid(form)
 
-class SecurityIncidentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class SecurityIncidentUpdateView(BaseUpdateView):
     model = SecurityIncident
-    fields = ['title', 'incident_type', 'description', 'priority', 'status', 
-              'impact_level', 'assigned_to', 'root_cause', 'action_taken', 
-              'prevention_measures']
-    template_name = 'security/incident_form.html'
-    success_url = reverse_lazy('security:incident_list')
+    form_class = SecurityIncidentUpdateForm
+    template_name = 'security/incident/form.html'
     permission_required = 'security.change_securityincident'
+    success_url = reverse_lazy('security:incident_list')
+    success_message = _("Security incident updated successfully.")
 
-    def form_valid(self, form):
-        messages.success(self.request, "Security incident updated successfully.")
-        return super().form_valid(form)
+class SecurityIncidentDetailView(BaseDetailView):
+    model = SecurityIncident
+    template_name = 'security/incident/detail.html'
+    permission_required = 'security.view_securityincident'
+
+# ==================== AUDIT LOGS ====================
+
+class AuditLogListView(BaseListView):
+    model = AuditLog
+    template_name = 'security/audit_log/list.html'
+    permission_required = 'security.view_auditlog'
+    search_fields = ['user__username', 'description', 'ip_address']
+    ordering = ['-created_at']
+    paginate_by = 50

@@ -1,0 +1,72 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}{% trans "Edit Data Source" %}{% else %}{% trans "Connect Data Source" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% if form.instance.pk %}
+        {% include 'partials/breadcrumb.html' with title=_("Data Sources") parent=_("Analytics") child=_("Edit") %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with title=_("Data Sources") parent=_("Analytics") child=_("Connect") %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-xl-9 mx-auto">
+            <div class="card border-top border-0 border-4 border-info">
+                <div class="card-body p-5">
+                    <div class="card-title d-flex align-items-center">
+                        <div><i class="bx bxs-data me-1 font-22 text-info"></i>
+                        </div>
+                        <h5 class="mb-0 text-info">
+                            {% if form.instance.pk %}{% trans "Update Source Configuration" %}{% else %}{% trans "New Data Connection" %}{% endif %}
+                        </h5>
+                    </div>
+                    <hr>
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-8">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.source_type|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.description|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.connection_string|as_crispy_field }}
+                            <small class="text-muted">{% trans "Database URI, API Endpoint, or secure connection string." %}</small>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.sync_frequency|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.status|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.config|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.credentials|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.chart_config|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.tags|as_crispy_field }}
+                        </div>
+
+                        <div class="col-12 text-end mt-4">
+                            <a href="{% url 'analytics:datasource_list' %}" class="btn btn-light px-5">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-info px-5 text-white">{% trans "Save Source" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

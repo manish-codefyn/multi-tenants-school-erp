@@ -388,8 +388,10 @@ class BaseListView(BaseView, ListView):
         
         # Apply active filter for soft-delete models
         try:
-            self.model._meta.get_field('is_active')
-            queryset = queryset.filter(is_active=True)
+            # Only filter if it's a real database field, not just a property
+            field = self.model._meta.get_field('is_active')
+            if not field.is_relation or field.many_to_one: # Basic check for concrete field
+                queryset = queryset.filter(is_active=True)
         except Exception:
             # Field doesn't exist or is not a database field
             pass
@@ -499,8 +501,11 @@ class BaseDetailView(BaseView, DetailView):
             queryset = queryset.filter(tenant=self.tenant)
         
         # Apply active filter for soft-delete models
-        if hasattr(self.model, 'is_active'):
+        try:
+            field = self.model._meta.get_field('is_active')
             queryset = queryset.filter(is_active=True)
+        except Exception:
+            pass
         
         return queryset
     
@@ -717,7 +722,15 @@ class BaseDeleteView(BaseView, DeleteView):
         self.object = self.get_object()
         
         try:
-            if self.soft_delete and hasattr(self.object, 'is_active'):
+            # Check if model has is_active field for soft delete
+            has_is_active = False
+            try:
+                self.object._meta.get_field('is_active')
+                has_is_active = True
+            except Exception:
+                pass
+
+            if self.soft_delete and has_is_active:
                 # Use soft delete with reason
                 delete_reason = request.POST.get('deletion_reason', '')
                 delete_category = request.POST.get('deletion_category', '')
@@ -892,8 +905,11 @@ class BaseModelAjaxView(BaseAjaxView):
             queryset = queryset.filter(tenant=self.tenant)
         
         # Apply active filter for soft-delete models
-        if hasattr(self.model, 'is_active'):
+        try:
+            self.model._meta.get_field('is_active')
             queryset = queryset.filter(is_active=True)
+        except Exception:
+            pass
         
         return queryset
 
@@ -1163,7 +1179,7 @@ class MasterDashboardView(TenantRequiredMixin, TemplateView):
         
         # Events Statistics
         context['upcoming_events'] = Event.objects.filter(
-            tenant=tenant, start_date__gte=timezone.now()
+            tenant=tenant, start_date__gte=timezone.now().date()
         ).count()
         
         # Exams Statistics

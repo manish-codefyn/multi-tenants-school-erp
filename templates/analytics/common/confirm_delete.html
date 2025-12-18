@@ -1,0 +1,27 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Confirm Deletion" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("Delete Item") parent=_("Analytics") child=_("Delete") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <h5 class="card-title text-danger">{% trans "Are you sure you want to delete this item?" %}</h5>
+            <hr>
+            <p>{% trans "This action cannot be undone. All associated data will be permanently removed." %}</p>
+            <div class="alert alert-warning">
+                <i class="bx bx-error"></i> {% trans "Item" %}: <strong>{{ object }}</strong>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">{% trans "Confirm Delete" %}</button>
+                <a href="{{ request.META.HTTP_REFERER|default:'#' }}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

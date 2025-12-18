@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Event Registrations" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-1">{% trans "Event Registrations" %}</h4>
+                    <p class="text-muted mb-0">{% trans "Track and manage event participants." %}</p>
+                </div>
+                <div>
+                    <a href="{% url 'events:registration_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus me-1"></i> {% trans "Add Registration" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" data-datatable="true">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Registrant" %}</th>
+                            <th>{% trans "Event" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th class="pe-4 text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in registrations %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm bg-primary bg-opacity-10 text-primary rounded me-3">
+                                        <i class="bx bx-user"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ reg.get_registrant_name }}</h6>
+                                        <small class="text-muted">{{ reg.get_registrant_email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-medium">{{ reg.event.title|truncatechars:30 }}</div>
+                                <small class="text-muted">{{ reg.event.start_date|date:"d M Y" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark fw-normal border">
+                                    {{ reg.get_registration_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if reg.status == 'REGISTERED' %}bg-success
+                                    {% elif reg.status == 'PENDING' %}bg-warning
+                                    {% elif reg.status == 'ATTENDED' %}bg-info
+                                    {% elif reg.status == 'CANCELLED' %}bg-danger
+                                    {% else %}bg-secondary{% endif %} bg-opacity-10 
+                                    {% if reg.status == 'REGISTERED' %}text-success
+                                    {% elif reg.status == 'PENDING' %}text-warning
+                                    {% elif reg.status == 'ATTENDED' %}text-info
+                                    {% elif reg.status == 'CANCELLED' %}text-danger
+                                    {% else %}text-secondary{% endif %}">
+                                    {{ reg.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ reg.registration_date|date:"d M Y" }}</td>
+                            <td class="pe-4 text-end">
+                                <a href="{% url 'events:registration_update' reg.pk %}" class="btn btn-icon btn-sm btn-outline-success mx-1">
+                                    <i class="bx bx-edit-alt"></i>
+                                </a>
+                                <a href="{% url 'events:registration_delete' reg.pk %}" class="btn btn-icon btn-sm btn-outline-danger mx-1">
+                                    <i class="bx bx-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center p-5 text-muted">
+                                <i class="bx bx-user-plus mb-2 fs-1"></i>
+                                <p class="mb-0">{% trans "No registrations found." %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

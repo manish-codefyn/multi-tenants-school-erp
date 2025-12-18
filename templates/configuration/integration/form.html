@@ -1,0 +1,130 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Edit Integration" %}{% else %}{% trans "New Integration" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:dashboard' %}">{% trans "Configuration" %}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:integration_list' %}">{% trans "Integrations" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {% if form.instance.pk %}{{ form.instance.name }}{% else %}{% trans "New Integration" %}{% endif %}
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        {% if form.instance.pk %}
+                            {% trans "Edit Integration" %}
+                        {% else %}
+                            {% trans "Add New Integration" %}
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <h6 class="mb-3">{% trans "Basic Information" %}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.provider|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.integration_type|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.version|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.status|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 pt-4">
+                                {{ form.is_enabled|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "Connection Details" %}</h6>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form.base_url|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.auth_type|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.health_check_url|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                             <div class="col-12">
+                                {{ form.api_keys|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.endpoints|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.config_data|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3">{% trans "Webhooks & Limits" %}</h6>
+                         <div class="row">
+                             <div class="col-12">
+                                {{ form.webhook_url|as_crispy_field }}
+                            </div>
+                             <div class="col-12">
+                                {{ form.webhook_secret|as_crispy_field }}
+                            </div>
+                             <div class="col-12">
+                                {{ form.webhook_events|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.rate_limit|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.retry_attempts|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.chart_field|as_crispy_field }}
+                            </div>
+                        </div>
+
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-1"></i> {% trans "Save Integration" %}
+                            </button>
+                            <a href="{% url 'configuration:integration_list' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

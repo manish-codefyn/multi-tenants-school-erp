@@ -1,0 +1,46 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% if object %}{% trans "Edit Channel" %}{% else %}{% trans "Add Channel" %}{% endif %}{% endblock %}
+
+{% block content %}
+    {% url 'communications:channel_list' as list_url %}
+    {% if object %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Edit Communication Channel") parent_text=_("Channels") parent_url=list_url current_text=_("Edit") %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Add Communication Channel") parent_text=_("Channels") parent_url=list_url current_text=_("Add") %}
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">{{ form.name|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.code|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">{{ form.channel_type|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.priority|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">{{ form.rate_limit|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.cost_per_message|as_crispy_field }}</div>
+                        </div>
+                        {{ form.description|as_crispy_field }}
+                        {{ form.is_active|as_crispy_field }}
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{{ list_url }}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bx bx-save me-2"></i>{% trans "Save Channel" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

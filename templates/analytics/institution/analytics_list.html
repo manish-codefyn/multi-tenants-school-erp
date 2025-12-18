@@ -1,0 +1,57 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Institutional Analytics" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("Performance") parent=_("Analytics") child=_("Institution") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "School-wide Performance Metrics" %}</h6>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="institution-analytics-table" class="table table-striped table-bordered w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Academic Year" %}</th>
+                            <th>{% trans "Students" %}</th>
+                            <th>{% trans "Teachers" %}</th>
+                            <th>{% trans "Pass %" %}</th>
+                            <th>{% trans "Attendance" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in object_list %}
+                        <tr>
+                            <td>{{ record.academic_year }}</td>
+                            <td>{{ record.total_students }}</td>
+                            <td>{{ record.total_teachers }}</td>
+                            <td>{{ record.pass_percentage }}%</td>
+                            <td>{{ record.average_attendance }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#institution-analytics-table').DataTable({
+            responsive: true,
+            order: [[0, 'desc']]
+        });
+    });
+</script>
+{% endblock %}

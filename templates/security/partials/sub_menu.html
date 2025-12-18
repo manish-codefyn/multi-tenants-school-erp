@@ -5,7 +5,16 @@
     </a>
     <ul>
         <li><a href="{% url 'security:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
-        <li><a href="{% url 'security:policy_list' %}"><i class="bx bx-radio-circle"></i>Policies</a></li>
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <i class="bx bx-radio-circle"></i>Policies
+            </a>
+            <ul>
+                <li><a href="{% url 'security:password_policy_list' %}"><i class="bx bx-right-arrow-alt"></i>Password</a></li>
+                <li><a href="{% url 'security:session_policy_list' %}"><i class="bx bx-right-arrow-alt"></i>Session</a></li>
+                <li><a href="{% url 'security:access_control_list' %}"><i class="bx bx-right-arrow-alt"></i>Access Control</a></li>
+            </ul>
+        </li>
         <li><a href="{% url 'security:incident_list' %}"><i class="bx bx-radio-circle"></i>Incidents</a></li>
         <li><a href="{% url 'security:audit_log_list' %}"><i class="bx bx-radio-circle"></i>Audit Logs</a></li>
     </ul>

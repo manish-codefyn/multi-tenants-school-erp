@@ -1,35 +1,51 @@
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.contrib import messages
-from apps.core.permissions.mixins import PermissionRequiredMixin
+from django.utils.translation import gettext_lazy as _
+from apps.core.views import (
+    BaseListView, BaseCreateView, BaseUpdateView, BaseDeleteView, BaseTemplateView
+)
 from apps.core.utils.tenant import get_current_tenant
 from .models import (
-    SystemSetting, FinancialConfiguration, SecurityConfiguration,
-    NotificationConfiguration, AppearanceConfiguration
+    SystemSetting, AcademicConfiguration, FinancialConfiguration,
+    SecurityConfiguration, NotificationConfiguration, AppearanceConfiguration,
+    IntegrationConfiguration, BackupConfiguration
+)
+from .forms import (
+    SystemSettingForm, AcademicConfigurationForm, FinancialConfigurationForm,
+    SecurityConfigurationForm, NotificationConfigurationForm, AppearanceConfigurationForm,
+    IntegrationConfigurationForm, BackupConfigurationForm
 )
 
-class ConfigurationDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+# ==================== DASHBOARD ====================
+
+class ConfigurationDashboardView(BaseTemplateView):
     template_name = 'configuration/dashboard.html'
     permission_required = 'configuration.view_systemsetting'
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tenant = get_current_tenant()
         
-        context['total_settings'] = SystemSetting.objects.filter(tenant=tenant).count()
-        context['financial_config'] = FinancialConfiguration.objects.filter(tenant=tenant).first()
-        context['security_config'] = SecurityConfiguration.objects.filter(tenant=tenant).first()
-        context['notification_config'] = NotificationConfiguration.objects.filter(tenant=tenant).first()
-        context['appearance_config'] = AppearanceConfiguration.objects.filter(tenant=tenant).first()
+        # Add summary data
+        context['system_settings_count'] = SystemSetting.objects.filter(tenant=tenant).count()
+        context['active_integrations'] = IntegrationConfiguration.objects.filter(tenant=tenant, is_enabled=True).count()
+        
+        # Check if configurations exist
+        context['has_academic'] = AcademicConfiguration.objects.filter(tenant=tenant).exists()
+        context['has_financial'] = FinancialConfiguration.objects.filter(tenant=tenant).exists()
+        context['has_security'] = SecurityConfiguration.objects.filter(tenant=tenant).exists()
+        context['has_notification'] = NotificationConfiguration.objects.filter(tenant=tenant).exists()
+        context['has_appearance'] = AppearanceConfiguration.objects.filter(tenant=tenant).exists()
+        context['has_backup'] = BackupConfiguration.objects.filter(tenant=tenant).exists()
         
         return context
 
 # ==================== SYSTEM SETTINGS ====================
 
-class SystemSettingListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class SystemSettingListView(BaseListView):
     model = SystemSetting
-    template_name = 'configuration/system_setting_list.html'
+    template_name = 'configuration/system_setting/list.html'
     context_object_name = 'settings'
     permission_required = 'configuration.view_systemsetting'
     
@@ -40,120 +56,122 @@ class SystemSettingListView(LoginRequiredMixin, PermissionRequiredMixin, ListVie
             queryset = queryset.filter(category=category)
         return queryset
 
-class SystemSettingCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class SystemSettingCreateView(BaseCreateView):
     model = SystemSetting
-    fields = ['key', 'name', 'description', 'category', 'group', 'setting_type', 
-              'value_string', 'value_text', 'value_integer', 'value_decimal', 
-              'value_boolean', 'value_json', 'is_public', 'is_required', 'is_readonly']
-    template_name = 'configuration/system_setting_form.html'
-    success_url = reverse_lazy('configuration:setting_list')
+    form_class = SystemSettingForm
+    template_name = 'configuration/system_setting/form.html'
     permission_required = 'configuration.add_systemsetting'
-
-    def form_valid(self, form):
-        messages.success(self.request, "System Setting created successfully.")
-        return super().form_valid(form)
-
-class SystemSettingUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = SystemSetting
-    fields = ['name', 'description', 'category', 'group', 'setting_type', 
-              'value_string', 'value_text', 'value_integer', 'value_decimal', 
-              'value_boolean', 'value_json', 'is_public', 'is_required', 'is_readonly']
-    template_name = 'configuration/system_setting_form.html'
     success_url = reverse_lazy('configuration:setting_list')
+
+class SystemSettingUpdateView(BaseUpdateView):
+    model = SystemSetting
+    form_class = SystemSettingForm
+    template_name = 'configuration/system_setting/form.html'
     permission_required = 'configuration.change_systemsetting'
-
-    def form_valid(self, form):
-        messages.success(self.request, "System Setting updated successfully.")
-        return super().form_valid(form)
-
-class SystemSettingDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = SystemSetting
-    template_name = 'configuration/confirm_delete.html'
     success_url = reverse_lazy('configuration:setting_list')
-    permission_required = 'configuration.delete_systemsetting'
 
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, "System Setting deleted successfully.")
-        return super().delete(request, *args, **kwargs)
+class SystemSettingDeleteView(BaseDeleteView):
+    model = SystemSetting
+    template_name = 'configuration/system_setting/confirm_delete.html'
+    permission_required = 'configuration.delete_systemsetting'
+    success_url = reverse_lazy('configuration:setting_list')
+
+# ==================== ACADEMIC CONFIGURATION ====================
+
+class AcademicConfigurationView(BaseUpdateView):
+    model = AcademicConfiguration
+    form_class = AcademicConfigurationForm
+    template_name = 'configuration/academic/form.html'
+    permission_required = 'configuration.change_academicconfiguration'
+    success_url = reverse_lazy('configuration:academic_config')
+    
+    def get_object(self, queryset=None):
+        return AcademicConfiguration.get_for_tenant(get_current_tenant())
 
 # ==================== FINANCIAL CONFIGURATION ====================
 
-class FinancialConfigurationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class FinancialConfigurationView(BaseUpdateView):
     model = FinancialConfiguration
-    fields = ['base_currency', 'currency_symbol', 'decimal_places', 'tax_enabled', 
-              'tax_rate', 'tax_number', 'invoice_prefix', 'invoice_start_number',
-              'online_payment_enabled', 'auto_late_fee', 'late_fee_calculation',
-              'financial_year_start', 'financial_year_end']
-    template_name = 'configuration/financial_config_form.html'
-    success_url = reverse_lazy('configuration:dashboard')
+    form_class = FinancialConfigurationForm
+    template_name = 'configuration/financial/form.html'
     permission_required = 'configuration.change_financialconfiguration'
-
+    success_url = reverse_lazy('configuration:financial_config')
+    
     def get_object(self, queryset=None):
-        tenant = get_current_tenant()
-        obj, created = FinancialConfiguration.objects.get_or_create(tenant=tenant)
-        return obj
-
-    def form_valid(self, form):
-        messages.success(self.request, "Financial Configuration updated successfully.")
-        return super().form_valid(form)
+        return FinancialConfiguration.get_for_tenant(get_current_tenant())
 
 # ==================== SECURITY CONFIGURATION ====================
 
-class SecurityConfigurationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class SecurityConfigurationView(BaseUpdateView):
     model = SecurityConfiguration
-    fields = ['password_min_length', 'password_require_uppercase', 'password_require_lowercase',
-              'password_require_numbers', 'password_require_symbols', 'password_expiry_days',
-              'session_timeout_minutes', 'max_login_attempts', 'lockout_duration_minutes',
-              'require_2fa', 'enable_ip_restriction']
-    template_name = 'configuration/security_config_form.html'
-    success_url = reverse_lazy('configuration:dashboard')
+    form_class = SecurityConfigurationForm
+    template_name = 'configuration/security/form.html'
     permission_required = 'configuration.change_securityconfiguration'
-
+    success_url = reverse_lazy('configuration:security_config')
+    
     def get_object(self, queryset=None):
-        tenant = get_current_tenant()
-        obj, created = SecurityConfiguration.objects.get_or_create(tenant=tenant)
-        return obj
-
-    def form_valid(self, form):
-        messages.success(self.request, "Security Configuration updated successfully.")
-        return super().form_valid(form)
+        return SecurityConfiguration.get_for_tenant(get_current_tenant())
 
 # ==================== NOTIFICATION CONFIGURATION ====================
 
-class NotificationConfigurationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class NotificationConfigurationView(BaseUpdateView):
     model = NotificationConfiguration
-    fields = ['email_enabled', 'email_host', 'email_port', 'email_username', 
-              'email_use_tls', 'email_from_address', 'email_from_name',
-              'sms_enabled', 'sms_provider', 'push_enabled', 'whatsapp_enabled']
-    template_name = 'configuration/notification_config_form.html'
-    success_url = reverse_lazy('configuration:dashboard')
+    form_class = NotificationConfigurationForm
+    template_name = 'configuration/notification/form.html'
     permission_required = 'configuration.change_notificationconfiguration'
-
+    success_url = reverse_lazy('configuration:notification_config')
+    
     def get_object(self, queryset=None):
-        tenant = get_current_tenant()
-        obj, created = NotificationConfiguration.objects.get_or_create(tenant=tenant)
-        return obj
-
-    def form_valid(self, form):
-        messages.success(self.request, "Notification Configuration updated successfully.")
-        return super().form_valid(form)
+        return NotificationConfiguration.get_for_tenant(get_current_tenant())
 
 # ==================== APPEARANCE CONFIGURATION ====================
 
-class AppearanceConfigurationView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class AppearanceConfigurationView(BaseUpdateView):
     model = AppearanceConfiguration
-    fields = ['institution_name', 'institution_logo', 'institution_favicon',
-              'primary_color', 'secondary_color', 'accent_color', 'theme_mode',
-              'layout_type', 'sidebar_collapsed']
-    template_name = 'configuration/appearance_config_form.html'
-    success_url = reverse_lazy('configuration:dashboard')
+    form_class = AppearanceConfigurationForm
+    template_name = 'configuration/appearance/form.html'
     permission_required = 'configuration.change_appearanceconfiguration'
-
+    success_url = reverse_lazy('configuration:appearance_config')
+    
     def get_object(self, queryset=None):
-        tenant = get_current_tenant()
-        obj, created = AppearanceConfiguration.objects.get_or_create(tenant=tenant)
-        return obj
+        return AppearanceConfiguration.get_for_tenant(get_current_tenant())
 
-    def form_valid(self, form):
-        messages.success(self.request, "Appearance Configuration updated successfully.")
-        return super().form_valid(form)
+# ==================== INTEGRATION CONFIGURATION ====================
+
+class IntegrationListView(BaseListView):
+    model = IntegrationConfiguration
+    template_name = 'configuration/integration/list.html'
+    context_object_name = 'integrations'
+    permission_required = 'configuration.view_integrationconfiguration'
+
+class IntegrationCreateView(BaseCreateView):
+    model = IntegrationConfiguration
+    form_class = IntegrationConfigurationForm
+    template_name = 'configuration/integration/form.html'
+    permission_required = 'configuration.add_integrationconfiguration'
+    success_url = reverse_lazy('configuration:integration_list')
+
+class IntegrationUpdateView(BaseUpdateView):
+    model = IntegrationConfiguration
+    form_class = IntegrationConfigurationForm
+    template_name = 'configuration/integration/form.html'
+    permission_required = 'configuration.change_integrationconfiguration'
+    success_url = reverse_lazy('configuration:integration_list')
+
+class IntegrationDeleteView(BaseDeleteView):
+    model = IntegrationConfiguration
+    template_name = 'configuration/integration/confirm_delete.html'
+    permission_required = 'configuration.delete_integrationconfiguration'
+    success_url = reverse_lazy('configuration:integration_list')
+
+# ==================== BACKUP CONFIGURATION ====================
+
+class BackupConfigurationView(BaseUpdateView):
+    model = BackupConfiguration
+    form_class = BackupConfigurationForm
+    template_name = 'configuration/backup/form.html'
+    permission_required = 'configuration.change_backupconfiguration'
+    success_url = reverse_lazy('configuration:backup_config')
+    
+    def get_object(self, queryset=None):
+        return BackupConfiguration.get_for_tenant(get_current_tenant())

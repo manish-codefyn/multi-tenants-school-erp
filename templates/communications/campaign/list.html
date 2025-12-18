@@ -1,0 +1,74 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Communication Campaigns" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'communications:campaign_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Communication Campaigns") current_text=_("Campaigns") action_url=create_url action_text=_("Add Campaign") %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="campaignTable" data-datatable data-title="{% trans 'Communication Campaigns' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Name" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Template" %}</th>
+                            <th>{% trans "Scheduled" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Performance" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for campaign in campaigns %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ campaign.name }}</td>
+                            <td>{{ campaign.get_campaign_type_display }}</td>
+                            <td>{{ campaign.template.name }}</td>
+                            <td>{{ campaign.scheduled_for|date:"M d, Y H:i"|default:"-" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if campaign.status == 'DRAFT' %}bg-secondary-subtle text-secondary
+                                    {% elif campaign.status == 'RUNNING' %}bg-success-subtle text-success
+                                    {% elif campaign.status == 'SCHEDULED' %}bg-primary-subtle text-primary
+                                    {% elif campaign.status == 'COMPLETED' %}bg-info-subtle text-info
+                                    {% elif campaign.status == 'FAILED' %}bg-danger-subtle text-danger
+                                    {% else %}bg-light text-dark{% endif %}">
+                                    {{ campaign.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <span class="text-muted">{% trans "Sent" %}:</span> {{ campaign.sent_count }}<br>
+                                    <span class="text-muted">{% trans "Open" %}:</span> {{ campaign.open_rate|floatformat:1 }}%
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'communications:campaign_update' campaign.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="{% url 'communications:campaign_delete' campaign.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="{% trans 'Delete' %}">
+                                        <i class="bx bx-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Events List" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h4 class="mb-1">{% trans "Events List" %}</h4>
+                    <p class="text-muted mb-0">{% trans "Manage and track all institutional events." %}</p>
+                </div>
+                <div>
+                    <a href="{% url 'events:event_create' %}" class="btn btn-primary">
+                        <i class="bx bx-plus me-1"></i> {% trans "Add New Event" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold">{% trans "Search" %}</label>
+                    <input type="text" name="search" class="form-control" placeholder="{% trans 'Search events...' %}" value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">{% trans "Type" %}</label>
+                    <select name="event_type" class="form-select">
+                        <option value="">{% trans "All Types" %}</option>
+                        {% for code, name in view.model.EVENT_TYPE_CHOICES %}
+                            <option value="{{ code }}" {% if request.GET.event_type == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">{% trans "Status" %}</label>
+                    <select name="status" class="form-select">
+                        <option value="">{% trans "All Status" %}</option>
+                        {% for code, name in view.model.STATUS_CHOICES %}
+                            <option value="{{ code }}" {% if request.GET.status == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-filter-alt me-1"></i> {% trans "Filter" %}
+                    </button>
+                    <a href="{% url 'events:event_list' %}" class="btn btn-light">{% trans "Reset" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" data-datatable="true">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Event Details" %}</th>
+                            <th>{% trans "Schedule" %}</th>
+                            <th>{% trans "Type / Category" %}</th>
+                            <th>{% trans "Venue" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="pe-4 text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    {% if event.featured_image %}
+                                        <img src="{{ event.featured_image.url }}" class="rounded me-3" width="45" height="45" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="avatar avatar-md bg-primary-subtle text-primary rounded me-3">
+                                            <i class="bx bx-calendar fs-3"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="py-2">
+                                        <h6 class="mb-0 fw-bold">{{ event.title }}</h6>
+                                        <small class="text-muted">{{ event.organizer_name|default:tenant.name }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-medium text-dark">{{ event.start_date|date:"d M Y" }}</div>
+                                <small class="text-muted">{{ event.start_time|time:"H:i" }} - {{ event.end_time|time:"H:i" }}</small>
+                            </td>
+                            <td>
+                                <div><span class="badge bg-light text-dark fw-normal">{{ event.get_event_type_display }}</span></div>
+                                <small class="text-primary">{{ event.category.name|default:"-" }}</small>
+                            </td>
+                            <td>
+                                <div class="text-nowrap"><i class="bx bx-map-pin me-1"></i> {{ event.venue|truncatechars:20 }}</div>
+                                {% if event.is_online %}
+                                    <span class="badge bg-info bg-opacity-10 text-info smaller-badge mt-1">{% trans "Online" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if event.status == 'SCHEDULED' %}bg-primary
+                                    {% elif event.status == 'ONGOING' %}bg-warning
+                                    {% elif event.status == 'COMPLETED' %}bg-success
+                                    {% elif event.status == 'CANCELLED' %}bg-danger
+                                    {% else %}bg-secondary{% endif %} bg-opacity-10 
+                                    {% if event.status == 'SCHEDULED' %}text-primary
+                                    {% elif event.status == 'ONGOING' %}text-warning
+                                    {% elif event.status == 'COMPLETED' %}text-success
+                                    {% elif event.status == 'CANCELLED' %}text-danger
+                                    {% else %}text-secondary{% endif %}">
+                                    {{ event.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-icon btn-sm" type="button" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li><a class="dropdown-item" href="{% url 'events:event_detail' event.pk %}"><i class="bx bx-show me-2"></i> {% trans "View Detail" %}</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'events:event_update' event.pk %}"><i class="bx bx-edit-alt me-2"></i> {% trans "Edit Event" %}</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="{% url 'events:event_delete' event.pk %}"><i class="bx bx-trash me-2"></i> {% trans "Delete" %}</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center p-5 text-muted">
+                                <i class="bx bx-calendar-x mb-2 fs-1"></i>
+                                <p class="mb-0">{% trans "No events found matching your criteria." %}</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if is_paginated %}
+                <div class="px-4 py-3 border-top">
+                    {% include 'partials/pagination.html' %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

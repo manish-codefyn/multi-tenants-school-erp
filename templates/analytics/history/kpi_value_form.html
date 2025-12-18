@@ -1,0 +1,63 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static crispy_forms_tags %}
+
+{% block title %}{{ title }} | {% trans "Analytics" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=title parent=_("Analytics") child=title %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{{ title }}</h6>
+                </div>
+            </div>
+            <hr>
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-12">
+                    {{ form.kpi|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.value|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.target_value|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.period_start|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.period_end|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.period_type|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.academic_year|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.class_name|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.subject|as_crispy_field }}
+                </div>
+                <div class="col-12">
+                    {{ form.is_anomaly|as_crispy_field }}
+                </div>
+                <div class="col-12">
+                    {{ form.notes|as_crispy_field }}
+                </div>
+
+                <div class="col-12 text-end mt-4">
+                    <button type="submit" class="btn btn-primary px-5">
+                        <i class="bx bx-save"></i> {% trans "Save KPI Value" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

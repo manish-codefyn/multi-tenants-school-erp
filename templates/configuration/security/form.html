@@ -1,0 +1,140 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Security Configuration" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:dashboard' %}">{% trans "Configuration" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Security" %}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Security Configuration" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <h6 class="mb-3">{% trans "Password Policy" %}</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form.password_min_length|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.password_expiry_days|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.password_history_count|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                {{ form.password_require_uppercase|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.password_require_lowercase|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.password_require_numbers|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.password_require_symbols|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "Session & Login" %}</h6>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.session_timeout_minutes|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.max_concurrent_sessions|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form.max_login_attempts|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.lockout_duration_minutes|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.force_logout_on_password_change|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.require_2fa|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.allowed_2fa_methods|as_crispy_field }}
+                            </div>
+                        </div>
+
+                         <hr>
+                        <h6 class="mb-3">{% trans "IP Security" %}</h6>
+                        <div class="row">
+                             <div class="col-12">
+                                {{ form.enable_ip_restriction|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.ip_whitelist|as_crispy_field }}
+                            </div>
+                             <div class="col-12">
+                                {{ form.ip_blacklist|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3">{% trans "Data & API Security" %}</h6>
+                        <div class="row">
+                             <div class="col-md-4">
+                                {{ form.data_encryption_enabled|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.auto_logout_on_inactivity|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.audit_log_retention_days|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.api_rate_limit|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.api_key_expiry_days|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.chart_field|as_crispy_field }}
+                            </div>
+                        </div>
+
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-1"></i> {% trans "Save Configuration" %}
+                            </button>
+                            <a href="{% url 'configuration:dashboard' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}{% trans "Edit Dashboard" %}{% else %}{% trans "Create Dashboard" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% if form.instance.pk %}
+        {% include 'partials/breadcrumb.html' with title=_("Custom Dashboards") parent=_("Analytics") child=_("Edit") %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with title=_("Custom Dashboards") parent=_("Analytics") child=_("Create") %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-xl-9 mx-auto">
+            <div class="card border-top border-0 border-4 border-success">
+                <div class="card-body p-5">
+                    <div class="card-title d-flex align-items-center">
+                        <div><i class="bx bxs-grid-alt me-1 font-22 text-success"></i>
+                        </div>
+                        <h5 class="mb-0 text-success">
+                            {% if form.instance.pk %}{% trans "Modify Dashboard Layout" %}{% else %}{% trans "New Dashboard Concept" %}{% endif %}
+                        </h5>
+                    </div>
+                    <hr>
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-9">
+                            {{ form.title|as_crispy_field }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.layout_type|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.description|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.theme|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.refresh_interval|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            {{ form.is_public|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.is_active|as_crispy_field }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="mb-0 border-bottom pb-2">{% trans "Dashboard Config (JSON)" %}</h6>
+                        </div>
+                        <div class="col-12">
+                            {{ form.config|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.filters|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.chart_config|as_crispy_field }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.allowed_roles|as_crispy_field }}
+                        </div>
+
+                        <div class="col-12 text-end mt-4">
+                            <a href="{% url 'analytics:dashboard_list' %}" class="btn btn-light px-5">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-success px-5">{% trans "Save Dashboard" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

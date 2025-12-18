@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}
+    {% if object %}{% trans "Edit Event" %}: {{ object.title }}{% else %}{% trans "Create New Event" %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h4 class="mb-1">{% if object %}{% trans "Edit Event" %}{% else %}{% trans "Create Event" %}{% endif %}</h4>
+                        <p class="text-muted mb-0">{% trans "Fill in the details to publish your institutional event." %}</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bx bx-check me-1"></i> {% if object %}{% trans "Save Changes" %}{% else %}{% trans "Create Event" %}{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Basic Information -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-transparent border-0 p-4 pb-0">
+                        <h5 class="mb-0 fw-bold"><i class="bx bx-info-circle me-2 text-primary"></i> {% trans "Basic Information" %}</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">{{ form.title.label }}</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">{{ form.description.label }}</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">{{ form.short_description.label }}</label>
+                                {{ form.short_description }}
+                                <small class="text-muted">{% trans "Brief summary for card views (max 500 chars)." %}</small>
+                                {% if form.short_description.errors %}<div class="text-danger small">{{ form.short_description.errors.0 }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scheduling -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-transparent border-0 p-4 pb-0 text-white" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);">
+                         <!-- Overriding the text-white locally if needed, but styling headers is nice -->
+                        <h5 class="mb-0 fw-bold "><i class="bx bx-time me-2"></i> {% trans "Scheduling & Timing" %}</h5>
+                        <p class="small mb-2 mt-1 opacity-75">{% trans "When will the event take place?" %}</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.start_date.label }}</label>
+                                {{ form.start_date }}
+                                {% if form.start_date.errors %}<div class="text-danger small">{{ form.start_date.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.end_date.label }}</label>
+                                {{ form.end_date }}
+                                {% if form.end_date.errors %}<div class="text-danger small">{{ form.end_date.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.start_time.label }}</label>
+                                {{ form.start_time }}
+                                {% if form.start_time.errors %}<div class="text-danger small">{{ form.start_time.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.end_time.label }}</label>
+                                {{ form.end_time }}
+                                {% if form.end_time.errors %}<div class="text-danger small">{{ form.end_time.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check form-switch mt-2">
+                                    {{ form.is_all_day }}
+                                    <label class="form-check-label fw-bold ms-2" for="{{ form.is_all_day.id_for_label }}">
+                                        {{ form.is_all_day.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-transparent border-0 p-4 pb-0 text-white" style="background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);">
+                        <h5 class="mb-0 fw-bold "><i class="bx bx-map me-2"></i> {% trans "Location & Venue" %}</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">{{ form.venue.label }}</label>
+                                {{ form.venue }}
+                                {% if form.venue.errors %}<div class="text-danger small">{{ form.venue.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">{{ form.address.label }}</label>
+                                {{ form.address }}
+                                {% if form.address.errors %}<div class="text-danger small">{{ form.address.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.google_maps_link.label }}</label>
+                                {{ form.google_maps_link }}
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check form-switch mb-3">
+                                    {{ form.is_online }}
+                                    <label class="form-check-label fw-bold ms-2" for="{{ form.is_online.id_for_label }}">
+                                        {{ form.is_online.label }}
+                                    </label>
+                                </div>
+                                <div id="online_link_container" class="{% if not form.is_online.value %}d-none{% endif %}">
+                                    <label class="form-label fw-bold small">{{ form.online_link.label }}</label>
+                                    {{ form.online_link }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Taxonomy & Metadata -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3">{% trans "Categorization" %}</h6>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">{{ form.event_type.label }}</label>
+                            {{ form.event_type }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">{{ form.category.label }}</label>
+                            {{ form.category }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">{{ form.academic_year.label }}</label>
+                            {{ form.academic_year }}
+                        </div>
+                        
+                        <hr class="my-3 text-muted opacity-25">
+                        
+                        <h6 class="fw-bold mb-3">{% trans "Status & Settings" %}</h6>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">{{ form.status.label }}</label>
+                            {{ form.status }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">{{ form.priority.label }}</label>
+                            {{ form.priority }}
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            {{ form.is_published }}
+                            <label class="form-check-label small fw-bold ms-2" for="{{ form.is_published.id_for_label }}">
+                                {{ form.is_published.label }}
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            {{ form.is_featured }}
+                            <label class="form-check-label small fw-bold ms-2" for="{{ form.is_featured.id_for_label }}">
+                                {{ form.is_featured.label }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media -->
+                <div class="card shadow-sm border-0 mb-4 text-white" style="background-color: #3b82f6;">
+                    <div class="card-body p-4 text-white">
+                        <h6 class="fw-bold mb-3"><i class="bx bx-image me-1"></i> {% trans "Cover Image" %}</h6>
+                        <div class="mb-3">
+                            {% if object.featured_image %}
+                                <div class="mb-2">
+                                    <img src="{{ object.featured_image.url }}" class="img-fluid rounded border border-2 border-white shadow-sm" style="max-height: 150px;">
+                                </div>
+                            {% endif %}
+                            {{ form.featured_image }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registration Settings -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3">{% trans "Registration" %}</h6>
+                        <div class="form-check form-switch mb-3">
+                            {{ form.requires_registration }}
+                            <label class="form-check-label small fw-bold ms-2" for="{{ form.requires_registration.id_for_label }}">
+                                {{ form.requires_registration.label }}
+                            </label>
+                        </div>
+                        
+                        <div id="registration_fields" class="{% if not form.requires_registration.value %}d-none{% endif %}">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">{{ form.max_attendees.label }}</label>
+                                {{ form.max_attendees }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">{{ form.registration_deadline.label }}</label>
+                                {{ form.registration_deadline }}
+                            </div>
+                        </div>
+
+                        <hr class="my-3 text-muted opacity-25">
+                        
+                        <div class="form-check form-switch mb-3">
+                            {{ form.is_free }}
+                            <label class="form-check-label small fw-bold ms-2" for="{{ form.is_free.id_for_label }}">
+                                {{ form.is_free.label }}
+                            </label>
+                        </div>
+                        <div id="fee_fields" class="{% if form.is_free.value %}d-none{% endif %}">
+                            <div class="row g-2">
+                                <div class="col-8">
+                                    <label class="form-label small fw-bold">{{ form.fee_amount.label }}</label>
+                                    {{ form.fee_amount }}
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small fw-bold">{{ form.fee_currency.label }}</label>
+                                    {{ form.fee_currency }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle online link
+        const onlineSwitch = document.querySelector('#{{ form.is_online.id_for_label }}');
+        const onlineContainer = document.querySelector('#online_link_container');
+        
+        if (onlineSwitch) {
+            onlineSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    onlineContainer.classList.remove('d-none');
+                } else {
+                    onlineContainer.classList.add('d-none');
+                }
+            });
+        }
+
+        // Toggle registration fields
+        const regSwitch = document.querySelector('#{{ form.requires_registration.id_for_label }}');
+        const regFields = document.querySelector('#registration_fields');
+        
+        if (regSwitch) {
+            regSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    regFields.classList.remove('d-none');
+                } else {
+                    regFields.classList.add('d-none');
+                }
+            });
+        }
+
+        // Toggle fee fields
+        const freeSwitch = document.querySelector('#{{ form.is_free.id_for_label }}');
+        const feeFields = document.querySelector('#fee_fields');
+        
+        if (freeSwitch) {
+            freeSwitch.addEventListener('change', function() {
+                if (!this.checked) {
+                    feeFields.classList.remove('d-none');
+                } else {
+                    feeFields.classList.add('d-none');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

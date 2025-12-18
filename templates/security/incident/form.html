@@ -1,0 +1,160 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Update Incident" %}{% else %}{% trans "Report Incident" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'security:dashboard' %}">{% trans "Security" %}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'security:incident_list' %}">{% trans "Incidents" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {% if form.instance.pk %}{{ form.instance.incident_id }}{% else %}{% trans "Report Incident" %}{% endif %}
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0 text-white">
+                        {% if form.instance.pk %}
+                            {% trans "Update Security Incident" %}
+                        {% else %}
+                            {% trans "Report Security Incident" %}
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if not form.instance.pk %}
+                        <!-- Creation Fields -->
+                        <h6 class="mb-3">{% trans "Incident Overview" %}</h6>
+                        <div class="row">
+                            <div class="col-md-8">
+                                {{ form.title|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.incident_type|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-12">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                         <hr>
+                        <h6 class="mb-3">{% trans "Assessment" %}</h6>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.priority|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.impact_level|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.detected_at|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6 pt-4">
+                                {{ form.data_compromised|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-12">
+                                {{ form.affected_systems|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                         <hr>
+                         <h6 class="mb-3">{% trans "Assignment" %}</h6>
+                         <div class="row">
+                             <div class="col-md-6">
+                                 {{ form.assigned_to|as_crispy_field }}
+                             </div>
+                         </div>
+                        
+                         <div class="row">
+                            <div class="col-md-12">
+                                {{ form.notes|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        {% else %}
+                        <!-- Update Fields -->
+                         <h6 class="mb-3">{% trans "Status Update" %}</h6>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.status|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.priority|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.impact_level|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.assigned_to|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                         <hr>
+                        <h6 class="mb-3">{% trans "Investigation (Resolution)" %}</h6>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.contained_at|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.resolved_at|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-12">
+                                {{ form.root_cause|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-12">
+                                {{ form.action_taken|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-12">
+                                {{ form.prevention_measures|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                         <hr>
+                        <h6 class="mb-3">{% trans "Update Notes" %}</h6>
+                         <div class="row">
+                            <div class="col-md-12">
+                                {{ form.notes|as_crispy_field }}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-1"></i> {% trans "Save Incident" %}
+                            </button>
+                            <a href="{% url 'security:incident_list' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

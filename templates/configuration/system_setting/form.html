@@ -1,0 +1,135 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Edit Setting" %}{% else %}{% trans "New Setting" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:dashboard' %}">{% trans "Configuration" %}</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:setting_list' %}">{% trans "System Settings" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            {% if form.instance.pk %}{{ form.instance.name }}{% else %}{% trans "New Setting" %}{% endif %}
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        {% if form.instance.pk %}
+                            {% trans "Edit Setting" %}
+                        {% else %}
+                            {% trans "Add New Setting" %}
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.key|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.name|as_crispy_field }}
+                            </div>
+                            <div class="col-12">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.category|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.group|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "Value Configuration" %}</h6>
+                        
+                        <div class="row" id="value-fields">
+                            <div class="col-md-4">
+                                {{ form.setting_type|as_crispy_field }}
+                            </div>
+                            <div class="col-md-8">
+                                <!-- Dynamic fields based on type -->
+                                <div class="value-field" data-type="STRING">{{ form.value_string|as_crispy_field }}</div>
+                                <div class="value-field" data-type="TEXT">{{ form.value_text|as_crispy_field }}</div>
+                                <div class="value-field" data-type="INTEGER">{{ form.value_integer|as_crispy_field }}</div>
+                                <div class="value-field" data-type="DECIMAL">{{ form.value_decimal|as_crispy_field }}</div>
+                                <div class="value-field" data-type="BOOLEAN">{{ form.value_boolean|as_crispy_field }}</div>
+                                <div class="value-field" data-type="JSON">{{ form.value_json|as_crispy_field }}</div>
+                                <div class="value-field" data-type="DATETIME">{{ form.value_datetime|as_crispy_field }}</div>
+                                <div class="value-field" data-type="DATE">{{ form.value_date|as_crispy_field }}</div>
+                                <div class="value-field" data-type="TIME">{{ form.value_time|as_crispy_field }}</div>
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "Options" %}</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                {{ form.is_public|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.is_encrypted|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.is_required|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.is_readonly|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-1"></i> {% trans "Save Settings" %}
+                            </button>
+                            <a href="{% url 'configuration:setting_list' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('id_setting_type');
+        const valueFields = document.querySelectorAll('.value-field');
+
+        function updateFields() {
+            const selectedType = typeSelect.value;
+            valueFields.forEach(field => {
+                if (field.dataset.type === selectedType) {
+                    field.style.display = 'block';
+                } else {
+                    field.style.display = 'none';
+                }
+            });
+        }
+
+        if (typeSelect) {
+            typeSelect.addEventListener('change', updateFields);
+            updateFields(); // Initial call
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

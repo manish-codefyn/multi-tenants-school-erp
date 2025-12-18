@@ -1,0 +1,97 @@
+{% load i18n %}
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-line-chart"></i></div>
+        <div class="menu-title">{% trans "Analytics" %}</div>
+    </a>
+
+    <ul>
+        <li>
+            <a href="{% url 'analytics:dashboard' %}">
+                <div class="parent-icon"><i class="bx bx-home-alt"></i></div>
+                <div class="menu-title">{% trans "Overview" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'analytics:report_list' %}">
+                <div class="parent-icon"><i class="bx bx-file"></i></div>
+                <div class="menu-title">{% trans "Reports" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'analytics:kpi_list' %}">
+                <div class="parent-icon"><i class="bx bx-trending-up"></i></div>
+                <div class="menu-title">{% trans "KPIs" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'analytics:dashboard_list' %}">
+                <div class="parent-icon"><i class="bx bx-grid-alt"></i></div>
+                <div class="menu-title">{% trans "Custom Dashboards" %}</div>
+            </a>
+        </li>
+
+        <li class="menu-label">{% trans "Audit & Compliance" %}</li>
+        <li>
+            <a href="{% url 'analytics:audit_report_list' %}">
+                <div class="parent-icon"><i class="bx bx-shield"></i></div>
+                <div class="menu-title">{% trans "Audit Reports" %}</div>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'analytics:audit_pattern_list' %}">
+                <div class="parent-icon"><i class="bx bx-scan"></i></div>
+                <div class="menu-title">{% trans "Patterns" %}</div>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'analytics:audit_alert_list' %}">
+                <div class="parent-icon"><i class="bx bx-bell"></i></div>
+                <div class="menu-title">{% trans "Alerts" %}</div>
+            </a>
+        </li>
+
+        <li class="menu-label">{% trans "Advanced Insights" %}</li>
+        <li>
+            <a href="{% url 'analytics:prediction_list' %}">
+                <div class="parent-icon"><i class="bx bx-brain"></i></div>
+                <div class="menu-title">{% trans "Predictions" %}</div>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'analytics:student_performance_list' %}">
+                <div class="parent-icon"><i class="bx bx-user-check"></i></div>
+                <div class="menu-title">{% trans "Student Perf." %}</div>
+            </a>
+        </li>
+
+        <li class="menu-label">{% trans "History" %}</li>
+        <li>
+            <a href="{% url 'analytics:execution_list' %}">
+                <div class="parent-icon"><i class="bx bx-history"></i></div>
+                <div class="menu-title">{% trans "Executions" %}</div>
+            </a>
+        </li>
+
+        {% if user.is_staff %}
+        <li class="menu-label">{% trans "Configuration" %}</li>
+        
+        <li>
+            <a href="{% url 'analytics:datasource_list' %}">
+                <div class="parent-icon"><i class="bx bx-data"></i></div>
+                <div class="menu-title">{% trans "Data Sources" %}</div>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'analytics:audit_metric_list' %}">
+                <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
+                <div class="menu-title">{% trans "Audit Metrics" %}</div>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</li>

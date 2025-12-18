@@ -1,0 +1,92 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Custom Dashboards" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("Custom Dashboards") parent=_("Analytics") child=_("Dashboard List") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "Tailored Insights" %}</h6>
+                </div>
+                <div class="ms-auto">
+                    <a href="{% url 'analytics:dashboard_create' %}" class="btn btn-primary radius-30 px-4">
+                        <i class="bx bx-plus"></i> {% trans "Create Dashboard" %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="dashboards-table" class="table table-striped table-bordered w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Dashboard Name" %}</th>
+                            <th>{% trans "Layout" %}</th>
+                            <th>{% trans "Visibility" %}</th>
+                            <th>{% trans "Refresh" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for db in dashboards %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="widgets-icons-2 rounded-circle bg-light-success text-success me-2">
+                                        <i class="bx bx-grid-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ db.title }}</h6>
+                                        <small class="text-secondary">{{ db.description|truncatechars:40 }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ db.get_layout_type_display }}</td>
+                            <td>
+                                {% if db.is_public %}
+                                <span class="badge bg-light-info text-info">{% trans "Public" %}</span>
+                                {% else %}
+                                <span class="badge bg-light-secondary text-secondary">{% trans "Private" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ db.refresh_interval|default:"--" }}s</td>
+                            <td>
+                                {% if db.is_active %}
+                                <span class="badge bg-success">{% trans "Active" %}</span>
+                                {% else %}
+                                <span class="badge bg-danger">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex order-actions">
+                                    <a href="{% url "analytics:dashboard_detail" db.pk %}" class="text-info bg-light-info border-0"><i class="bx bxs-show"></i></a>
+                                    <a href="{% url "analytics:dashboard_update" db.pk %}" class="ms-2 text-primary bg-light-primary border-0"><i class="bx bxs-edit"></i></a>
+                                    <a href="{% url "analytics:dashboard_delete" db.pk %}" class="ms-2 text-danger bg-light-danger border-0"><i class="bx bxs-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#dashboards-table').DataTable({
+            responsive: true,
+            order: [[0, 'asc']]
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Security Incidents" %}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="h3">{% trans "Security Incidents" %}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'security:dashboard' %}">{% trans "Security" %}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{% trans "Incidents" %}</li>
+                </ol>
+            </nav>
+        </div>
+        <a href="{% url 'security:incident_create' %}" class="btn btn-danger">
+            <i class="bx bx-plus me-1"></i> {% trans "Report Incident" %}
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>{% trans "ID" %} / {% trans "Title" %}</th>
+                    <th>{% trans "Type" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Priority" %}</th>
+                    <th>{% trans "Detected" %}</th>
+                    <th>{% trans "Assigned To" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incident in object_list %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ incident.incident_id }}</div>
+                        <div class="text-muted small">{{ incident.title }}</div>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ incident.get_incident_type_display }}</span></td>
+                    <td>
+                         {% if incident.status == 'OPEN' %}
+                            <span class="badge bg-danger">{{ incident.get_status_display }}</span>
+                        {% elif incident.status == 'RESOLVED' %}
+                            <span class="badge bg-success">{{ incident.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">{{ incident.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if incident.priority == 'CRITICAL' %}
+                            <span class="badge bg-danger">{{ incident.get_priority_display }}</span>
+                        {% elif incident.priority == 'HIGH' %}
+                            <span class="badge bg-warning text-dark">{{ incident.get_priority_display }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ incident.get_priority_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div>{{ incident.detected_at|date:"M d, Y" }}</div>
+                        <div class="small text-muted">{{ incident.detected_at|time:"H:i" }}</div>
+                    </td>
+                     <td>
+                        {% if incident.assigned_to %}
+                            {{ incident.assigned_to.get_full_name|default:incident.assigned_to.username }}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'security:incident_detail' incident.pk %}" class="btn btn-outline-primary" title="{% trans 'View' %}">
+                                <i class="bx bx-show"></i>
+                            </a>
+                            <a href="{% url 'security:incident_update' incident.pk %}" class="btn btn-outline-secondary" title="{% trans 'Update' %}">
+                                <i class="bx bx-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">{% trans "No security incidents found." %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

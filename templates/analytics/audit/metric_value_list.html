@@ -1,0 +1,55 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Audit Metric Values" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("Audit Metrics") parent=_("Analytics") child=_("Values") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "Historical Metric Data" %}</h6>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="audit-metric-values-table" class="table table-striped table-bordered w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Metric" %}</th>
+                            <th>{% trans "Value" %}</th>
+                            <th>{% trans "Timestamp" %}</th>
+                            <th>{% trans "Avg Value" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for val in object_list %}
+                        <tr>
+                            <td>{{ val.metric.name }}</td>
+                            <td>{{ val.value }}</td>
+                            <td>{{ val.timestamp|date:"M d, Y H:i" }}</td>
+                            <td>{{ val.avg_value|default:"--" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#audit-metric-values-table').DataTable({
+            responsive: true,
+            order: [[2, 'desc']]
+        });
+    });
+</script>
+{% endblock %}

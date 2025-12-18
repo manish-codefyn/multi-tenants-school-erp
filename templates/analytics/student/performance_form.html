@@ -1,0 +1,78 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static crispy_forms_tags %}
+
+{% block title %}{{ title }} | {% trans "Analytics" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=title parent=_("Analytics") child=title %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{{ title }}</h6>
+                </div>
+            </div>
+            <hr>
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+                <div class="col-md-6">
+                    {{ form.student|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.academic_year|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.overall_percentage|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.class_rank|as_crispy_field }}
+                </div>
+                 <div class="col-md-4">
+                    {{ form.total_students|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.attendance_percentage|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.participation_score|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.growth_percentage|as_crispy_field }}
+                </div>
+                <div class="col-md-12">
+                    {{ form.subject_performance|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.strong_subjects|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.weak_subjects|as_crispy_field }}
+                </div>
+                <div class="col-md-12">
+                    {{ form.chart_config|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.at_risk_score|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.predicted_performance|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.performance_trend|as_crispy_field }}
+                </div>
+                <div class="col-12">
+                    {{ form.recommendation|as_crispy_field }}
+                </div>
+
+                <div class="col-12 text-end mt-4">
+                    <button type="submit" class="btn btn-primary px-5">
+                        <i class="bx bx-save"></i> {% trans "Save Performance" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

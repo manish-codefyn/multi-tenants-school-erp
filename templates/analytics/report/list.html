@@ -1,0 +1,94 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Reports" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("Reports") parent=_("Analytics") child=_("Report List") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "Report Management" %}</h6>
+                </div>
+                <div class="ms-auto">
+                    <a href="{% url 'analytics:report_create' %}" class="btn btn-primary radius-30 px-4">
+                        <i class="bx bx-plus"></i> {% trans "Create Report" %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="reports-table" class="table table-striped table-bordered" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Title" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Access" %}</th>
+                            <th>{% trans "Scheduled" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="widgets-icons-2 rounded-circle bg-light-primary text-primary me-2">
+                                        <i class='bx bx-file'></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ report.title }}</h6>
+                                        <small class="text-secondary">{{ report.description|truncatechars:50 }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ report.get_report_type_display }}</td>
+                            <td>
+                                <span class="badge bg-light-info text-info">{{ report.get_access_level_display }}</span>
+                            </td>
+                            <td>
+                                {% if report.is_scheduled %}
+                                <span class="badge bg-light-success text-success">{{ report.get_schedule_frequency_display }}</span>
+                                {% else %}
+                                <span class="badge bg-light-secondary text-secondary">{% trans "Manual" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if report.is_active %}
+                                <span class="badge bg-success">{% trans "Active" %}</span>
+                                {% else %}
+                                <span class="badge bg-danger">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex order-actions">
+                                    <a href="{% url 'analytics:report_detail' report.pk %}" class="text-info bg-light-info border-0"><i class='bx bxs-show'></i></a>
+                                    <a href="{% url 'analytics:report_update' report.pk %}" class="ms-2 text-primary bg-light-primary border-0"><i class='bx bxs-edit'></i></a>
+                                    <a href="{% url 'analytics:report_delete' report.pk %}" class="ms-2 text-danger bg-light-danger border-0"><i class='bx bxs-trash'></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#reports-table').DataTable({
+            responsive: true,
+            order: [[0, 'asc']]
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+{% block title %}
+    {% trans "Report Details" %}
+{% endblock %}
+{% block content %}
+    <div class="page-content">
+        {% include 'partials/breadcrumb.html' with title=report.title parent=_("Analytics") child=_("Report Details") %}
+        <div class="card radius-10">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <div>
+                        <h5 class="mb-0">{{ report.title }}</h5>
+                        <p class="text-secondary mb-0">{{ report.description }}</p>
+                    </div>
+                    <div class="ms-auto">
+                        <form action="{% url 'analytics:report_generate' report.pk %}"
+                              method="post"
+                              class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success radius-30 px-4 me-2">
+                                <i class="bx bx-play"></i> {% trans "Generate Now" %}
+                            </button>
+                        </form>
+                        <a href="{% url 'analytics:report_update' report.pk %}"
+                           class="btn btn-primary radius-30 px-4 me-2">
+                            <i class="bx bxs-edit"></i> {% trans "Edit" %}
+                        </a>
+                        <a href="{% url 'analytics:report_delete' report.pk %}"
+                           class="btn btn-danger radius-30 px-4">
+                            <i class="bx bxs-trash"></i> {% trans "Delete" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-8">
+                        <div class="card border shadow-none radius-10">
+                            <div class="card-body">
+                                <h6 class="mb-3">{% trans "Configuration" %}</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary">{% trans "Report Type" %}</label>
+                                        <div>{{ report.get_report_type_display }}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary">{% trans "Access Level" %}</label>
+                                        <div>
+                                            <span class="badge bg-light-info text-info">{{ report.get_access_level_display }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary">{% trans "Schedule" %}</label>
+                                        <div>
+                                            {% if report.is_scheduled %}
+                                                <span class="badge bg-light-success text-success">{{ report.get_schedule_frequency_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-light-secondary text-secondary">{% trans "Manual" %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-secondary">{% trans "Status" %}</label>
+                                        <div>
+                                            {% if report.is_active %}
+                                                <span class="badge bg-success">{% trans "Active" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{% trans "Inactive" %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label text-secondary">{% trans "Query/Configuration" %}</label>
+                                        <div class="p-3 bg-light rounded border">
+                                            <code>{{ report.config }}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card border shadow-none radius-10">
+                            <div class="card-body">
+                                <h6 class="mb-3">{% trans "Recent Executions" %}</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>{% trans "Date" %}</th>
+                                                <th>{% trans "Status" %}</th>
+                                                <th>{% trans "Executed By" %}</th>
+                                                <th>{% trans "Duration" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for execution in recent_executions %}
+                                                <tr>
+                                                    <td>{{ execution.started_at|date:"Y-m-d H:i" }}</td>
+                                                    <td>
+                                                        {% if execution.status == 'success' %}
+                                                            <span class="badge bg-light-success text-success">{% trans "Success" %}</span>
+                                                        {% else %}
+                                                            <span class="badge bg-light-danger text-danger">{% trans "Failed" %}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ execution.executed_by.get_full_name|default:execution.executed_by.username }}</td>
+                                                    <td>{{ execution.duration|default:"-" }}</td>
+                                                </tr>
+                                            {% empty %}
+                                                <tr>
+                                                    <td colspan="4" class="text-center text-muted">{% trans "No executions yet" %}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="card border shadow-none radius-10">
+                            <div class="card-body">
+                                <h6 class="mb-3">{% trans "Related KPIs" %}</h6>
+                                {% if related_kpis %}
+                                    <div class="list-group list-group-flush">
+                                        {% for kpi in related_kpis %}
+                                            <a href="{% url 'analytics:kpi_detail' kpi.pk %}"
+                                               class="list-group-item list-group-item-action d-flex align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-0">{{ kpi.name }}</h6>
+                                                    <small class="text-secondary">{{ kpi.code }}</small>
+                                                </div>
+                                                <i class="bx bx-chevron-right"></i>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-center text-muted py-3">{% trans "No related KPIs found" %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card border shadow-none radius-10">
+                            <div class="card-body">
+                                <h6 class="mb-3">{% trans "Data Source" %}</h6>
+                                {% if report.data_source %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="widgets-icons-2 rounded-circle bg-light-warning text-warning me-2">
+                                            <i class='bx bx-data'></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ report.data_source.name }}</h6>
+                                            <a href="{% url 'analytics:datasource_detail' report.data_source.pk %}"
+                                               class="text-secondary small">{% trans "View Details" %}</a>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center text-muted py-3">{% trans "No data source linked" %}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

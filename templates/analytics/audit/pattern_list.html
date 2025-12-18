@@ -1,0 +1,81 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Audit Patterns" %}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    {% include 'partials/breadcrumb.html' with title=_("Audit Patterns") parent=_("Analytics") child=_("Patterns") %}
+
+    <div class="card radius-10">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">{% trans "System Anomaly Patterns" %}</h6>
+                </div>
+                <div class="ms-auto">
+                    <a href="{% url 'analytics:audit_pattern_create' %}" class="btn btn-primary radius-30 px-4">
+                        <i class="bx bx-plus"></i> {% trans "Add Pattern" %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="audit-patterns-table" class="table table-striped table-bordered w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Severity" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Last Detected" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pattern in object_list %}
+                        <tr>
+                            <td>
+                                <h6 class="mb-0">{{ pattern.name }}</h6>
+                                <small class="text-secondary">{{ pattern.description|truncatechars:30 }}</small>
+                            </td>
+                            <td>{{ pattern.get_pattern_type_display }}</td>
+                            <td>
+                                <span class="badge bg-{% if pattern.severity == 'CRITICAL' %}danger{% elif pattern.severity == 'HIGH' %}warning{% else %}info{% endif %}">
+                                    {{ pattern.get_severity_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if pattern.is_active %}
+                                <span class="badge bg-success">{% trans "Active" %}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ pattern.last_detected|default:"Never" }}</td>
+                            <td>
+                                <div class="d-flex order-actions">
+                                    <a href="javascript:;" class="text-primary bg-light-primary border-0"><i class="bx bxs-edit"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'includes/datatable_scripts.html' %}
+<script>
+    $(document).ready(function() {
+        $('#audit-patterns-table').DataTable({
+            responsive: true,
+            order: [[2, 'desc']]
+        });
+    });
+</script>
+{% endblock %}

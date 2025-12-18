@@ -1,26 +1,95 @@
-<!-- If you add notice and notification URLs later -->
+<!-- Configuration Management -->
 <li>
     <a href="javascript:;" class="has-arrow">
-        <div class="parent-icon"><i class="bx bx-message-square-dots"></i></div>
-        <div class="menu-title">Communication</div>
+        <div class="parent-icon"><i class="bx bx-cog"></i></div>
+        <div class="menu-title">Configuration</div>
     </a>
     <ul>
-        <li><a href="{% url 'communications:dashboard' %}"><i class='bx bx-radio-circle'></i>Dashboard</a></li>
-        
-        <!-- Messages -->
+        <!-- Dashboard -->
         <li>
-            <a href="javascript:;" class="has-arrow"><i class='bx bx-radio-circle'></i>Messages</a>
+            <a href="{% url 'configuration:dashboard' %}">
+                <i class='bx bx-radio-circle'></i>Dashboard
+            </a>
+        </li>
+        
+        <!-- System Settings -->
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <i class='bx bx-radio-circle'></i>System Settings
+            </a>
             <ul>
-                <li><a href="{% url 'communications:messages' %}">All Messages</a></li>
-                <li><a href="{% url 'communications:message_compose' %}">Compose Message</a></li>
-                <li><a href="{% url 'communications:parent_messages' %}">Parent Messages</a></li>
+                <li>
+                    <a href="{% url 'configuration:setting_list' %}">
+                        All Settings
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'configuration:setting_create' %}">
+                        Create Setting
+                    </a>
+                </li>
             </ul>
         </li>
         
-        <!-- Notices (if added) -->
-        <li><a href=""><i class='bx bx-radio-circle'></i>Notices</a></li>
+        <!-- Academic Configuration -->
+        <li>
+            <a href="{% url 'configuration:academic_config' %}">
+                <i class='bx bx-radio-circle'></i>Academic Config
+            </a>
+        </li>
         
-        <!-- Notifications (if added) -->
-        <li><a href=""><i class='bx bx-radio-circle'></i>Notifications</a></li>
-    </ul>
+        <!-- Financial Configuration -->
+        <li>
+            <a href="{% url 'configuration:financial_config' %}">
+                <i class='bx bx-radio-circle'></i>Financial Config
+            </a>
+        </li>
+        
+        <!-- Security Configuration -->
+        <li>
+            <a href="{% url 'configuration:security_config' %}">
+                <i class='bx bx-radio-circle'></i>Security Config
+            </a>
+        </li>
+        
+        <!-- Notification Configuration -->
+        <li>
+            <a href="{% url 'configuration:notification_config' %}">
+                <i class='bx bx-radio-circle'></i>Notification Config
+            </a>
+        </li>
+        
+        <!-- Appearance Configuration -->
+        <li>
+            <a href="{% url 'configuration:appearance_config' %}">
+                <i class='bx bx-radio-circle'></i>Appearance Config
+            </a>
+        </li>
+        
+        <!-- Integration Configuration -->
+        <li>
+            <a href="javascript:;" class="has-arrow">
+                <i class='bx bx-radio-circle'></i>Integration Config
+            </a>
+            <ul>
+                <li>
+                    <a href="{% url 'configuration:integration_list' %}">
+                        All Integrations
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'configuration:integration_create' %}">
+                        Create Integration
+                    </a>
+                </li>
+            </ul>
+        </li>
+        
+        <!-- Backup Configuration -->
+        <li>
+            <a href="{% url 'configuration:backup_config' %}">
+                <i class='bx bx-radio-circle'></i>Backup Config
+            </a>
+        </li>
+    </ul> 
 </li>

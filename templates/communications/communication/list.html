@@ -1,0 +1,74 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Communications" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+    {% url 'communications:communication_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Communications") current_text=_("Messages") action_url=create_url action_text=_("Compose Message") %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="communicationTable" data-datatable data-title="{% trans 'Communications History' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Subject" %}</th>
+                            <th>{% trans "Recipient" %}</th>
+                            <th>{% trans "Channel" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Sent At" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comm in communications %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'communications:communication_detail' comm.pk %}" class="text-decoration-none">{{ comm.subject|default:comm.title }}</a>
+                                {% if comm.priority == 'URGENT' or comm.priority == 'HIGH' %}
+                                    <span class="badge bg-danger-subtle text-danger ms-1">{% trans "High" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ comm.recipient_name }}
+                                <div class="small text-muted">{{ comm.recipient_contact }}</div>
+                            </td>
+                            <td>{{ comm.channel.name }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if comm.status == 'SENT' %}bg-success-subtle text-success
+                                    {% elif comm.status == 'READ' %}bg-info-subtle text-info
+                                    {% elif comm.status == 'FAILED' %}bg-danger-subtle text-danger
+                                    {% elif comm.status == 'DRAFT' %}bg-secondary-subtle text-secondary
+                                    {% else %}bg-light text-dark{% endif %}">
+                                    {{ comm.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ comm.sent_at|date:"M d, Y H:i"|default:"-" }}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'communications:communication_detail' comm.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    <a href="{% url 'communications:communication_delete' comm.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="{% trans 'Delete' %}">
+                                        <i class="bx bx-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

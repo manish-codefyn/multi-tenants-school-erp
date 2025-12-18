@@ -98,6 +98,18 @@ class SystemSetting(BaseModel):
     value_date = models.DateField(null=True, blank=True, verbose_name=_("Date Value"))
     value_time = models.TimeField(null=True, blank=True, verbose_name=_("Time Value"))
     
+    chart_field = models.CharField(
+        max_length=20,
+        choices=[
+            ('TABLE', _('Table')),
+            ('BAR', _('Bar Chart')),
+            ('PIE', _('Pie Chart')),
+            ('LINE', _('Line Chart')),
+        ],
+        default='TABLE',
+        verbose_name=_("Chart Type")
+    )
+    
     # Configuration
     is_encrypted = models.BooleanField(
         default=False,
@@ -144,11 +156,10 @@ class SystemSetting(BaseModel):
         blank=True,
         verbose_name=_("Maximum Value")
     )
-    choices = models.JSONField(
-        default=list,
+    choices = models.TextField(
         blank=True,
         verbose_name=_("Available Choices"),
-        help_text=_("JSON array of choices for CHOICE and MULTI_CHOICE types")
+        help_text=_("Comma-separated list of choices for CHOICE and MULTI_CHOICE types")
     )
     
     # Metadata
@@ -177,12 +188,12 @@ class SystemSetting(BaseModel):
         ordering = ["category", "group", "order", "key"]
         verbose_name = _("System Setting")
         verbose_name_plural = _("System Settings")
-        # Remove tenant from unique_together if it was there
         indexes = [
             models.Index(fields=['key', 'category']),
             models.Index(fields=['category', 'group']),
             models.Index(fields=['is_public', 'is_encrypted']),
             models.Index(fields=['setting_type', 'is_required']),
+            models.Index(fields=['chart_field']),
         ]
         
     def __str__(self):
@@ -206,8 +217,6 @@ class SystemSetting(BaseModel):
         errors = {}
         
         # Key validation - allow dots for hierarchical keys
-        # This regex allows: letters, numbers, underscores, dots, and hyphens
-        # Must start with a letter or underscore
         key_pattern = r'^[a-zA-Z_][a-zA-Z0-9._-]*$'
         if not re.match(key_pattern, self.key):
             errors['key'] = _('Key must start with a letter or underscore and contain only letters, numbers, underscores, dots, or hyphens')
@@ -269,152 +278,154 @@ class SystemSetting(BaseModel):
         return setting
 
 
-# class AcademicConfiguration(BaseModel):
-#     """
-#     Academic-specific configuration and policies
-#     """
-#     # academic_year = models.ForeignKey(
-#     #     'academics.AcademicYear',  # String reference
-#     #     on_delete=models.CASCADE,
-#     #     related_name="configurations", 
-#     #     verbose_name=_("Academic Year"),
-#     #     null=True,   # Make nullable
-#     #     blank=True   # Make optional
-#     # )
-#     academic_year_name = models.CharField(
-#         max_length=100,
-#         blank=True,
-#         verbose_name=_("Academic Year Name")
-#     )
-#     academic_year_start = models.DateField(
-#         null=True,
-#         blank=True,
-#         verbose_name=_("Academic Year Start")
-#     )
-#     academic_year_end = models.DateField(
-#         null=True, 
-#         blank=True,
-#         verbose_name=_("Academic Year End")
-#     )
+class AcademicConfiguration(BaseModel):
+    """
+    Academic-specific configuration and policies
+    """
+    academic_year_name = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name=_("Academic Year Name")
+    )
+    academic_year_start = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Academic Year Start")
+    )
+    academic_year_end = models.DateField(
+        null=True, 
+        blank=True,
+        verbose_name=_("Academic Year End")
+    )
     
-#     # Grading Configuration
-#     grading_system = models.JSONField(
-#         default=dict,
-#         verbose_name=_("Grading System Configuration")
-#     )
-#     pass_percentage = models.DecimalField(
-#         max_digits=5,
-#         decimal_places=2,
-#         default=35.00,
-#         validators=[MinValueValidator(0), MaxValueValidator(100)],
-#         verbose_name=_("Minimum Pass Percentage")
-#     )
-#     grace_marks = models.DecimalField(
-#         max_digits=4,
-#         decimal_places=2,
-#         default=0.00,
-#         verbose_name=_("Maximum Grace Marks")
-#     )
+    # Grading Configuration
+    grading_system_name = models.CharField(
+        max_length=100,
+        default="Standard Grading",
+        verbose_name=_("Grading System Name")
+    )
+    pass_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=35.00,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name=_("Minimum Pass Percentage")
+    )
+    grace_marks = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=0.00,
+        verbose_name=_("Maximum Grace Marks")
+    )
     
-#     # Attendance Configuration
-#     min_attendance_percentage = models.DecimalField(
-#         max_digits=5,
-#         decimal_places=2,
-#         default=75.00,
-#         validators=[MinValueValidator(0), MaxValueValidator(100)],
-#         verbose_name=_("Minimum Attendance Percentage")
-#     )
-#     working_days_per_week = models.PositiveIntegerField(
-#         default=5,
-#         validators=[MinValueValidator(1), MaxValueValidator(7)],
-#         verbose_name=_("Working Days Per Week")
-#     )
-#     periods_per_day = models.PositiveIntegerField(
-#         default=8,
-#         validators=[MinValueValidator(1), MaxValueValidator(12)],
-#         verbose_name=_("Periods Per Day")
-#     )
+    # Attendance Configuration
+    min_attendance_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=75.00,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name=_("Minimum Attendance Percentage")
+    )
+    working_days_per_week = models.PositiveIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(7)],
+        verbose_name=_("Working Days Per Week")
+    )
+    periods_per_day = models.PositiveIntegerField(
+        default=8,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        verbose_name=_("Periods Per Day")
+    )
     
-#     # Examination Configuration
-#     exam_weights = models.JSONField(
-#         default=dict,
-#         verbose_name=_("Exam Type Weights"),
-#         help_text=_("Weightage distribution for different exam types")
-#     )
-#     practical_marks_weight = models.DecimalField(
-#         max_digits=5,
-#         decimal_places=2,
-#         default=30.00,
-#         verbose_name=_("Practical Marks Weight (%)")
-#     )
-#     theory_marks_weight = models.DecimalField(
-#         max_digits=5,
-#         decimal_places=2,
-#         default=70.00,
-#         verbose_name=_("Theory Marks Weight (%)")
-#     )
+    # Examination Configuration
+    exam_types = models.TextField(
+        blank=True,
+        verbose_name=_("Exam Types"),
+        help_text=_("Comma-separated list of exam types")
+    )
+    practical_marks_weight = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=30.00,
+        verbose_name=_("Practical Marks Weight (%)")
+    )
+    theory_marks_weight = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=70.00,
+        verbose_name=_("Theory Marks Weight (%)")
+    )
     
-#     # Promotion Rules
-#     promotion_rules = models.JSONField(
-#         default=dict,
-#         verbose_name=_("Promotion Rules"),
-#         help_text=_("Rules for student promotion to next class")
-#     )
-#     max_failed_subjects = models.PositiveIntegerField(
-#         default=2,
-#         verbose_name=_("Maximum Failed Subjects for Promotion")
-#     )
+    # Promotion Rules
+    promotion_conditions = models.TextField(
+        blank=True,
+        verbose_name=_("Promotion Conditions")
+    )
+    max_failed_subjects = models.PositiveIntegerField(
+        default=2,
+        verbose_name=_("Maximum Failed Subjects for Promotion")
+    )
     
-#     # Academic Calendar
-#     term_dates = models.JSONField(
-#         default=dict,
-#         verbose_name=_("Term Dates"),
-#         help_text=_("Important academic dates and holidays")
-#     )
-#     assessment_schedule = models.JSONField(
-#         default=dict,
-#         verbose_name=_("Assessment Schedule")
-#     )
+    # Academic Calendar
+    term_start_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Term Start Date")
+    )
+    term_end_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("Term End Date")
+    )
     
-#     # Fee Configuration
-#     fee_structure = models.JSONField(
-#         default=dict,
-#         verbose_name=_("Fee Structure")
-#     )
-#     late_fee_percentage = models.DecimalField(
-#         max_digits=5,
-#         decimal_places=2,
-#         default=1.00,
-#         verbose_name=_("Late Fee Percentage")
-#     )
-#     late_fee_grace_days = models.PositiveIntegerField(
-#         default=10,
-#         verbose_name=_("Late Fee Grace Period (Days)")
-#     )
+    chart_field = models.CharField(
+        max_length=20,
+        choices=[
+            ('BAR', _('Bar Chart')),
+            ('PIE', _('Pie Chart')),
+            ('LINE', _('Line Chart')),
+            ('TABLE', _('Data Table')),
+        ],
+        default='TABLE',
+        verbose_name=_("Chart Type")
+    )
+    
+    # Fee Configuration
+    late_fee_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=1.00,
+        verbose_name=_("Late Fee Percentage")
+    )
+    late_fee_grace_days = models.PositiveIntegerField(
+        default=10,
+        verbose_name=_("Late Fee Grace Period (Days)")
+    )
 
-#     class Meta:
-#         db_table = "configuration_academic"
-#         verbose_name = _("Academic Configuration")
-#         verbose_name_plural = _("Academic Configurations")
-#         unique_together = [['academic_year', 'tenant']]
-#         indexes = [
-#             models.Index(fields=['academic_year']),
-#         ]
+    class Meta:
+        db_table = "configuration_academic"
+        verbose_name = _("Academic Configuration")
+        verbose_name_plural = _("Academic Configurations")
+        unique_together = [['tenant']]
+        indexes = [
+            models.Index(fields=['academic_year_name']),
+            models.Index(fields=['chart_field']),
+        ]
 
-#     def __str__(self):
-#         return f"Academic Configuration - {self.academic_year}"
+    def __str__(self):
+        return f"Academic Configuration - {self.academic_year_name}"
 
-#     def clean(self):
-#         """Academic configuration validation"""
-#         if self.practical_marks_weight + self.theory_marks_weight != 100:
-#             raise ValidationError({
-#                 'practical_marks_weight': _('Practical and theory weights must sum to 100%')
-#             })
+    def clean(self):
+        """Academic configuration validation"""
+        if self.practical_marks_weight + self.theory_marks_weight != 100:
+            raise ValidationError({
+                'practical_marks_weight': _('Practical and theory weights must sum to 100%')
+            })
 
-#     @classmethod
-#     def get_for_year(cls, academic_year):
-#         obj, created = cls.objects.get_or_create(academic_year=academic_year, tenant=academic_year.tenant)
-#         return obj
+    @classmethod
+    def get_for_tenant(cls, tenant):
+        obj, created = cls.objects.get_or_create(tenant=tenant)
+        return obj
 
 
 class FinancialConfiguration(BaseModel):
@@ -472,19 +483,31 @@ class FinancialConfiguration(BaseModel):
     )
     
     # Payment Configuration
-    payment_methods = models.JSONField(
-        default=list,
+    payment_methods = models.TextField(
         blank=True,
-        verbose_name=_("Available Payment Methods")
+        verbose_name=_("Available Payment Methods"),
+        help_text=_("Comma-separated list of payment methods")
     )
     online_payment_enabled = models.BooleanField(
         default=False,
         verbose_name=_("Online Payment Enabled")
     )
-    payment_gateway_config = models.JSONField(
-        default=dict,
+    payment_gateway_name = models.CharField(
+        max_length=100,
         blank=True,
-        verbose_name=_("Payment Gateway Configuration")
+        verbose_name=_("Payment Gateway Name")
+    )
+    
+    chart_field = models.CharField(
+        max_length=20,
+        choices=[
+            ('BAR', _('Bar Chart')),
+            ('PIE', _('Pie Chart')),
+            ('LINE', _('Line Chart')),
+            ('TABLE', _('Data Table')),
+        ],
+        default='TABLE',
+        verbose_name=_("Chart Type")
     )
     
     # Fee Configuration
@@ -504,15 +527,14 @@ class FinancialConfiguration(BaseModel):
     )
     
     # Bank Account Configuration
-    bank_accounts = models.JSONField(
-        default=list,
-        blank=True,
-        verbose_name=_("Bank Accounts")
+    bank_accounts_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Number of Bank Accounts")
     )
-    default_bank_account = models.UUIDField(
-        null=True,
+    default_bank_account_name = models.CharField(
+        max_length=200,
         blank=True,
-        verbose_name=_("Default Bank Account ID")
+        verbose_name=_("Default Bank Account Name")
     )
     
     # Financial Year
@@ -537,6 +559,7 @@ class FinancialConfiguration(BaseModel):
         verbose_name_plural = _("Financial Configurations")
         indexes = [
             models.Index(fields=['base_currency']),
+            models.Index(fields=['chart_field']),
         ]
         unique_together = [['tenant']]
 
@@ -636,25 +659,38 @@ class SecurityConfiguration(BaseModel):
         default=False,
         verbose_name=_("Require Two-Factor Authentication")
     )
-    allowed_2fa_methods = models.JSONField(
-        default=list,
-        verbose_name=_("Allowed 2FA Methods")
+    allowed_2fa_methods = models.TextField(
+        blank=True,
+        verbose_name=_("Allowed 2FA Methods"),
+        help_text=_("Comma-separated list of 2FA methods")
     )
     
     # IP Security
-    ip_whitelist = models.JSONField(
-        default=list,
+    ip_whitelist = models.TextField(
         blank=True,
-        verbose_name=_("IP Whitelist")
+        verbose_name=_("IP Whitelist"),
+        help_text=_("Comma-separated list of allowed IP addresses")
     )
-    ip_blacklist = models.JSONField(
-        default=list,
+    ip_blacklist = models.TextField(
         blank=True,
-        verbose_name=_("IP Blacklist")
+        verbose_name=_("IP Blacklist"),
+        help_text=_("Comma-separated list of blocked IP addresses")
     )
     enable_ip_restriction = models.BooleanField(
         default=False,
         verbose_name=_("Enable IP Restrictions")
+    )
+    
+    chart_field = models.CharField(
+        max_length=20,
+        choices=[
+            ('BAR', _('Bar Chart')),
+            ('PIE', _('Pie Chart')),
+            ('LINE', _('Line Chart')),
+            ('TABLE', _('Data Table')),
+        ],
+        default='TABLE',
+        verbose_name=_("Chart Type")
     )
     
     # Data Security
@@ -686,6 +722,9 @@ class SecurityConfiguration(BaseModel):
         verbose_name = _("Security Configuration")
         verbose_name_plural = _("Security Configurations")
         unique_together = [['tenant']]
+        indexes = [
+            models.Index(fields=['chart_field']),
+        ]
 
     def __str__(self):
         return f"Security Configuration - {self.tenant}"
@@ -739,10 +778,17 @@ class NotificationConfiguration(BaseModel):
         blank=True,
         verbose_name=_("Push Provider")
     )
-    push_config = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name=_("Push Configuration")
+    
+    chart_field = models.CharField(
+        max_length=20,
+        choices=[
+            ('BAR', _('Bar Chart')),
+            ('PIE', _('Pie Chart')),
+            ('LINE', _('Line Chart')),
+            ('TABLE', _('Data Table')),
+        ],
+        default='TABLE',
+        verbose_name=_("Chart Type")
     )
     
     # WhatsApp Configuration
@@ -759,9 +805,10 @@ class NotificationConfiguration(BaseModel):
     )
     
     # Notification Preferences
-    default_notification_channels = models.JSONField(
-        default=list,
-        verbose_name=_("Default Notification Channels")
+    default_notification_channels = models.TextField(
+        blank=True,
+        verbose_name=_("Default Notification Channels"),
+        help_text=_("Comma-separated list of channels: EMAIL,SMS,PUSH,WHATSAPP")
     )
     quiet_hours_start = models.TimeField(
         null=True,
@@ -775,13 +822,13 @@ class NotificationConfiguration(BaseModel):
     )
     
     # Template Configuration
-    default_templates = models.JSONField(
-        default=dict,
-        verbose_name=_("Default Templates")
+    default_email_template = models.TextField(
+        blank=True,
+        verbose_name=_("Default Email Template")
     )
-    template_variables = models.JSONField(
-        default=dict,
-        verbose_name=_("Available Template Variables")
+    default_sms_template = models.TextField(
+        blank=True,
+        verbose_name=_("Default SMS Template")
     )
 
     class Meta:
@@ -789,6 +836,9 @@ class NotificationConfiguration(BaseModel):
         verbose_name = _("Notification Configuration")
         verbose_name_plural = _("Notification Configurations")
         unique_together = [['tenant']]
+        indexes = [
+            models.Index(fields=['chart_field']),
+        ]
 
     def __str__(self):
         return f"Notification Configuration - {self.tenant}"
@@ -880,6 +930,18 @@ class AppearanceConfiguration(BaseModel):
         verbose_name=_("Sidebar Collapsed by Default")
     )
     
+    chart_field = models.CharField(
+        max_length=20,
+        choices=[
+            ('BAR', _('Bar Chart')),
+            ('PIE', _('Pie Chart')),
+            ('LINE', _('Line Chart')),
+            ('TABLE', _('Data Table')),
+        ],
+        default='TABLE',
+        verbose_name=_("Chart Type")
+    )
+    
     # Login Page
     login_background = models.ImageField(
         upload_to='configuration/login/',
@@ -898,10 +960,6 @@ class AppearanceConfiguration(BaseModel):
     )
     
     # Dashboard
-    dashboard_widgets = models.JSONField(
-        default=list,
-        verbose_name=_("Dashboard Widgets Configuration")
-    )
     default_dashboard_view = models.CharField(
         max_length=50,
         default="OVERVIEW",
@@ -923,6 +981,9 @@ class AppearanceConfiguration(BaseModel):
         verbose_name = _("Appearance Configuration")
         verbose_name_plural = _("Appearance Configurations")
         unique_together = [['tenant']]
+        indexes = [
+            models.Index(fields=['chart_field']),
+        ]
 
     def __str__(self):
         return f"Appearance Configuration - {self.tenant}"
@@ -961,12 +1022,11 @@ class IntegrationConfiguration(BaseModel):
         default="INACTIVE",
         verbose_name=_("Status")
     )
-    config_data = models.JSONField(
-        default=dict,
+    config_data = models.TextField(
+        blank=True,
         verbose_name=_("Configuration Data")
     )
-    api_keys = models.JSONField(
-        default=dict,
+    api_keys = models.TextField(
         blank=True,
         verbose_name=_("API Keys and Secrets")
     )
@@ -983,16 +1043,22 @@ class IntegrationConfiguration(BaseModel):
         default="API_KEY",
         verbose_name=_("Authentication Type")
     )
-    auth_config = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name=_("Authentication Configuration")
+    
+    chart_field = models.CharField(
+        max_length=20,
+        choices=[
+            ('BAR', _('Bar Chart')),
+            ('PIE', _('Pie Chart')),
+            ('LINE', _('Line Chart')),
+            ('TABLE', _('Data Table')),
+        ],
+        default='TABLE',
+        verbose_name=_("Chart Type")
     )
     
     # Endpoints
     base_url = models.URLField(blank=True, verbose_name=_("Base URL"))
-    endpoints = models.JSONField(
-        default=dict,
+    endpoints = models.TextField(
         blank=True,
         verbose_name=_("API Endpoints")
     )
@@ -1004,8 +1070,7 @@ class IntegrationConfiguration(BaseModel):
         blank=True,
         verbose_name=_("Webhook Secret")
     )
-    webhook_events = models.JSONField(
-        default=list,
+    webhook_events = models.TextField(
         blank=True,
         verbose_name=_("Webhook Events")
     )
@@ -1049,6 +1114,7 @@ class IntegrationConfiguration(BaseModel):
         indexes = [
             models.Index(fields=['integration_type', 'is_enabled']),
             models.Index(fields=['status', 'last_sync']),
+            models.Index(fields=['chart_field']),
         ]
 
     def __str__(self):
@@ -1073,7 +1139,6 @@ class BackupConfiguration(BaseModel):
     """
     Backup and recovery system configuration
     """
-
     # Backup Settings
     auto_backup_enabled = models.BooleanField(
         default=True,
@@ -1114,11 +1179,6 @@ class BackupConfiguration(BaseModel):
         default="LOCAL",
         verbose_name=_("Storage Type")
     )
-    storage_config = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name=_("Storage Configuration")
-    )
     backup_path = models.CharField(
         max_length=500,
         default="/backups/",
@@ -1138,10 +1198,10 @@ class BackupConfiguration(BaseModel):
         default=False,
         verbose_name=_("Backup Application Code")
     )
-    excluded_tables = models.JSONField(
-        default=list,
+    excluded_tables = models.TextField(
         blank=True,
-        verbose_name=_("Excluded Database Tables")
+        verbose_name=_("Excluded Database Tables"),
+        help_text=_("Comma-separated list of table names")
     )
 
     # Encryption
@@ -1155,6 +1215,18 @@ class BackupConfiguration(BaseModel):
         verbose_name=_("Encryption Key")
     )
 
+    chart_field = models.CharField(
+        max_length=20,
+        choices=[
+            ('BAR', _('Bar Chart')),
+            ('PIE', _('Pie Chart')),
+            ('LINE', _('Line Chart')),
+            ('TABLE', _('Data Table')),
+        ],
+        default='TABLE',
+        verbose_name=_("Chart Type")
+    )
+    
     # Notification
     notify_on_backup = models.BooleanField(
         default=True,
@@ -1164,9 +1236,10 @@ class BackupConfiguration(BaseModel):
         default=True,
         verbose_name=_("Notify on Backup Failure")
     )
-    notification_emails = models.JSONField(
-        default=list,
-        verbose_name=_("Notification Emails")
+    notification_emails = models.TextField(
+        blank=True,
+        verbose_name=_("Notification Emails"),
+        help_text=_("Comma-separated list of email addresses")
     )
 
     # Monitoring
@@ -1200,6 +1273,7 @@ class BackupConfiguration(BaseModel):
             models.Index(fields=["auto_backup_enabled"]),
             models.Index(fields=["backup_frequency"]),
             models.Index(fields=["storage_type"]),
+            models.Index(fields=['chart_field']),
         ]
 
     def __str__(self):
@@ -1213,17 +1287,6 @@ class BackupConfiguration(BaseModel):
             raise ValidationError({
                 'encryption_key': _("Encryption key is required when encryption is enabled.")
             })
-
-        if self.storage_type != "LOCAL" and not self.storage_config:
-            raise ValidationError({
-                'storage_config': _("Storage configuration is required for cloud storage backends.")
-            })
-
-        if self.notify_on_backup or self.notify_on_failure:
-            if not self.notification_emails:
-                raise ValidationError({
-                    'notification_emails': _("Add at least one email for notifications.")
-                })
 
     # ---------------------------
     # Logic: Calculate Next Backup

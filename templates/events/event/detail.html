@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 overflow-hidden">
+                <div class="p-5 text-white position-relative" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); min-height: 250px;">
+                    <div class="position-absolute top-0 end-0 p-4">
+                        <span class="badge 
+                            {% if event.status == 'SCHEDULED' %}bg-white text-primary
+                            {% elif event.status == 'ONGOING' %}bg-warning-subtle text-warning
+                            {% elif event.status == 'COMPLETED' %}bg-success-subtle text-success
+                            {% else %}bg-secondary-subtle text-secondary{% endif %} fs-6 fw-bold">
+                            {{ event.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="row align-items-center h-100 mt-4">
+                        <div class="col-md-8">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb breadcrumb-dark mb-2">
+                                    <li class="breadcrumb-item"><a href="{% url 'events:dashboard' %}" class="text-white opacity-75">{% trans "Dashboard" %}</a></li>
+                                    <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}" class="text-white opacity-75">{% trans "Events" %}</a></li>
+                                    <li class="breadcrumb-item active text-white" aria-current="page">{{ event.title|truncatechars:30 }}</li>
+                                </ol>
+                            </nav>
+                            <h1 class="display-5 fw-bold mb-3">{{ event.title }}</h1>
+                            <div class="d-flex flex-wrap gap-3 align-items-center opacity-75">
+                                <div><i class="bx bx-calendar me-1"></i> {{ event.start_date|date:"D, d M Y" }}</div>
+                                <div><i class="bx bx-time me-1"></i> {{ event.start_time|time:"H:i" }} - {{ event.end_time|time:"H:i" }}</div>
+                                <div><i class="bx bx-map me-1"></i> {{ event.venue }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                            <a href="{% url 'events:event_update' event.pk %}" class="btn btn-white text-primary fw-bold me-2">
+                                <i class="bx bx-edit-alt me-1"></i> {% trans "Edit Event" %}
+                            </a>
+                            <a href="{% url 'events:event_delete' event.pk %}" class="btn btn-danger">
+                                <i class="bx bx-trash me-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Event Details -->
+        <div class="col-lg-8 mb-4">
+            <!-- About -->
+            <div class="card shadow-sm border-0 mb-4 p-4">
+                <h5 class="fw-bold mb-4 border-bottom pb-3">{% trans "About this Event" %}</h5>
+                <div class="mb-4 text-secondary leading-relaxed" style="font-size: 1.1rem;">
+                    {{ event.description|linebreaks }}
+                </div>
+                
+                {% if event.tags %}
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    {% for tag in event.tag_list %}
+                        <span class="badge bg-light text-primary border border-primary-subtle px-3 py-2">#{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Registrations -->
+            {% if event.requires_registration %}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">{% trans "Recent Registrations" %}</h5>
+                    <div class="progress" style="width: 200px; height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ event.registration_count|default:0|stringformat:'i' }}%" 
+                             aria-valuenow="{{ event.registration_count }}" aria-valuemin="0" aria-valuemax="{{ event.max_attendees|default:100 }}"></div>
+                    </div>
+                    <small class="fw-bold">{{ event.registration_count }} / {{ event.max_attendees|default:"∞" }}</small>
+                </div>
+                <div class="card-body p-0 mt-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Name" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th class="pe-4 text-end">{% trans "Date" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reg in registrations %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">{{ reg.get_registrant_name }}</div>
+                                        <small class="text-muted">{{ reg.get_registrant_email }}</small>
+                                    </td>
+                                    <td>{{ reg.get_registration_type_display }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if reg.status == 'REGISTERED' %}bg-success
+                                            {% elif reg.status == 'PENDING' %}bg-warning
+                                            {% elif reg.status == 'ATTENDED' %}bg-info
+                                            {% else %}bg-secondary{% endif %} bg-opacity-10 
+                                            {% if reg.status == 'REGISTERED' %}text-success
+                                            {% elif reg.status == 'PENDING' %}text-warning
+                                            {% elif reg.status == 'ATTENDED' %}text-info
+                                            {% else %}text-secondary{% endif %}">
+                                            {{ reg.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="pe-4 text-end text-muted small">{{ reg.registration_date|date:"d M Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center p-5 text-muted">{% trans "No registrations yet." %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 p-4 text-center">
+                    <a href="{% url 'events:registration_list' %}" class="btn btn-outline-primary btn-sm">{% trans "View All Registrations" %}</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <!-- Event Metadata -->
+            <div class="card shadow-sm border-0 mb-4 overflow-hidden">
+                {% if event.featured_image %}
+                    <img src="{{ event.featured_image.url }}" class="img-fluid w-100" style="object-fit: cover; max-height: 200px;">
+                {% endif %}
+                <div class="card-body p-4">
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Event Type" %}</span>
+                            <span class="fw-bold">{{ event.get_event_type_display }}</span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Category" %}</span>
+                            <span class="fw-bold text-primary">{{ event.category.name|default:"-" }}</span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Priority" %}</span>
+                            <span class="badge bg-{% if event.priority == 'URGENT' %}danger{% elif event.priority == 'HIGH' %}warning{% else %}info{% endif %} bg-opacity-10 text-{% if event.priority == 'URGENT' %}danger{% elif event.priority == 'HIGH' %}warning{% else %}info{% endif %}">
+                                {{ event.get_priority_display }}
+                            </span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted">{% trans "Fee" %}</span>
+                            <span class="fw-bold fs-5">
+                                {% if event.is_free %}
+                                    <span class="text-success">{% trans "FREE" %}</span>
+                                {% else %}
+                                    {{ event.fee_currency }} {{ event.fee_amount }}
+                                {% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                    
+                    {% if event.external_link %}
+                        <a href="{{ event.external_link }}" target="_blank" class="btn btn-primary w-100 mb-2">
+                            <i class="bx bx-link-external me-1"></i> {% trans "External Website" %}
+                        </a>
+                    {% endif %}
+                    
+                    {% if event.is_online %}
+                        <a href="{{ event.online_link }}" target="_blank" class="btn btn-info w-100 text-white">
+                            <i class="bx bx-video me-1"></i> {% trans "Join Online" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Organizer Info -->
+            <div class="card shadow-sm border-0 mb-4 p-4">
+                <h6 class="fw-bold mb-3">{% trans "Contact Organizer" %}</h6>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="avatar avatar-sm bg-primary text-white rounded-circle me-3">
+                        <i class="bx bx-user"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 small fw-bold">{{ event.organizer_name|default:tenant.name }}</h6>
+                        <small class="text-muted">{% trans "Event Organizer" %}</small>
+                    </div>
+                </div>
+                {% if event.organizer_email %}
+                    <div class="mb-2 small"><i class="bx bx-envelope text-primary me-2"></i> {{ event.organizer_email }}</div>
+                {% endif %}
+                {% if event.organizer_phone %}
+                    <div class="mb-0 small"><i class="bx bx-phone text-primary me-2"></i> {{ event.organizer_phone }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Documents -->
+            <div class="card shadow-sm border-0 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">{% trans "Resources" %}</h6>
+                    <button class="btn btn-icon btn-sm" title="{% trans 'Upload File' %}"><i class="bx bx-upload"></i></button>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for doc in documents %}
+                        <a href="#" class="list-group-item list-group-item-action px-0 border-0 bg-transparent">
+                            <div class="d-flex align-items-center">
+                                <i class="bx bx-file text-primary fs-3 me-3"></i>
+                                <div>
+                                    <h6 class="mb-0 small fw-bold">{{ doc.name }}</h6>
+                                    <small class="text-muted">{{ doc.get_document_type_display }}</small>
+                                </div>
+                            </div>
+                        </a>
+                    {% empty %}
+                        <p class="text-muted small text-center my-3">{% trans "No resources available." %}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

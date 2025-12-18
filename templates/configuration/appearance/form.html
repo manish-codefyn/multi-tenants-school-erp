@@ -1,0 +1,123 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Appearance Configuration" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{% url 'configuration:dashboard' %}">{% trans "Configuration" %}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{% trans "Appearance" %}</li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Appearance Configuration" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <h6 class="mb-3">{% trans "Branding" %}</h6>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ form.institution_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.institution_logo|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.institution_favicon|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-4">
+                                {{ form.primary_color|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.secondary_color|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.accent_color|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <hr>
+                        <h6 class="mb-3">{% trans "Theme & Layout" %}</h6>
+                         <div class="row">
+                             <div class="col-md-4">
+                                {{ form.theme_mode|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.layout_type|as_crispy_field }}
+                            </div>
+                             <div class="col-md-4">
+                                {{ form.sidebar_collapsed|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                             <div class="col-6">
+                                {{ form.custom_css|as_crispy_field }}
+                            </div>
+                             <div class="col-6">
+                                {{ form.custom_js|as_crispy_field }}
+                            </div>
+                        </div>
+
+                         <hr>
+                        <h6 class="mb-3">{% trans "Login & Dashboard" %}</h6>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.login_background|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.default_dashboard_view|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                             <div class="col-md-6">
+                                {{ form.login_title|as_crispy_field }}
+                            </div>
+                             <div class="col-md-6">
+                                {{ form.login_subtitle|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <h6 class="mb-3">{% trans "Footer" %}</h6>
+                         <div class="row">
+                             <div class="col-12">
+                                {{ form.footer_text|as_crispy_field }}
+                            </div>
+                             <div class="col-12">
+                                {{ form.show_version_in_footer|as_crispy_field }}
+                            </div>
+                        </div>
+                         <div class="row">
+                            <div class="col-md-6">
+                                {{ form.chart_field|as_crispy_field }}
+                            </div>
+                        </div>
+
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bx bx-save me-1"></i> {% trans "Save Configuration" %}
+                            </button>
+                            <a href="{% url 'configuration:dashboard' %}" class="btn btn-outline-secondary">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

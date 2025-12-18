@@ -1,0 +1,38 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Delete Session Policy" %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm mt-5">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4 text-danger">
+                        <i class="bx bx-exclamation-triangle fa-3x"></i>
+                    </div>
+                    
+                    <h4 class="card-title mb-3">{% trans "Delete Policy?" %}</h4>
+                    
+                    <p class="card-text text-muted mb-4">
+                        {% blocktrans with name=object.name %}Are you sure you want to delete the session policy "<strong>{{ name }}</strong>"? This action cannot be undone.{% endblocktrans %}
+                    </p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="bx bx-trash-alt me-2"></i>{% trans "Delete Policy" %}
+                            </button>
+                            <a href="{% url 'security:session_policy_list' %}" class="btn btn-light btn-lg">
+                                {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
