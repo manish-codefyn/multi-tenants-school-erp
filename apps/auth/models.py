@@ -216,7 +216,7 @@ class RolePermission(BaseModel):
                 'finance': ['finance.view_feestructure', 'finance.view_invoice', 'finance.view_payment', 'finance.view_budget', 'finance.view_finance'],
                 'hr': ['hr.view_staff', 'hr.view_leaveapplication', 'hr.change_leaveapplication', 'hr.view_hr'],
                 'library': ['library.view_book', 'library.view_borrowing'],
-                'students': ['students.view_student', 'students.view_studentdocument'],
+                'students': ['students.view_student', 'students.view_studentdocument', 'students.view_student_dashboard'],
                 'reports': ['reports.view_report', 'analytics.view_dashboard'],
                 'configuration': ['configuration.view_systemsetting'],
                 'communications': ['communications.view_message', 'communications.add_message'],

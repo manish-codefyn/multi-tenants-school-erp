@@ -135,3 +135,54 @@ class TenantAwareAuthenticationBackend(ModelBackend):
             return User.objects.get(pk=user_id, is_active=True)
         except User.DoesNotExist:
             return None
+
+    def get_all_permissions(self, user_obj, obj=None):
+        """
+        Get all permissions for the user, including role-based permissions
+        from apps.auth.models.RolePermission
+        """
+        if not user_obj.is_active or user_obj.is_anonymous or obj is not None:
+            return set()
+
+        if not hasattr(user_obj, '_perm_cache'):
+            # Start with standard permissions (if any mixed in)
+            perms = super().get_all_permissions(user_obj, obj)
+            
+            # Add role-based permissions
+            try:
+                # Use get_model to avoid circular imports
+                from django.apps import apps
+                RolePermission = apps.get_model('apps_auth', 'RolePermission')
+                
+                # Fetch query set values to minimize DB overhead
+                # We use string matching for role because user_obj.role is a string
+                role_perms = RolePermission.objects.filter(
+                    role=user_obj.role,
+                    tenant=user_obj.tenant
+                ).values_list('permission__content_type__app_label', 'permission__codename')
+                
+                # Format as "app_label.codename"
+                for app_label, codename in role_perms:
+                    perms.add(f"{app_label}.{codename}")
+                    
+            except Exception as e:
+                # Log error
+                print(f"DEBUG: Error fetching role permissions: {e}")
+                pass
+            
+            user_obj._perm_cache = perms
+            
+        return user_obj._perm_cache
+
+    def has_perm(self, user_obj, perm, obj=None):
+        """
+        Check if user has specific permission
+        """
+        if not user_obj.is_active:
+            return False
+        
+        # Superusers get all permissions
+        if user_obj.is_superuser:
+            return True
+            
+        return perm in self.get_all_permissions(user_obj, obj)

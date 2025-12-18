@@ -249,26 +249,8 @@ class User(AbstractUser, BaseModel):
         self.failed_login_attempts = 0
         self.locked_until = None
 
-    def get_role_permissions(self):
-        """Get permissions based on role"""
-        from apps.auth.models import RolePermission
-        return RolePermission.get_permissions_for_role(self.role)
+    # Permissions handled by Authentication Backend (apps.auth.backends.TenantAwareAuthenticationBackend)
 
-    def has_perm(self, perm, obj=None):
-        """Check if user has specific permission"""
-        if self.is_superuser:
-            return True
-            
-        user_perms = self.get_role_permissions()
-        return perm in user_perms
-
-    def has_module_perms(self, app_label):
-        """Check if user has any permissions in the given app"""
-        if self.is_superuser:
-            return True
-            
-        user_perms = self.get_role_permissions()
-        return any(perm.startswith(f"{app_label}.") for perm in user_perms)
     
 
     def generate_verification_token(self):
