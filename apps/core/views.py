@@ -1,6 +1,6 @@
 import logging
-from django.conf import settings
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Count, Sum, Q
 from django.http import JsonResponse, Http404
@@ -11,24 +11,27 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib import messages
-
+from django.views import View
 from django.views.generic import (
-    View, TemplateView, ListView, DetailView,
+    TemplateView, ListView, DetailView,
     CreateView, UpdateView, DeleteView, FormView
 )
 
-# Core
+# ===================== CORE =====================
 from apps.core.forms import TenantAwareModelForm
 from apps.core.middleware.tenant import get_dynamic_tenant
 from apps.core.permissions.mixins import (
-    PermissionRequiredMixin, RoleRequiredMixin,
-    TenantAccessMixin, ObjectPermissionMixin,
-    RoleBasedViewMixin,TenantRequiredMixin
+    PermissionRequiredMixin,
+    RoleRequiredMixin,
+    TenantAccessMixin,
+    ObjectPermissionMixin,
+    RoleBasedViewMixin,
+    TenantRequiredMixin,
 )
 from apps.core.services.audit_service import AuditService
 from apps.core.utils.tenant import get_current_tenant
 
-# Project Models
+# ===================== PROJECT MODELS =====================
 from apps.students.models import Student
 from apps.users.models import User
 from apps.academics.models import SchoolClass
@@ -42,31 +45,14 @@ from apps.events.models import Event
 from apps.exams.models import Exam
 from apps.security.models import SecurityIncident, AuditLog
 
-
-logger = logging.getLogger(__name__)
-
-# ============================================================================
-# BASE VIEW CLASSES
-# ============================================================================
-
-from django.views import View
-from django.views.generic import TemplateView, CreateView
-from django.contrib import messages
-from django.urls import reverse_lazy
-from django.shortcuts import redirect
-from django.core.exceptions import PermissionDenied
-from django.db import transaction
-import logging
-from django.conf import settings
-
+# ===================== LOGGER =====================
 logger = logging.getLogger(__name__)
 
 
 class BaseView(TenantRequiredMixin, RoleBasedViewMixin, View):
     """
     Base view with authentication, role checking, and audit logging
-    """
-    
+    """  
     # Configuration
     permission_required = None
     roles_required = None

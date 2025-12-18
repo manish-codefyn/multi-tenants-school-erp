@@ -1,4 +1,4 @@
-# apps/auth/views.py
+
 from django.contrib.auth.views import (
     LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView,
     PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView,
@@ -691,38 +691,38 @@ class StaffDashboardView(BaseDashboardView):
         
         # Common staff actions
         common_actions = [
-            {'name': 'My Schedule', 'url': reverse_lazy('academics:schedule'), 'icon': 'calendar'},
-            {'name': 'Attendance', 'url': reverse_lazy('academics:attendance'), 'icon': 'check-circle'},
-            {'name': 'Messages', 'url': reverse_lazy('communications:messages'), 'icon': 'message-square'},
+            {'name': 'My Schedule', 'url': reverse_lazy('academics:timetable_list'), 'icon': 'calendar'},
+            {'name': 'Attendance', 'url': reverse_lazy('academics:attendance_list'), 'icon': 'check-circle'},
+            {'name': 'Messages', 'url': reverse_lazy('communications:communication_list'), 'icon': 'message-square'},
         ]
         
         # Role-specific actions
         if user.role in ['teacher', 'principal', 'headmaster']:
             actions.extend([
-                {'name': 'Grade Students', 'url': reverse_lazy('academics:grading'), 'icon': 'edit-3'},
-                {'name': 'Assignments', 'url': reverse_lazy('academics:assignments'), 'icon': 'file-text'},
-                {'name': 'Lesson Plans', 'url': reverse_lazy('academics:lesson_plans'), 'icon': 'book-open'},
+                {'name': 'Grade Students', 'url': reverse_lazy('academics:grade_list'), 'icon': 'edit-3'},
+                {'name': 'Assignments', 'url': '#', 'icon': 'file-text'}, # TODO: Implement assignments
+                {'name': 'Lesson Plans', 'url': '#', 'icon': 'book-open'}, # TODO: Implement lesson plans
             ])
         
         if user.role in ['accountant', 'finance_staff']:
             actions.extend([
-                {'name': 'Process Payments', 'url': reverse_lazy('finance:payments'), 'icon': 'credit-card'},
-                {'name': 'Generate Reports', 'url': reverse_lazy('finance:reports'), 'icon': 'file-text'},
-                {'name': 'Fee Management', 'url': reverse_lazy('finance:fee_management'), 'icon': 'dollar-sign'},
+                {'name': 'Process Payments', 'url': reverse_lazy('finance:payment_list'), 'icon': 'credit-card'},
+                {'name': 'Generate Reports', 'url': reverse_lazy('finance:financial_report_list'), 'icon': 'file-text'},
+                {'name': 'Fee Management', 'url': reverse_lazy('finance:fee_structure_list'), 'icon': 'dollar-sign'},
             ])
         
         if user.role in ['librarian']:
             actions.extend([
-                {'name': 'Manage Books', 'url': reverse_lazy('library:books'), 'icon': 'book'},
-                {'name': 'Issue Books', 'url': reverse_lazy('library:issue'), 'icon': 'book-open'},
-                {'name': 'Catalog', 'url': reverse_lazy('library:catalog'), 'icon': 'list'},
+                {'name': 'Manage Books', 'url': reverse_lazy('library:book_list'), 'icon': 'book'},
+                {'name': 'Issue Books', 'url': reverse_lazy('library:issue_list'), 'icon': 'book-open'},
+                {'name': 'Catalog', 'url': reverse_lazy('library:book_list'), 'icon': 'list'},
             ])
         
         if user.role in ['admin', 'administrator']:
             actions.extend([
-                {'name': 'Manage Staff', 'url': reverse_lazy('staff:management'), 'icon': 'users'},
-                {'name': 'System Settings', 'url': reverse_lazy('configuration:settings'), 'icon': 'settings'},
-                {'name': 'Reports', 'url': reverse_lazy('reports:dashboard'), 'icon': 'bar-chart'},
+                {'name': 'Manage Staff', 'url': reverse_lazy('hr:staff_list') if 'hr' in str(reverse_lazy('hr:dashboard')) else '#', 'icon': 'users'}, # Check if HR app is installed/mapped
+                {'name': 'System Settings', 'url': reverse_lazy('configuration:setting_list'), 'icon': 'settings'},
+                {'name': 'Reports', 'url': reverse_lazy('analytics:dashboard'), 'icon': 'bar-chart'},
             ])
         
         return common_actions + actions

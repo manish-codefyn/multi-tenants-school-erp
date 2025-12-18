@@ -83,7 +83,7 @@ class FeeStructureListView(BaseListView):
     template_name = 'finance/fee_structure/list.html'
     context_object_name = 'fee_structures'
     permission_required = 'finance.view_feestructure'
-    paginate_by = 20
+
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -110,6 +110,7 @@ class FeeStructureUpdateView(BaseUpdateView):
     template_name = 'finance/fee_structure/form.html'
     success_url = reverse_lazy('finance:fee_structure_list')
     permission_required = 'finance.change_feestructure'
+    
 class FeeStructureDeleteView(BaseDeleteView):
     model = FeeStructure
     template_name = 'finance/fee_structure/confirm_delete.html'

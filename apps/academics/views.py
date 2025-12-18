@@ -31,6 +31,94 @@ from apps.academics.forms import (
 logger = logging.getLogger(__name__)
 
 
+
+
+# ============================================================================
+# DASHBOARD AND REPORTS
+# ============================================================================
+
+class AcademicsDashboardView(BaseTemplateView):
+    """Academics dashboard"""
+    template_name = 'academics/dashboard.html'
+    permission_required = 'academics.view_academics'
+    roles_required = ['admin', 'principal', 'teacher',]
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get current academic year and term
+        current_year = AcademicYear.objects.filter(is_current=True).first()
+        current_term = Term.objects.filter(is_current=True).first()
+        
+        # Statistics - using proper context variable names
+        context['total_classes'] = SchoolClass.objects.count()
+        context['total_classes_all'] = SchoolClass.objects.with_deleted().count()
+        
+        # Active classes count for the card
+        context['active_classes_count'] = SchoolClass.objects.count()  # or SchoolClass.objects.filter(is_active=True).count()
+        
+        # Academic Years
+        context['total_academic_years'] = AcademicYear.objects.count()
+        context['total_academic_years_all'] = AcademicYear.objects.with_deleted().count()
+        
+        # Terms
+        context['total_terms'] = Term.objects.count()
+        context['total_terms_all'] = Term.objects.with_deleted().count()
+        
+        # Other Stats
+        context['total_sections'] = Section.objects.filter(is_active=True).count()
+        context['total_subjects'] = Subject.objects.filter(is_active=True).count()
+        
+        context['total_students'] = self.get_total_students(active_only=True)
+        context['total_students_all'] = self.get_total_students(active_only=False)
+        context['total_students_count'] = self.get_total_students(active_only=True)  # For the card
+        
+        # Today's attendance
+        today = timezone.now().date()
+        context['today_attendance'] = self.get_today_attendance(today)
+        
+        # Upcoming holidays
+        context['upcoming_holidays'] = Holiday.objects.filter(
+            start_date__gte=today
+        ).order_by('start_date')[:5]
+        
+        # Recent study materials
+        context['recent_materials'] = StudyMaterial.objects.filter(
+            is_published=True
+        ).order_by('-publish_date')[:5]
+        
+        # Fixed variable names - should match template
+        context['current_academic_year'] = current_year  # Changed from 'current_year'
+        context['current_term'] = current_term
+        
+        # Alerts context
+        context['missing_academic_year'] = not current_year
+        context['missing_term'] = not current_term
+        
+        return context
+    
+    def get_total_students(self, active_only=True):
+        """Get total students"""
+        from apps.students.models import Student
+        if active_only:
+            return Student.objects.filter(is_active=True).count()  # Assuming Student has is_active field
+        return Student.objects.with_deleted().count()
+    
+    def get_today_attendance(self, date):
+        """Get today's attendance summary"""
+        attendances = StudentAttendance.objects.filter(date=date)
+        total = attendances.count()
+        present = attendances.filter(status__in=['PRESENT', 'LATE', 'HALF_DAY']).count()
+        
+        return {
+            'total': total,
+            'present': present,
+            'absent': total - present if total > 0 else 0,
+            'percentage': round((present / total * 100), 2) if total > 0 else 0
+        }
+
+
+
 # ============================================================================
 # ACADEMIC YEAR VIEWS
 # ============================================================================
@@ -1466,90 +1554,6 @@ class GradeDeleteView(BaseDeleteView):
     def get_success_url(self):
         return reverse_lazy('academics:grade_list')
 
-
-# ============================================================================
-# DASHBOARD AND REPORTS
-# ============================================================================
-
-class AcademicsDashboardView(BaseTemplateView):
-    """Academics dashboard"""
-    template_name = 'academics/dashboard.html'
-    permission_required = 'academics.view_academics'
-    roles_required = ['admin', 'principal', 'teacher']
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Get current academic year and term
-        current_year = AcademicYear.objects.filter(is_current=True).first()
-        current_term = Term.objects.filter(is_current=True).first()
-        
-        # Statistics - using proper context variable names
-        context['total_classes'] = SchoolClass.objects.count()
-        context['total_classes_all'] = SchoolClass.objects.with_deleted().count()
-        
-        # Active classes count for the card
-        context['active_classes_count'] = SchoolClass.objects.count()  # or SchoolClass.objects.filter(is_active=True).count()
-        
-        # Academic Years
-        context['total_academic_years'] = AcademicYear.objects.count()
-        context['total_academic_years_all'] = AcademicYear.objects.with_deleted().count()
-        
-        # Terms
-        context['total_terms'] = Term.objects.count()
-        context['total_terms_all'] = Term.objects.with_deleted().count()
-        
-        # Other Stats
-        context['total_sections'] = Section.objects.filter(is_active=True).count()
-        context['total_subjects'] = Subject.objects.filter(is_active=True).count()
-        
-        context['total_students'] = self.get_total_students(active_only=True)
-        context['total_students_all'] = self.get_total_students(active_only=False)
-        context['total_students_count'] = self.get_total_students(active_only=True)  # For the card
-        
-        # Today's attendance
-        today = timezone.now().date()
-        context['today_attendance'] = self.get_today_attendance(today)
-        
-        # Upcoming holidays
-        context['upcoming_holidays'] = Holiday.objects.filter(
-            start_date__gte=today
-        ).order_by('start_date')[:5]
-        
-        # Recent study materials
-        context['recent_materials'] = StudyMaterial.objects.filter(
-            is_published=True
-        ).order_by('-publish_date')[:5]
-        
-        # Fixed variable names - should match template
-        context['current_academic_year'] = current_year  # Changed from 'current_year'
-        context['current_term'] = current_term
-        
-        # Alerts context
-        context['missing_academic_year'] = not current_year
-        context['missing_term'] = not current_term
-        
-        return context
-    
-    def get_total_students(self, active_only=True):
-        """Get total students"""
-        from apps.students.models import Student
-        if active_only:
-            return Student.objects.filter(is_active=True).count()  # Assuming Student has is_active field
-        return Student.objects.with_deleted().count()
-    
-    def get_today_attendance(self, date):
-        """Get today's attendance summary"""
-        attendances = StudentAttendance.objects.filter(date=date)
-        total = attendances.count()
-        present = attendances.filter(status__in=['PRESENT', 'LATE', 'HALF_DAY']).count()
-        
-        return {
-            'total': total,
-            'present': present,
-            'absent': total - present if total > 0 else 0,
-            'percentage': round((present / total * 100), 2) if total > 0 else 0
-        }
 
 
 class AcademicsReportsView(BaseTemplateView):

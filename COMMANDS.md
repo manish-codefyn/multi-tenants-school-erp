@@ -112,8 +112,15 @@ Creates a single superuser for a specific tenant using command-line arguments.
 ```bash
 python manage.py create_custom_superuser --target-schema dps_kolkata --user-email admin@dps.edu --user-password admin@123
 
+python manage.py create_custom_superuser --target-schema sanskriti_ahmedabad --user-email admin@sanskriti.edu --user-password admin@123
 
-python manage.py create_staff_user --target-schema dps_kolkata --user-email=staff@example.com --user-password=password123
+# Initialize permissions
+python manage.py assign_roles
+python manage.py init_permissions
+
+python manage.py create_staff_user --target-schema dps_kolkata --user-email=staff@dps.edu --user-password=password123
+
+python manage.py create_staff_user --target-schema sanskriti_ahmedabad --user-email=staff@sanskriti.edu --user-password=password123
 
 
 # Run complete setup

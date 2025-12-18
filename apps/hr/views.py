@@ -143,7 +143,7 @@ class StaffListView(BaseListView):
     template_name = 'hr/staff/list.html'
     context_object_name = 'staff_members'
     permission_required = 'hr.view_staff'
-    paginate_by = 20
+
     
     def get_queryset(self):
         tenant = get_current_tenant()

@@ -93,7 +93,7 @@ class StudentAttendanceListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
     template_name = 'attendance/student_list.html'
     permission_required = 'academics.view_attendance'
     context_object_name = 'attendance_list'
-    paginate_by = 50
+
     
     def get_queryset(self):
         tenant = self.request.tenant
