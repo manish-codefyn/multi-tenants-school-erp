@@ -1,11 +1,12 @@
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.contrib import messages
-from django.db.models import Sum, Count
-from apps.core.permissions.mixins import PermissionRequiredMixin
+from django.views.generic import TemplateView
+from django.db.models import Count, Sum, F
+from django.db import models
+from apps.core.views import BaseListView, BaseCreateView, BaseUpdateView, BaseDeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from apps.core.utils.tenant import get_current_tenant
 from .models import Category, Supplier, Item, StockMovement, PurchaseOrder
+from .forms import CategoryForm, SupplierForm, ItemForm, StockMovementForm, PurchaseOrderForm
 
 class InventoryDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'inventory/dashboard.html'
@@ -19,161 +20,154 @@ class InventoryDashboardView(LoginRequiredMixin, PermissionRequiredMixin, Templa
         context['low_stock_items'] = Item.objects.filter(tenant=tenant, is_active=True, current_stock__lte=models.F('low_stock_threshold')).count()
         context['total_suppliers'] = Supplier.objects.filter(tenant=tenant, is_active=True).count()
         context['total_categories'] = Category.objects.filter(tenant=tenant, is_active=True).count()
+        context['pending_orders'] = PurchaseOrder.objects.filter(tenant=tenant, status__in=['DRAFT', 'PENDING_APPROVAL']).count()
+        
+        # Recent
+        context['recent_movements'] = StockMovement.objects.filter(tenant=tenant).select_related('item').order_by('-movement_date')[:5]
         
         return context
 
 # ==================== CATEGORY ====================
 
-class CategoryListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class CategoryListView(BaseListView):
     model = Category
     template_name = 'inventory/category_list.html'
     context_object_name = 'categories'
     permission_required = 'inventory.view_category'
+    search_fields = ['name', 'code']
+    filter_fields = ['is_active', 'parent_category']
 
-class CategoryCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class CategoryCreateView(BaseCreateView):
     model = Category
-    fields = ['name', 'code', 'description', 'parent_category', 'is_consumable', 
-              'requires_serial_number', 'requires_maintenance', 'low_stock_threshold', 
-              'reorder_quantity', 'is_active']
+    form_class = CategoryForm
     template_name = 'inventory/category_form.html'
-    success_url = reverse_lazy('inventory:category_list')
     permission_required = 'inventory.add_category'
-
-    def form_valid(self, form):
-        messages.success(self.request, "Category created successfully.")
-        return super().form_valid(form)
-
-class CategoryUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = Category
-    fields = ['name', 'code', 'description', 'parent_category', 'is_consumable', 
-              'requires_serial_number', 'requires_maintenance', 'low_stock_threshold', 
-              'reorder_quantity', 'is_active']
-    template_name = 'inventory/category_form.html'
     success_url = reverse_lazy('inventory:category_list')
+
+class CategoryUpdateView(BaseUpdateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = 'inventory/category_form.html'
     permission_required = 'inventory.change_category'
+    success_url = reverse_lazy('inventory:category_list')
 
-    def form_valid(self, form):
-        messages.success(self.request, "Category updated successfully.")
-        return super().form_valid(form)
-
-class CategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class CategoryDeleteView(BaseDeleteView):
     model = Category
     template_name = 'inventory/confirm_delete.html'
-    success_url = reverse_lazy('inventory:category_list')
     permission_required = 'inventory.delete_category'
-
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, "Category deleted successfully.")
-        return super().delete(request, *args, **kwargs)
+    success_url = reverse_lazy('inventory:category_list')
 
 # ==================== SUPPLIER ====================
 
-class SupplierListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class SupplierListView(BaseListView):
     model = Supplier
     template_name = 'inventory/supplier_list.html'
     context_object_name = 'suppliers'
     permission_required = 'inventory.view_supplier'
+    search_fields = ['name', 'code', 'email', 'phone']
+    filter_fields = ['supplier_type', 'is_active']
 
-class SupplierCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class SupplierCreateView(BaseCreateView):
     model = Supplier
-    fields = ['name', 'code', 'supplier_type', 'contact_person', 'email', 'phone', 
-              'address', 'city', 'state', 'pincode', 'gst_number', 'is_active']
+    form_class = SupplierForm
     template_name = 'inventory/supplier_form.html'
-    success_url = reverse_lazy('inventory:supplier_list')
     permission_required = 'inventory.add_supplier'
-
-    def form_valid(self, form):
-        messages.success(self.request, "Supplier created successfully.")
-        return super().form_valid(form)
-
-class SupplierUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = Supplier
-    fields = ['name', 'code', 'supplier_type', 'contact_person', 'email', 'phone', 
-              'address', 'city', 'state', 'pincode', 'gst_number', 'is_active']
-    template_name = 'inventory/supplier_form.html'
     success_url = reverse_lazy('inventory:supplier_list')
+
+class SupplierUpdateView(BaseUpdateView):
+    model = Supplier
+    form_class = SupplierForm
+    template_name = 'inventory/supplier_form.html'
     permission_required = 'inventory.change_supplier'
+    success_url = reverse_lazy('inventory:supplier_list')
 
-    def form_valid(self, form):
-        messages.success(self.request, "Supplier updated successfully.")
-        return super().form_valid(form)
-
-class SupplierDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class SupplierDeleteView(BaseDeleteView):
     model = Supplier
     template_name = 'inventory/confirm_delete.html'
-    success_url = reverse_lazy('inventory:supplier_list')
     permission_required = 'inventory.delete_supplier'
-
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, "Supplier deleted successfully.")
-        return super().delete(request, *args, **kwargs)
+    success_url = reverse_lazy('inventory:supplier_list')
 
 # ==================== ITEM ====================
 
-class ItemListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class ItemListView(BaseListView):
     model = Item
     template_name = 'inventory/item_list.html'
     context_object_name = 'items'
     permission_required = 'inventory.view_item'
+    search_fields = ['name', 'code', 'barcode']
+    filter_fields = ['category', 'brand', 'is_active']
 
-class ItemDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class ItemCreateView(BaseCreateView):
     model = Item
-    template_name = 'inventory/item_detail.html'
-    context_object_name = 'item'
-    permission_required = 'inventory.view_item'
-
-class ItemCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = Item
-    fields = ['name', 'code', 'barcode', 'description', 'category', 'brand', 'unit', 
-              'current_stock', 'minimum_stock', 'low_stock_threshold', 'reorder_quantity', 
-              'cost_price', 'selling_price', 'storage_location', 'is_active']
+    form_class = ItemForm
     template_name = 'inventory/item_form.html'
-    success_url = reverse_lazy('inventory:item_list')
     permission_required = 'inventory.add_item'
-
-    def form_valid(self, form):
-        messages.success(self.request, "Item created successfully.")
-        return super().form_valid(form)
-
-class ItemUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = Item
-    fields = ['name', 'code', 'barcode', 'description', 'category', 'brand', 'unit', 
-              'current_stock', 'minimum_stock', 'low_stock_threshold', 'reorder_quantity', 
-              'cost_price', 'selling_price', 'storage_location', 'is_active']
-    template_name = 'inventory/item_form.html'
     success_url = reverse_lazy('inventory:item_list')
+
+class ItemUpdateView(BaseUpdateView):
+    model = Item
+    form_class = ItemForm
+    template_name = 'inventory/item_form.html'
     permission_required = 'inventory.change_item'
+    success_url = reverse_lazy('inventory:item_list')
 
-    def form_valid(self, form):
-        messages.success(self.request, "Item updated successfully.")
-        return super().form_valid(form)
-
-class ItemDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class ItemDeleteView(BaseDeleteView):
     model = Item
     template_name = 'inventory/confirm_delete.html'
-    success_url = reverse_lazy('inventory:item_list')
     permission_required = 'inventory.delete_item'
-
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, "Item deleted successfully.")
-        return super().delete(request, *args, **kwargs)
+    success_url = reverse_lazy('inventory:item_list')
 
 # ==================== STOCK MOVEMENT ====================
 
-class StockMovementListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class StockMovementListView(BaseListView):
     model = StockMovement
     template_name = 'inventory/stock_movement_list.html'
     context_object_name = 'movements'
     permission_required = 'inventory.view_stockmovement'
+    search_fields = ['item__name', 'reference']
+    filter_fields = ['movement_type']
 
-class StockMovementCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class StockMovementCreateView(BaseCreateView):
     model = StockMovement
-    fields = ['item', 'movement_type', 'quantity', 'unit_price', 'reference', 'notes']
+    form_class = StockMovementForm
     template_name = 'inventory/stock_movement_form.html'
-    success_url = reverse_lazy('inventory:stock_movement_list')
     permission_required = 'inventory.add_stockmovement'
+    success_url = reverse_lazy('inventory:stock_movement_list')
 
     def form_valid(self, form):
         form.instance.performed_by = self.request.user
-        messages.success(self.request, "Stock movement recorded successfully.")
         return super().form_valid(form)
+
+# ==================== PURCHASE ORDER ====================
+
+class PurchaseOrderListView(BaseListView):
+    model = PurchaseOrder
+    template_name = 'inventory/purchase_order_list.html'
+    context_object_name = 'orders'
+    permission_required = 'inventory.view_purchaseorder'
+    search_fields = ['po_number', 'supplier__name']
+    filter_fields = ['status']
+
+class PurchaseOrderCreateView(BaseCreateView):
+    model = PurchaseOrder
+    form_class = PurchaseOrderForm
+    template_name = 'inventory/purchase_order_form.html'
+    permission_required = 'inventory.add_purchaseorder'
+    success_url = reverse_lazy('inventory:purchase_order_list')
+
+    def form_valid(self, form):
+        form.instance.requested_by = self.request.user
+        return super().form_valid(form)
+
+class PurchaseOrderUpdateView(BaseUpdateView):
+    model = PurchaseOrder
+    form_class = PurchaseOrderForm
+    template_name = 'inventory/purchase_order_form.html'
+    permission_required = 'inventory.change_purchaseorder'
+    success_url = reverse_lazy('inventory:purchase_order_list')
+
+class PurchaseOrderDeleteView(BaseDeleteView):
+    model = PurchaseOrder
+    template_name = 'inventory/confirm_delete.html'
+    permission_required = 'inventory.delete_purchaseorder'
+    success_url = reverse_lazy('inventory:purchase_order_list')

@@ -1,68 +1,79 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Items{% endblock %}
+{% block title %}{% trans "Items" %}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h5 class="mb-0">Inventory Items</h5>
-            <a href="{% url 'inventory:item_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Add New</a>
-        </div>
-        
-        <div class="table-responsive">
-            <table id="itemTable" class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Current Stock</th>
-                        <th>Unit</th>
-                        <th>Cost Price</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in items %}
-                    <tr>
-                        <td><code>{{ item.code }}</code></td>
-                        <td>{{ item.name }}</td>
-                        <td>{{ item.category.name }}</td>
-                        <td>{{ item.current_stock }}</td>
-                        <td>{{ item.get_unit_display }}</td>
-                        <td>₹{{ item.cost_price|floatformat:2 }}</td>
-                        <td>
-                            {% if item.is_low_stock %}<span class="badge bg-warning">Low Stock</span>
-                            {% elif item.is_active %}<span class="badge bg-success">Active</span>
-                            {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
-                        </td>
-                        <td>
-                            <div class="d-flex order-actions">
-                                <a href="{% url 'inventory:item_detail' item.pk %}" class="ms-3" title="View"><i class="bx bxs-show"></i></a>
-                                <a href="{% url 'inventory:item_update' item.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
-                                <a href="{% url 'inventory:item_delete' item.pk %}" class="ms-3 text-danger" title="Delete"><i class="bx bxs-trash"></i></a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    
+    {% url 'inventory:item_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Items") current_text=_("Items") action_url=create_url action_text=_("Add Item") %}
+
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="datatable" class="table table-striped table-bordered" style="width:100%" data-datatable data-export-columns="[0,1,2,3,4,5]">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Stock" %}</th>
+                            <th>{% trans "Price" %}</th>
+                            <th>{% trans "Location" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" class="rounded-circle" width="40" height="40" alt="">
+                                    {% endif %}
+                                    <div class="ms-2">
+                                        <h6 class="mb-0 font-size-14">{{ item.name }}</h6>
+                                        <small class="text-muted">{{ item.code }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ item.category.name }}</td>
+                            <td>
+                                {% if item.current_stock <= item.low_stock_threshold %}
+                                    <span class="text-danger fw-bold">{{ item.current_stock }} {{ item.get_unit_display }}</span>
+                                {% else %}
+                                    <span class="text-success fw-bold">{{ item.current_stock }} {{ item.get_unit_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.selling_price }}</td>
+                            <td>{{ item.storage_location|default:"-" }}</td>
+                            <td>
+                                {% if item.is_active %}
+                                    <span class="badge bg-success-subtle text-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex order-actions">
+                                    <a href="{% url 'inventory:item_update' item.pk %}" class="text-primary bg-light-primary border-0"><i class='bx bxs-edit'></i></a>
+                                    <a href="{% url 'inventory:item_delete' item.pk %}" class="ms-3 text-danger bg-light-danger border-0"><i class='bx bxs-trash'></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}
 
-{% block scripts %}
-<script>
-    $(document).ready(function() {
-        var table = $('#itemTable').DataTable({
-            lengthChange: false,
-            buttons: [ 'copy', 'excel', 'pdf', 'print']
-        });
-        table.buttons().container().appendTo( '#itemTable_wrapper .col-md-6:eq(0)' );
-    });
-</script>
+{% block extra_js %}
+    {% include 'includes/datatable_scripts.html' %}
+{% endblock %}
+
+{% block extra_css %}
+    {% include 'includes/datatable_styles.html' %}
 {% endblock %}

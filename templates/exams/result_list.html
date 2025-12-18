@@ -1,0 +1,149 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Exam Results" %}{% endblock %}
+
+{% block content %}
+    <div class="d-flex align-items-center justify-content-between mt-4">
+        {% include 'partials/breadcrumb.html' with page_title=_("Exam Results") current_text=_("Results") %}
+        <div class="dropdown">
+            <button class="btn btn-primary rounded-pill px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bx bx-cog me-1"></i> {% trans "Bulk Actions" %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                <li>
+                    <button class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#generateResultsModal">
+                        <i class="bx bx-refresh me-2"></i> {% trans "Generate/Update Results" %}
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Generate Results Modal -->
+    <div class="modal fade" id="generateResultsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow" style="border-radius:20px;">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title fw-bold">{% trans "Generate Results" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 pt-0">
+                    <p class="text-muted">{% trans "Select an exam to calculate results and rankings for all enrolled students." %}</p>
+                    <form id="generateResultsForm" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Select Exam" %}</label>
+                            <select name="exam_id" class="form-select rounded-3" required id="examSelect">
+                                <option value="">-- {% trans "Select Exam" %} --</option>
+                                {% for exam in exams %}
+                                    <option value="{{ exam.pk }}">{{ exam.name }} ({{ exam.academic_year.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="alert alert-warning border-0 small">
+                            <i class="bx bx-info-circle me-1"></i> {% trans "This will overwrite existing percentages and rankings for the selected exam." %}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold mt-2">{% trans "Start Generation" %}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('examSelect').addEventListener('change', function() {
+            var examId = this.value;
+            var form = document.getElementById('generateResultsForm');
+            if (examId) {
+                // Construct the URL dynamically. Note: This assumes the URL pattern matches
+                form.action = "{% url 'exams:result_list' %}generate/" + examId + "/";
+            } else {
+                form.action = "";
+            }
+        });
+    </script>
+
+    <div class="card border-0 shadow-sm mt-4" style="border-radius: 20px;">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table id="resultsTable" class="table table-hover align-middle" style="width:100%" data-datatable="true" data-title="{% trans 'Exam Results' %}" data-export-columns="[0,1,2,3,4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>{% trans "Student" %}</th>
+                            <th>{% trans "Exam" %}</th>
+                            <th>{% trans "Percentage" %}</th>
+                            <th>{% trans "Grade" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in results %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="ms-2">
+                                        <h6 class="mb-0 fw-bold">{{ result.student.first_name }} {{ result.student.last_name }}</h6>
+                                        <small class="text-muted">{{ result.student.roll_number }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <h6 class="mb-0">{{ result.exam.name }}</h6>
+                                <small class="text-muted">{{ result.exam.exam_type.name }}</small>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-bold me-2">{{ result.percentage }}%</span>
+                                    <div class="progress rounded-pill" style="height: 4px; width: 60px;">
+                                        <div class="progress-bar {% if result.is_pass %}bg-success{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ result.percentage }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-white">{{ result.overall_grade.name|default:"N/A" }}</span>
+                            </td>
+                            <td>
+                                {% if result.result_status == 'PASS' %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "PASS" %}</span>
+                                {% elif result.result_status == 'FAIL' %}
+                                    <span class="badge bg-danger-subtle text-danger">{% trans "FAIL" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{{ result.get_result_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'exams:result_detail' result.pk %}" class="btn btn-sm btn-light-primary border-0" title="{% trans 'View Details' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    {% if result.mark_sheet %}
+                                    <a href="{% url 'exams:result_pdf' result.pk %}" class="btn btn-sm btn-light-success border-0" title="{% trans 'Download Mark Sheet' %}">
+                                        <i class="bx bx-download"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {% include 'includes/datatable_scripts.html' %}
+{% endblock %}
+
+{% block extra_css %}
+    {% include 'includes/datatable_styles.html' %}
+    <style>
+        .btn-light-primary { background-color: rgba(106, 17, 203, 0.1); color: #6a11cb; }
+        .btn-light-primary:hover { background-color: #6a11cb; color: white; }
+        .btn-light-success { background-color: rgba(17, 153, 142, 0.1); color: #11998e; }
+        .btn-light-success:hover { background-color: #11998e; color: white; }
+    </style>
+{% endblock %}

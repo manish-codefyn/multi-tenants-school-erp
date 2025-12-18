@@ -1,0 +1,235 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Mark Sheet" %} - {{ result.student }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mark-sheet {
+        background: #fff;
+        padding: 50px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        max-width: 900px;
+        margin: 0 auto;
+        border: 1px solid #eee;
+        position: relative;
+    }
+    .mark-sheet::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border: 2px solid #6a11cb;
+        margin: 10px;
+        border-radius: 15px;
+        pointer-events: none;
+        opacity: 0.1;
+    }
+    .school-logo {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+    }
+    .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 8rem;
+        color: rgba(0,0,0,0.03);
+        font-weight: 800;
+        pointer-events: none;
+        z-index: 0;
+        text-transform: uppercase;
+    }
+    .table-marks thead th {
+        background-color: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+    .grade-badge {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-weight: 800;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="mb-0 fw-bold text-gradient-primary">{% trans "Digital Mark Sheet" %}</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary rounded-pill px-4" onclick="window.print()">
+                <i class="bx bx-printer me-1"></i> {% trans "Print" %}
+            </button>
+            <a href="{% url 'exams:result_pdf' result.pk %}" class="btn btn-outline-success rounded-pill px-4">
+                <i class="bx bx-download me-1"></i> {% trans "Download PDF" %}
+            </a>
+            {% if result.is_published %}
+            <div class="btn btn-success rounded-pill px-4">
+                <i class="bx bx-check-double me-1"></i> {% trans "Published" %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mark-sheet mb-5 position-relative">
+        <div class="watermark">{{ result.result_status }}</div>
+
+        <!-- Header -->
+        <div class="row align-items-center border-bottom pb-4 mb-4">
+            <div class="col-md-2 text-center text-md-start">
+                 <i class="bx bxs-graduation text-primary" style="font-size: 64px;"></i>
+            </div>
+            <div class="col-md-7 text-center text-md-start">
+                <h2 class="fw-bold mb-1">{{ tenant.name|upper }}</h2>
+                <p class="text-muted mb-0">{{ tenant.address|default:"Institution Address Not Set" }}</p>
+                <p class="text-muted small">{% trans "Session" %}: {{ result.exam.academic_year.name }}</p>
+            </div>
+            <div class="col-md-3 text-center text-md-end mt-3 mt-md-0">
+                <div class="p-2 border rounded-3 bg-light d-inline-block text-start">
+                    <small class="text-muted d-block text-uppercase font-size-10">{% trans "Mark Sheet No." %}</small>
+                    <span class="fw-bold">{{ result.mark_sheet.mark_sheet_number|default:"PENDING" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Info -->
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th width="35%" class="text-muted">{% trans "Student Name" %}:</th>
+                        <td class="fw-bold">{{ result.student.first_name }} {{ result.student.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">{% trans "Roll Number" %}:</th>
+                        <td>{{ result.student.roll_number }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">{% trans "Class" %}:</th>
+                        <td>{{ result.student.current_class.name }} ({{ result.student.current_section.name }})</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                 <table class="table table-borderless table-sm">
+                    <tr>
+                        <th width="35%" class="text-muted">{% trans "Exam Name" %}:</th>
+                        <td class="fw-bold">{{ result.exam.name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">{% trans "Exam Type" %}:</th>
+                        <td>{{ result.exam.exam_type.name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="text-muted">{% trans "Date" %}:</th>
+                        <td>{{ result.published_at|date:"F d, Y"|default:result.updated_at|date:"F d, Y" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Subject Wise Marks -->
+        <div class="table-responsive mb-5">
+            <table class="table table-marks align-middle">
+                <thead>
+                    <tr>
+                        <th class="ps-0">{% trans "Subject" %}</th>
+                        <th class="text-center">{% trans "Max Marks" %}</th>
+                        <th class="text-center">{% trans "Theory" %}</th>
+                        <th class="text-center">{% trans "Practical" %}</th>
+                        <th class="text-center">{% trans "Obtained" %}</th>
+                        <th class="text-end pe-0">{% trans "Grade" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in subject_results %}
+                    <tr>
+                        <td class="ps-0 fw-bold">{{ subject.exam_subject.subject.name }}</td>
+                        <td class="text-center">{{ subject.exam_subject.max_marks }}</td>
+                        <td class="text-center">{{ subject.theory_marks|default:"-" }}</td>
+                        <td class="text-center">{{ subject.practical_marks|default:"-" }}</td>
+                        <td class="text-center fw-bold">{{ subject.total_marks_obtained }}</td>
+                        <td class="text-end pe-0">
+                            <span class="badge bg-light text-primary fw-bold">{{ subject.grade.name|default:"-" }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="border-top border-2 border-dark">
+                    <tr>
+                        <th class="ps-0 fs-5">{% trans "GRAND TOTAL" %}</th>
+                        <th class="text-center fs-5">{{ result.total_max_marks }}</th>
+                        <th colspan="2"></th>
+                        <th class="text-center fs-5 text-primary fw-bold">{{ result.total_marks_obtained }}</th>
+                        <th class="text-end pe-0">
+                            <div class="d-flex align-items-center justify-content-end">
+                                <span class="me-2 text-muted small">{% trans "OVERALL GRADE" %}:</span>
+                                <div class="grade-badge bg-primary text-white">
+                                    {{ result.overall_grade.name|default:"-" }}
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Summary & Signatures -->
+        <div class="row mt-5 pt-4">
+            <div class="col-md-7">
+                <div class="p-4 bg-light rounded-4 h-100">
+                    <h6 class="fw-bold text-uppercase mb-3 small">{% trans "Performance Summary" %}</h6>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="mb-1 text-muted small">{% trans "Percentage" %}</div>
+                            <div class="fw-bold fs-4">{{ result.percentage }}%</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="mb-1 text-muted small">{% trans "Class Rank" %}</div>
+                            <div class="fw-bold fs-4">#{{ result.rank }} / {{ result.total_students }}</div>
+                        </div>
+                        <div class="col-12 mt-3">
+                             <div class="mb-1 text-muted small">{% trans "Final Result" %}</div>
+                             {% if result.is_pass %}
+                             <div class="text-success fw-bold text-uppercase fs-5"><i class="bx bx-check-circle me-1"></i> {% trans "PROMOTED / PASS" %}</div>
+                             {% else %}
+                             <div class="text-danger fw-bold text-uppercase fs-5"><i class="bx bx-error-circle me-1"></i> {% trans "FAILED" %}</div>
+                             {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 d-flex flex-column justify-content-end align-items-center pb-3">
+                {% if result.mark_sheet.qr_code %}
+                    <img src="{{ result.mark_sheet.qr_code.url }}" style="width: 100px; height: 100px;" alt="QR Code">
+                {% else %}
+                    <!-- QR Placeholder for stylization -->
+                    <div class="p-2 border rounded bg-white mb-3">
+                        <i class="bx bx-qr-scan text-muted" style="font-size: 80px;"></i>
+                    </div>
+                {% endif %}
+                <div class="text-center">
+                    <div class="border-top pt-2 mt-4" style="width: 200px;">
+                        <p class="mb-0 fw-bold small">{% trans "Principal / Authority" %}</p>
+                        <small class="text-muted">{% trans "Authorized Signature" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if result.mark_sheet.verification_code %}
+        <div class="text-center mt-5">
+            <hr class="mb-2">
+            <small class="text-muted">{% trans "Verify at" %}: {{ request.get_host }}/exams/results/verify/?code={{ result.mark_sheet.verification_code }}</small>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

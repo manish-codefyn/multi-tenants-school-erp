@@ -1,12 +1,40 @@
+{% load i18n %}
+
 <li>
     <a href="javascript:;" class="has-arrow">
-        <div class="parent-icon"><i class="bx bx-book-open"></i></div>
-        <div class="menu-title">Exams</div>
+        <div class="parent-icon">
+            <i class="bx bx-edit"></i>
+        </div>
+        <div class="menu-title">{% trans "Exams & Results" %}</div>
     </a>
+
     <ul>
-        <li><a href="{% url 'exams:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
-        <li><a href="{% url 'exams:exam_list' %}"><i class="bx bx-radio-circle"></i>All Exams</a></li>
-        <li><a href="{% url 'exams:exam_type_list' %}"><i class="bx bx-radio-circle"></i>Exam Types</a></li>
-        <li><a href="{% url 'exams:grading_system_list' %}"><i class="bx bx-radio-circle"></i>Grading Systems</a></li>
+        <!-- ================= DASHBOARD ================= -->
+        <li>
+            <a href="{% url 'exams:dashboard' %}">
+                <i class="bx bx-home-alt"></i> {% trans "Dashboard" %}
+            </a>
+        </li>
+
+        <!-- ================= EXAM MANAGEMENT ================= -->
+        <li class="menu-label">{% trans "Exam Management" %}</li>
+        <li>
+            <a href="{% url 'exams:exam_list' %}">
+                <i class="bx bx-list-check"></i> {% trans "Exams Schedule" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'exams:exam_type_list' %}">
+                <i class="bx bx-category"></i> {% trans "Exam Types" %}
+            </a>
+        </li>
+
+        <!-- ================= SETTINGS ================= -->
+        <li class="menu-label">{% trans "Settings" %}</li>
+        <li>
+            <a href="{% url 'exams:grading_system_list' %}">
+                <i class="bx bx-slider-alt"></i> {% trans "Grading Systems" %}
+            </a>
+        </li>
     </ul>
 </li>

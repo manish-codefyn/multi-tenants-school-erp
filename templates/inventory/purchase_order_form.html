@@ -1,7 +1,7 @@
 {% extends 'layouts/dashboard.html' %}
 {% load i18n crispy_forms_tags %}
 
-{% block title %}{% trans "Category Form" %}{% endblock %}
+{% block title %}{% trans "Purchase Order Form" %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -11,9 +11,9 @@
                 <div class="card-header bg-transparent border-bottom py-3">
                     <h5 class="card-title mb-0">
                         {% if form.instance.pk %}
-                            {% trans "Edit Category" %}
+                            {% trans "Edit Purchase Order" %}
                         {% else %}
-                            {% trans "Add New Category" %}
+                            {% trans "Create Purchase Order" %}
                         {% endif %}
                     </h5>
                 </div>
@@ -24,8 +24,8 @@
                         
                         <div class="row mt-4">
                             <div class="col-12 text-end">
-                                <a href="{% url 'inventory:category_list' %}" class="btn btn-light px-4 me-2">{% trans "Cancel" %}</a>
-                                <button type="submit" class="btn btn-primary px-4">{% trans "Save Category" %}</button>
+                                <a href="{% url 'inventory:purchase_order_list' %}" class="btn btn-light px-4 me-2">{% trans "Cancel" %}</a>
+                                <button type="submit" class="btn btn-primary px-4">{% trans "Save Order" %}</button>
                             </div>
                         </div>
                     </form>

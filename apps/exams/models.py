@@ -175,7 +175,7 @@ class Exam(BaseModel):
         return (self.end_date - self.start_date).days + 1
 
     @property
-    def is_active(self):
+    def is_currently_running(self):
         """Check if exam is currently active"""
         today = timezone.now().date()
         return self.start_date <= today <= self.end_date and self.status == "ONGOING"
@@ -918,12 +918,16 @@ class ResultStatistics(BaseModel):
     # Grade distribution
     grade_distribution = models.JSONField(
         default=dict,
+        blank=True,
+        null=True,
         verbose_name=_("Grade Distribution")
     )
     
     # Subject-wise performance
     subject_performance = models.JSONField(
         default=dict,
+        blank=True,
+        null=True,
         verbose_name=_("Subject Performance")
     )
     

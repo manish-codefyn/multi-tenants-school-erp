@@ -1,27 +1,49 @@
-from django.urls import path
+from django.urls import path, include
+from django.contrib.auth.decorators import login_required
 from . import views
 
 app_name = 'exams'
 
 urlpatterns = [
-    path('dashboard/', views.ExamDashboardView.as_view(), name='dashboard'),
-    
-    # Exam Types
-    path('types/', views.ExamTypeListView.as_view(), name='exam_type_list'),
-    path('types/create/', views.ExamTypeCreateView.as_view(), name='exam_type_create'),
-    path('types/<int:pk>/update/', views.ExamTypeUpdateView.as_view(), name='exam_type_update'),
-    path('types/<int:pk>/delete/', views.ExamTypeDeleteView.as_view(), name='exam_type_delete'),
-    
-    # Exams
-    path('', views.ExamListView.as_view(), name='exam_list'),
-    path('<int:pk>/', views.ExamDetailView.as_view(), name='exam_detail'),
-    path('create/', views.ExamCreateView.as_view(), name='exam_create'),
-    path('<int:pk>/update/', views.ExamUpdateView.as_view(), name='exam_update'),
-    path('<int:pk>/delete/', views.ExamDeleteView.as_view(), name='exam_delete'),
-    
-    # Grading Systems
-    path('grading/', views.GradingSystemListView.as_view(), name='grading_system_list'),
-    path('grading/create/', views.GradingSystemCreateView.as_view(), name='grading_system_create'),
-    path('grading/<int:pk>/update/', views.GradingSystemUpdateView.as_view(), name='grading_system_update'),
-    path('grading/<int:pk>/delete/', views.GradingSystemDeleteView.as_view(), name='grading_system_delete'),
+    # ==================== DASHBOARD ====================
+    path('', login_required(views.ExamDashboardView.as_view()), name='dashboard'),
+
+    # ==================== EXAM TYPE ====================
+    path('types/', include([
+        path('', login_required(views.ExamTypeListView.as_view()), name='exam_type_list'),
+        path('create/', login_required(views.ExamTypeCreateView.as_view()), name='exam_type_create'),
+        path('<uuid:pk>/', include([
+            path('edit/', login_required(views.ExamTypeUpdateView.as_view()), name='exam_type_update'),
+            path('delete/', login_required(views.ExamTypeDeleteView.as_view()), name='exam_type_delete'),
+        ])),
+    ])),
+
+    # ==================== EXAM ====================
+    path('exams/', include([
+        path('', login_required(views.ExamListView.as_view()), name='exam_list'),
+        path('create/', login_required(views.ExamCreateView.as_view()), name='exam_create'),
+        path('<uuid:pk>/', include([
+            path('edit/', login_required(views.ExamUpdateView.as_view()), name='exam_update'),
+            path('delete/', login_required(views.ExamDeleteView.as_view()), name='exam_delete'),
+        ])),
+    ])),
+
+    # ==================== GRADING SYSTEM ====================
+    path('grading/', include([
+        path('', login_required(views.GradingSystemListView.as_view()), name='grading_system_list'),
+        path('create/', login_required(views.GradingSystemCreateView.as_view()), name='grading_system_create'),
+        path('<uuid:pk>/', include([
+            path('edit/', login_required(views.GradingSystemUpdateView.as_view()), name='grading_system_update'),
+            path('delete/', login_required(views.GradingSystemDeleteView.as_view()), name='grading_system_delete'),
+        ])),
+    ])),
+
+    # ==================== RESULTS ====================
+    path('results/', include([
+        path('', login_required(views.ExamResultListView.as_view()), name='result_list'),
+        path('<uuid:pk>/', login_required(views.ExamResultDetailView.as_view()), name='result_detail'),
+        path('<uuid:pk>/PDF/', login_required(views.MarkSheetPDFView.as_view()), name='result_pdf'),
+        path('verify/', views.MarkSheetVerificationView.as_view(), name='verify_result'),
+        path('generate/<uuid:pk>/', login_required(views.GenerateResultsView.as_view()), name='generate_results'),
+    ])),
 ]

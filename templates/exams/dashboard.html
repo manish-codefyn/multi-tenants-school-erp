@@ -1,107 +1,245 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n %}
 
-{% block title %}Exams Dashboard - EduERP{% endblock %}
+{% block title %}{% trans "Exams Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .exam-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        border-radius: 16px;
+    }
+    .exam-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.1) !important;
+    }
+    .icon-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .bg-gradient-primary { background: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%); }
+    .bg-gradient-success { background: linear-gradient(45deg, #11998e 0%, #38ef7d 100%); }
+    .bg-gradient-info { background: linear-gradient(45deg, #2193b0 0%, #6dd5ed 100%); }
+    .bg-gradient-warning { background: linear-gradient(45deg, #f2994a 0%, #f2c94c 100%); }
+    
+    .action-card {
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .action-card:hover {
+        background-color: #f8f9fa;
+        border-color: #6a11cb;
+    }
+    .action-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-right: 15px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h4 class="mb-4">Exams Management</h4>
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-cosmic text-white border-0 shadow-lg overflow-hidden position-relative" style="border-radius: 20px;">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h2 class="text-white fw-bold mb-3">{% trans "Examination Management System" %}</h2>
+                            <p class="mb-4 text-white-50 fs-5">{% trans "Streamline your academic assessments, track student performance, and generate professional mark sheets with ease." %}</p>
+                            <div class="d-flex gap-3">
+                                <a href="{% url 'exams:exam_create' %}" class="btn btn-light btn-lg px-4 rounded-pill fw-bold">
+                                    <i class="bx bx-plus me-2"></i>{% trans "Create Exam" %}
+                                </a>
+                                <a href="{% url 'exams:exam_list' %}" class="btn btn-outline-light btn-lg px-4 rounded-pill fw-bold">
+                                    <i class="bx bx-list-ul me-2"></i>{% trans "View All" %}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 d-none d-lg-block text-end">
+                            <i class="bx bxs-graduation" style="font-size: 160px; opacity: 0.2;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- Statistics Cards -->
-<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
-    <div class="col">
-        <div class="card radius-10 bg-gradient-cosmic">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="me-auto">
-                        <p class="mb-0 text-white">Total Exams</p>
-                        <h4 class="my-1 text-white">{{ total_exams|default:"0" }}</h4>
+    <!-- Stats Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+             <div class="card exam-card shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                         <div class="icon-box bg-primary bg-opacity-10 text-white">
+                            <i class="bx bx-file"></i>
+                         </div>
+                         <div class="text-end">
+                            <p class="text-uppercase text-muted fw-bold mb-0 font-size-12">{% trans "Total Exams" %}</p>
+                            <h2 class="mb-0 fw-bold">{{ total_exams }}</h2>
+                         </div>
                     </div>
-                    <div class="fs-1 text-white">
-                        <i class="bx bx-book-open"></i>
+                    <div class="progress rounded-pill" style="height: 6px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+             <div class="card exam-card shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                         <div class="icon-box bg-success bg-opacity-10 text-white">
+                            <i class="bx bx-play-circle"></i>
+                         </div>
+                         <div class="text-end">
+                            <p class="text-uppercase text-muted fw-bold mb-0 font-size-12">{% trans "Ongoing" %}</p>
+                            <h2 class="mb-0 fw-bold">{{ ongoing_exams }}</h2>
+                         </div>
+                    </div>
+                    {% widthratio ongoing_exams total_exams 100 as ongoing_percent %}
+                    <div class="progress rounded-pill" style="height: 6px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ ongoing_percent|default:0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+             <div class="card exam-card shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                         <div class="icon-box bg-info bg-opacity-10 text-info">
+                            <i class="bx bx-calendar"></i>
+                         </div>
+                         <div class="text-end">
+                            <p class="text-uppercase text-muted fw-bold mb-0 font-size-12">{% trans "Upcoming" %}</p>
+                            <h2 class="mb-0 fw-bold">{{ upcoming_exams }}</h2>
+                         </div>
+                    </div>
+                    {% widthratio upcoming_exams total_exams 100 as upcoming_percent %}
+                    <div class="progress rounded-pill" style="height: 6px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ upcoming_percent|default:0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+             <div class="card exam-card shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                         <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                            <i class="bx bx-category"></i>
+                         </div>
+                         <div class="text-end">
+                            <p class="text-uppercase text-muted fw-bold mb-0 font-size-12">{% trans "Exam Types" %}</p>
+                            <h2 class="mb-0 fw-bold">{{ exam_types }}</h2>
+                         </div>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 6px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="col">
-        <div class="card radius-10 bg-gradient-ibiza">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="me-auto">
-                        <p class="mb-0 text-white">Ongoing Exams</p>
-                        <h4 class="my-1 text-white">{{ ongoing_exams|default:"0" }}</h4>
-                    </div>
-                    <div class="fs-1 text-white">
-                        <i class="bx bx-edit"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col">
-        <div class="card radius-10 bg-gradient-ohhappiness">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="me-auto">
-                        <p class="mb-0 text-white">Upcoming Exams</p>
-                        <h4 class="my-1 text-white">{{ upcoming_exams|default:"0" }}</h4>
-                    </div>
-                    <div class="fs-1 text-white">
-                        <i class="bx bx-calendar"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col">
-        <div class="card radius-10 bg-gradient-kyoto">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="me-auto">
-                        <p class="mb-0 text-dark">Exam Types</p>
-                        <h4 class="my-1 text-dark">{{ exam_types|default:"0" }}</h4>
-                    </div>
-                    <div class="text-dark fs-1">
-                        <i class="bx bx-category"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Quick Actions -->
-<div class="row mt-4">
-    <div class="col-12 col-lg-6">
-        <div class="card radius-10">
-            <div class="card-header bg-transparent">
-                <h6 class="mb-0">Quick Actions</h6>
+    <div class="row g-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <h5 class="fw-bold mb-0">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <a href="{% url 'exams:exam_create' %}" class="d-flex align-items-center p-3 action-card text-decoration-none text-dark">
+                            <div class="action-icon bg-primary bg-opacity-10 text-white">
+                                <i class="bx bx-plus"></i>
+                            </div>
+                            <span class="fw-semibold">{% trans "Add New Exam" %}</span>
+                            <i class="bx bx-chevron-right ms-auto text-muted"></i>
+                        </a>
+                    </div>
+                    <div class="mb-3">
+                        <a href="{% url 'exams:exam_type_create' %}" class="d-flex align-items-center p-3 action-card text-decoration-none text-dark">
+                            <div class="action-icon bg-success bg-opacity-10 text-white">
+                                <i class="bx bx-cog"></i>
+                            </div>
+                            <span class="fw-semibold">{% trans "Configure Exam Types" %}</span>
+                            <i class="bx bx-chevron-right ms-auto text-muted"></i>
+                        </a>
+                    </div>
+                    <div class="mb-3">
+                        <a href="{% url 'exams:result_list' %}" class="d-flex align-items-center p-3 action-card text-decoration-none text-dark">
+                            <div class="action-icon bg-info bg-opacity-10 text-info">
+                                <i class="bx bx-bar-chart-alt-2"></i>
+                            </div>
+                            <span class="fw-semibold">{% trans "View All Results" %}</span>
+                            <i class="bx bx-chevron-right ms-auto text-muted"></i>
+                        </a>
+                    </div>
+                    <div>
+                        <a href="{% url 'exams:verify_result' %}" class="d-flex align-items-center p-3 action-card text-decoration-none text-dark">
+                            <div class="action-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bx bx-check-shield"></i>
+                            </div>
+                            <span class="fw-semibold">{% trans "Verify Mark Sheet" %}</span>
+                            <i class="bx bx-chevron-right ms-auto text-muted"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'exams:exam_create' %}" class="btn btn-primary">
-                        <i class="bx bx-plus-circle me-2"></i>Create New Exam
-                    </a>
-                    <a href="{% url 'exams:exam_list' %}" class="btn btn-outline-primary">
-                        <i class="bx bx-list-ul me-2"></i>View All Exams
-                    </a>
-                    <a href="{% url 'exams:exam_type_list' %}" class="btn btn-outline-secondary">
-                        <i class="bx bx-category me-2"></i>Manage Exam Types
-                    </a>
-                    <a href="{% url 'exams:grading_system_list' %}" class="btn btn-outline-info">
-                        <i class="bx bx-bar-chart me-2"></i>Grading Systems
-                    </a>
+        </div>
+
+        <!-- Recent Exams -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                <div class="card-header bg-transparent border-0 p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="fw-bold mb-0">{% trans "Overview" %}</h5>
+                        <a href="{% url 'exams:exam_list' %}" class="btn btn-link text-primary p-0 text-decoration-none">
+                            {% trans "View All" %} <i class="bx bx-right-arrow-alt"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-4 pt-0">
+                    <!-- This area can be expanded with more detailed lists or even a chart -->
+                    <div class="alert alert-info border-0 rounded-4 p-4 text-center">
+                        <p class="mb-0">{% trans "Total examinations under your management" %}</p>
+                        <h1 class="display-4 fw-bold mt-2">{{ total_exams }}</h1>
+                    </div>
+                    
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <div class="p-4 border rounded-4 text-center">
+                                <h6 class="text-muted text-uppercase mb-3">{% trans "Draft Exams" %}</h6>
+                                <h2 class="mb-0 fw-bold">{{ draft_exams|default:0 }}</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-4 border rounded-4 text-center text-success">
+                                <h6 class="text-muted text-uppercase mb-3">{% trans "Completed" %}</h6>
+                                <h2 class="mb-0 fw-bold text-success">{{ completed_exams|default:0 }}</h2>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
 {% endblock %}
+

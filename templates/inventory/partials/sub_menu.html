@@ -1,13 +1,50 @@
+{% load i18n %}
+
 <li>
     <a href="javascript:;" class="has-arrow">
-        <div class="parent-icon"><i class="bx bx-package"></i></div>
-        <div class="menu-title">Inventory</div>
+        <div class="parent-icon">
+            <i class="bx bx-store"></i>
+        </div>
+        <div class="menu-title">{% trans "Inventory" %}</div>
     </a>
+
     <ul>
-        <li><a href="{% url 'inventory:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
-        <li><a href="{% url 'inventory:item_list' %}"><i class="bx bx-radio-circle"></i>Items</a></li>
-        <li><a href="{% url 'inventory:category_list' %}"><i class="bx bx-radio-circle"></i>Categories</a></li>
-        <li><a href="{% url 'inventory:supplier_list' %}"><i class="bx bx-radio-circle"></i>Suppliers</a></li>
-        <li><a href="{% url 'inventory:stock_movement_list' %}"><i class="bx bx-radio-circle"></i>Stock Movements</a></li>
+        <!-- ================= DASHBOARD ================= -->
+        <li>
+            <a href="{% url 'inventory:dashboard' %}">
+                <i class="bx bx-home-alt"></i> {% trans "Dashboard" %}
+            </a>
+        </li>
+
+        <!-- ================= ITEM MANAGEMENT ================= -->
+        <li class="menu-label">{% trans "Item Management" %}</li>
+        <li>
+            <a href="{% url 'inventory:item_list' %}">
+                <i class="bx bx-box"></i> {% trans "Items" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'inventory:category_list' %}">
+                <i class="bx bx-category"></i> {% trans "Categories" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'inventory:supplier_list' %}">
+                <i class="bx bx-buildings"></i> {% trans "Suppliers" %}
+            </a>
+        </li>
+
+        <!-- ================= STOCK CONTROL ================= -->
+        <li class="menu-label">{% trans "Stock Control" %}</li>
+        <li>
+            <a href="{% url 'inventory:stock_movement_list' %}">
+                <i class="bx bx-transfer"></i> {% trans "Stock Movements" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'inventory:purchase_order_list' %}">
+                <i class="bx bx-cart"></i> {% trans "Purchase Orders" %}
+            </a>
+        </li>
     </ul>
 </li>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Academic Transcript - {{ result.student }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 10pt;
+            color: #2D3748;
+            margin: 0;
+            padding: 0;
+            background-color: #F7FAFC;
+        }
+        /* Layout Structure */
+        .outer-wrapper {
+            width: 100%;
+            background-color: #667eea; /* Solid fallback for Indigo */
+            padding: 15px;
+        }
+        .document-container {
+            background-color: #ffffff;
+            width: 100%;
+        }
+        
+        /* Header Section */
+        .header-section {
+            background-color: #4F46E5; /* Royal Indigo */
+            padding: 25px 40px;
+            color: #ffffff;
+        }
+        .institution-name {
+            font-size: 28pt;
+            font-weight: bold;
+            margin: 0;
+            color: #ffffff;
+        }
+        .institution-subtitle {
+            font-size: 11pt;
+            color: #E2E8F0;
+            margin-top: 5px;
+        }
+        
+        /* Document Title */
+        .title-section {
+            background-color: #F8FAFC;
+            padding: 20px 40px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .title-text {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #2D3748;
+            margin: 0;
+        }
+        .academic-year {
+            color: #4F46E5;
+        }
+        
+        /* Information Cards */
+        .info-section {
+            padding: 20px 40px;
+        }
+        .info-card {
+            background-color: #F8FAFC;
+            padding: 15px;
+            border: 1px solid #E2E8F0;
+        }
+        .info-label {
+            font-size: 8pt;
+            color: #718096;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 11pt;
+            color: #2D3748;
+            font-weight: bold;
+        }
+        
+        /* Marks Table */
+        .table-section {
+            padding: 10px 40px;
+        }
+        .marks-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-header {
+            background-color: #4F46E5;
+            color: #ffffff;
+        }
+        .table-header th {
+            padding: 12px;
+            font-weight: bold;
+            font-size: 9pt;
+            text-transform: uppercase;
+            text-align: center;
+            border: 1px solid #4338CA;
+        }
+        .table-row td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #EDF2F7;
+        }
+        .subject-cell {
+            text-align: left !important;
+            font-weight: bold;
+            color: #2D3748;
+        }
+        .highlight-cell {
+            background-color: #F0F9FF;
+            font-weight: bold;
+            color: #1E40AF;
+        }
+        
+        /* Summary Metrics */
+        .summary-section {
+            padding: 20px 40px;
+        }
+        .metric-card {
+            background-color: #ffffff;
+            border: 1px solid #E2E8F0;
+            padding: 20px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #4F46E5;
+        }
+        .metric-label {
+            font-size: 8pt;
+            color: #718096;
+            text-transform: uppercase;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        .pass-badge {
+            background-color: #10B981;
+            color: #ffffff;
+            padding: 5px 15px;
+            font-weight: bold;
+        }
+        .fail-badge {
+            background-color: #EF4444;
+            color: #ffffff;
+            padding: 5px 15px;
+            font-weight: bold;
+        }
+        
+        /* Footer Area */
+        .footer-section {
+            padding: 30px 40px;
+            background-color: #F8FAFC;
+            border-top: 1px solid #E2E8F0;
+        }
+        .signature-line {
+            border-top: 2px solid #4F46E5;
+            padding-top: 5px;
+            font-weight: bold;
+            color: #2D3748;
+            text-align: center;
+            width: 200px;
+        }
+        .verification-box {
+            background-color: #EDF2F7;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 9pt;
+            border-left: 4px solid #4F46E5;
+        }
+    </style>
+</head>
+<body>
+    <table class="outer-wrapper" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td align="center">
+                <table class="document-container" cellpadding="0" cellspacing="0" width="100%">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header-section">
+                            <table width="100%">
+                                <tr>
+                                    <td>
+                                        <h1 class="institution-name">{{ tenant.name }}</h1>
+                                        <div class="institution-subtitle">{{ tenant.address|default:"Institution Excellence Framework" }}</div>
+                                    </td>
+                                    <td align="right" valign="top">
+                                        <table style="background-color: rgba(255,255,255,0.1); padding: 5px 10px;">
+                                            <tr>
+                                                <td style="color: #ffffff; font-size: 9pt; font-weight: bold; text-align: center;">ACADEMIC TRANSCRIPT</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #E2E8F0; font-size: 8pt; text-align: center;">{{ result.updated_at|date:"F Y" }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Title -->
+                    <tr>
+                        <td class="title-section">
+                            <table width="100%">
+                                <tr>
+                                    <td>
+                                        <h2 class="title-text">Performance Report <span class="academic-year">{{ result.exam.academic_year.name }}</span></h2>
+                                    </td>
+                                    <td align="right">
+                                        <table style="background-color: #EBF5FF; padding: 5px 10px;">
+                                            <tr>
+                                                <td style="font-size: 8pt; color: #1E40AF; font-weight: bold;">{{ result.exam.exam_type.name|upper }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Student Info -->
+                    <tr>
+                        <td class="info-section">
+                            <table width="100%" cellspacing="10">
+                                <tr>
+                                    <td width="50%" valign="top">
+                                        <table class="info-card" width="100%">
+                                            <tr>
+                                                <td>
+                                                    <div class="info-label">Student Details</div>
+                                                    <div class="info-value" style="font-size: 14pt; color: #4F46E5;">{{ result.student.first_name }} {{ result.student.last_name }}</div>
+                                                    <table width="100%" style="margin-top: 10px;">
+                                                        <tr>
+                                                            <td class="info-label" width="40%">Roll Number</td>
+                                                            <td class="info-value">: {{ result.student.roll_number }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="info-label">Class</td>
+                                                            <td class="info-value">: {{ result.student.current_class.name }} ({{ result.student.current_section.name|default:"A" }})</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td width="50%" valign="top">
+                                        <table class="info-card" width="100%">
+                                            <tr>
+                                                <td>
+                                                    <div class="info-label">Exam Reference</div>
+                                                    <table width="100%" style="margin-top: 10px;">
+                                                        <tr>
+                                                            <td class="info-label" width="40%">Exam Event</td>
+                                                            <td class="info-value">: {{ result.exam.name }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="info-label">Report ID</td>
+                                                            <td class="info-value">: {{ result.id|stringformat:".8s"|upper }}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="info-label">Issue Date</td>
+                                                            <td class="info-value">: {{ result.updated_at|date:"d M Y" }}</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Table -->
+                    <tr>
+                        <td class="table-section">
+                            <table class="marks-table">
+                                <thead class="table-header">
+                                    <tr>
+                                        <th width="40%">Subject Description</th>
+                                        <th width="12%">Max</th>
+                                        <th width="12%">Theory</th>
+                                        <th width="12%">Prac</th>
+                                        <th width="12%">Secured</th>
+                                        <th width="12%">Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for subject in subject_results %}
+                                    <tr class="table-row">
+                                        <td class="subject-cell">{{ subject.exam_subject.subject.name }}</td>
+                                        <td>{{ subject.exam_subject.max_marks }}</td>
+                                        <td>{{ subject.theory_marks|default:"-" }}</td>
+                                        <td>{{ subject.practical_marks|default:"-" }}</td>
+                                        <td class="highlight-cell">{{ subject.total_marks_obtained }}</td>
+                                        <td style="font-weight: bold; color: #7C3AED;">{{ subject.grade.name|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background-color: #F8FAFC;">
+                                        <td align="right" style="padding: 12px; font-weight: bold;">AGGREGATE TOTAL</td>
+                                        <td style="font-weight: bold; color: #4F46E5;">{{ result.total_max_marks }}</td>
+                                        <td colspan="2" style="color: #718096; font-size: 8pt; font-style: italic;">Consolidated Results</td>
+                                        <td style="font-weight: bold; color: #4F46E5;">{{ result.total_marks_obtained }}</td>
+                                        <td style="background-color: #4F46E5; color: #ffffff; font-weight: bold;">{{ result.overall_grade.name|default:"-" }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Summary -->
+                    <tr>
+                        <td class="summary-section">
+                            <table width="100%" cellspacing="15">
+                                <tr>
+                                    <td width="33.33%">
+                                        <table class="metric-card" width="100%">
+                                            <tr>
+                                                <td>
+                                                    <div class="metric-value">{{ result.percentage }}%</div>
+                                                    <div class="metric-label">Percentage</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td width="33.33%">
+                                        <table class="metric-card" width="100%">
+                                            <tr>
+                                                <td>
+                                                    <div class="metric-value">{{ result.rank }}</div>
+                                                    <div class="metric-label">Class Rank</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td width="33.33%">
+                                        <table class="metric-card" width="100%">
+                                            <tr>
+                                                <td>
+                                                    {% if result.is_pass %}
+                                                    <div class="pass-badge">PASSED</div>
+                                                    {% else %}
+                                                    <div class="fail-badge">FAILED</div>
+                                                    {% endif %}
+                                                    <div class="metric-label">Final Status</div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer-section">
+                            <table width="100%">
+                                <tr>
+                                    <td width="60%">
+                                        <div class="info-label">Verification Integrity</div>
+                                        <table class="verification-box" width="100%">
+                                            <tr>
+                                                <td>
+                                                    <strong>Transcript ID:</strong> {{ result.mark_sheet.mark_sheet_number|default:"TRX-00" }}{{ result.id|stringformat:".6s" }}<br>
+                                                    <strong>Security Code:</strong> {{ result.mark_sheet.verification_code|default:"VER-" }}{{ result.student.roll_number }}<br>
+                                                    <strong>System Hash:</strong> {{ result.updated_at|date:"U" }}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td width="40%" align="right">
+                                        <table align="right">
+                                            <tr>
+                                                <td>
+                                                    <div class="signature-line">Academic Registrar</div>
+                                                    <div style="font-size: 7pt; color: #718096; text-align: center; margin-top: 5px;">
+                                                        Digital Authentication Record<br>
+                                                        Generated by ERP Core
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            <div style="text-align: center; font-size: 7pt; color: #94A3B8; margin-top: 25px; border-top: 1px solid #E2E8F0; padding-top: 10px;">
+                                This transcript is issued under the authority of {{ tenant.name }}.<br>
+                                Any unauthorized alteration of this document is a punishable offense.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

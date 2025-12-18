@@ -1,0 +1,65 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Purchase Orders" %}{% endblock %}
+
+{% block content %}
+
+    
+    {% url 'inventory:purchase_order_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Purchase Orders") current_text=_("Orders") action_url=create_url action_text=_("Create PO") %}
+
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="datatable" class="table table-striped table-bordered" style="width:100%" data-datatable data-export-columns="[0,1,2,3,4]">
+                    <thead>
+                        <tr>
+                            <th>{% trans "PO Number" %}</th>
+                            <th>{% trans "Supplier" %}</th>
+                            <th>{% trans "Order Date" %}</th>
+                            <th>{% trans "Total Amount" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ order.po_number }}</td>
+                            <td>{{ order.supplier.name }}</td>
+                            <td>{{ order.order_date }}</td>
+                            <td>{{ order.total_amount }}</td>
+                            <td>
+                                {% if order.status == 'DRAFT' %}
+                                    <span class="badge bg-secondary">{{ order.get_status_display }}</span>
+                                {% elif order.status == 'APPROVED' %}
+                                    <span class="badge bg-info">{{ order.get_status_display }}</span>
+                                {% elif order.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">{{ order.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex order-actions">
+                                    <a href="{% url 'inventory:purchase_order_update' order.pk %}" class="text-primary bg-light-primary border-0"><i class='bx bxs-edit'></i></a>
+                                    <a href="{% url 'inventory:purchase_order_delete' order.pk %}" class="ms-3 text-danger bg-light-danger border-0"><i class='bx bxs-trash'></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {% include 'includes/datatable_scripts.html' %}
+{% endblock %}
+
+{% block extra_css %}
+    {% include 'includes/datatable_styles.html' %}
+{% endblock %}
