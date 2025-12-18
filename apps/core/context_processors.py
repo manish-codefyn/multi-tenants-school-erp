@@ -176,15 +176,38 @@ def user_permissions(request):
             context['can_add_users'] = tenant.get_user_count() < tenant.max_users
         
         # Add notifications count if notifications app exists
+        # Add notifications count if communications app exists
         try:
-            from apps.notifications.models import Notification
-            unread_notifications = Notification.objects.filter(
-                user=request.user, 
-                is_read=False
-            ).count()
-            context['unread_notifications'] = unread_notifications
-        except (ImportError, Exception):
-            context['unread_notifications'] = 0
+            from django.contrib.contenttypes.models import ContentType
+            from apps.communications.models import Communication
+            from django.db.models import Q
+            
+            user_type = ContentType.objects.get_for_model(request.user)
+            
+            # Base query for user notifications
+            user_notifications = Communication.objects.filter(
+                recipient_type=user_type,
+                recipient_id=request.user.id,
+                channel__channel_type__in=['IN_APP', 'PUSH'] # Include PUSH as they often appear in-app too
+            )
+            
+            # Count unread (not READ status)
+            unread_count = user_notifications.exclude(status='READ').count()
+            context['unread_notifications_count'] = unread_count
+            
+            # Get latest 5 unread/recent notifications for header
+            # Prioritize unread, then recent
+            header_notifications = user_notifications.order_by(
+                'status', # 'DELIVERED/SENT' comes before 'READ'? No, depends on alpha. 
+                # Better to just order bycreated_at desc
+                '-created_at'
+            )[:5]
+            context['header_notifications'] = header_notifications
+            
+        except (ImportError, Exception) as e:
+            # print(f"Error fetching notifications: {e}") # Debug only
+            context['unread_notifications_count'] = 0
+            context['header_notifications'] = []
         
         # Add cart items count if store module is enabled
         if tenant.configuration and hasattr(tenant.configuration, 'enable_store'):
